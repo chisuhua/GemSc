@@ -20,12 +20,14 @@ set_target_properties(systemc PROPERTIES CXX_STANDARD 17)
 
 include_directories(
     include
+    include/core
     systemc-3.0.1/src
     external/json
 )
 
 file(GLOB_RECURSE SOURCE_FILES 
-    "src/*/*.cc" 
+    "src/core/*.cc" 
+    "src/utils/*.cc" 
     "src/main.cpp" 
 )
 

@@ -1,50 +1,28 @@
-# test/CMakeLists.txt
-enable_testing()
+cmake_minimum_required(VERSION 3.14)
+project(GemScTests)
 
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 查找 gtest
 find_package(GTest REQUIRED)
 
-include_directories(${GTEST_INCLUDE_DIRS} ../include)
+# 添加可执行文件
+add_executable(packet_pool_tests 
+    src/test_packet_pool.cc
+    # 添加您的所有源文件...
+    src/module_factory.cc
+)
 
-add_executable(test_valid_ready test_valid_ready.cc)
-target_link_libraries(test_valid_ready ${GTEST_LIBRARIES} gtest_main sim_core)
+# 包含路径
+target_include_directories(packet_pool_tests PRIVATE include ext)
 
-add_executable(test_valid_only test_valid_only.cc)
-target_link_libraries(test_valid_only ${GTEST_LIBRARIES} gtest_main sim_core)
-
-add_executable(test_credit_flow test_credit_flow.cc)
-target_link_libraries(test_credit_flow ${GTEST_LIBRARIES} gtest_main sim_core)
-
-add_executable(test_virtual_channel test_virtual_channel.cc)
-target_link_libraries(test_virtual_channel ${GTEST_LIBRARIES} gtest_main sim_core)
-
-add_executable(test_module_registration test_module_registration.cc)
-target_link_libraries(test_module_registration ${GTEST_LIBRARIES} gtest_main sim_core)
+# 链接 gtest
+target_link_libraries(packet_pool_tests GTest::GTest GTest::Main)
 
 
-add_executable(test_wildcard_matching test/test_wildcard_matching.cc)
-add_executable(test_regex_matching test/test_regex_matching.cc)
-add_executable(test_module_group test/test_module_group.cc)
-add_executable(test_json_includer test/test_json_includer.cc)
-add_executable(test_connection_resolution test/test_connection_resolution.cc)
-
-target_link_libraries(test_wildcard_matching ${GTEST_LIBRARIES} gtest_main sim_core)
-target_link_libraries(test_regex_matching ${GTEST_LIBRARIES} gtest_main sim_core)
-target_link_libraries(test_module_group ${GTEST_LIBRARIES} gtest_main sim_core)
-target_link_libraries(test_json_includer ${GTEST_LIBRARIES} gtest_main sim_core)
-target_link_libraries(test_connection_resolution ${GTEST_LIBRARIES} gtest_main sim_core)
-
-# 添加测试
-add_test(NAME WildcardMatching COMMAND test_wildcard_matching)
-add_test(NAME RegexMatching COMMAND test_regex_matching)
-add_test(NAME ModuleGroup COMMAND test_module_group)
-add_test(NAME JsonIncluder COMMAND test_json_includer)
-add_test(NAME ConnectionResolution COMMAND test_connection_resolution)
-
-add_test(NAME ModuleRegistrationTest COMMAND test_module_registration)
+add_executable(tlm_exts_test test_tlm_exts.cpp)
+target_link_libraries(tlm_exts_test GTest::gtest GTest::gtest_main pthread systemc)
 
 
-# 添加测试
-add_test(NAME ValidReadyTest COMMAND test_valid_ready)
-add_test(NAME ValidOnlyTest COMMAND test_valid_only)
-add_test(NAME CreditFlowTest COMMAND test_credit_flow)
-add_test(NAME VirtualChannelTest COMMAND test_virtual_channel)

@@ -44,6 +44,8 @@ public:
         return recvResp(pkt);
     }
 
+    virtual void tick() {} = 0;
+
     // 接收响应（由子类实现）
     virtual bool recvResp(Packet* pkt) = 0;
 

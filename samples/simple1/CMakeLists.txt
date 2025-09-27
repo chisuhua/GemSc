@@ -26,7 +26,7 @@ endif()
 
 # 定义共享库的公共源文件
 set(COMMON_SOURCES
-    ${CMAKE_SOURCE_DIR}/src/module_factory.cc
+    ${CMAKE_SOURCE_DIR}/src/core/module_factory.cc
 )
 
 # cpu_cluster 库

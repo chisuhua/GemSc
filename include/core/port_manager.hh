@@ -54,7 +54,7 @@ struct UpstreamPort : public SlavePort {
     }
 
     // 新增：处理输入虚拟通道中的数据包
-    void tick() {
+    void tick() override {
         for (auto& vc : input_vcs) {
             if (!vc.empty()) {
                 Packet* pkt = vc.front();
@@ -138,7 +138,7 @@ struct DownstreamPort : public MasterPort {
         }
     }
 
-    void tick() {
+    void tick() override {
         for (auto& vc : output_vcs) {
             vc.trySend(this);
         }
