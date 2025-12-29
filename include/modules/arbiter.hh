@@ -2,8 +2,9 @@
 #ifndef ARBITER_HH
 #define ARBITER_HH
 
-#include "../sim_object.hh"
-#include "../packet.hh"
+#include "../core/sim_object.hh"
+#include "../core/packet.hh"
+#include "../core/ext/packet_pool.hh"
 #include <queue>
 
 class Arbiter : public SimObject {
@@ -14,13 +15,13 @@ private:
 public:
     Arbiter(const std::string& n, EventQueue* eq) : SimObject(n, eq) {}
 
-    bool handleUpstreamRequest(Packet* pkt, int src_id) {
+    bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) override {
         req_queue.push({pkt, src_id});
         return true;
     }
 
-    bool handleDownstreamResponse(Packet* pkt, int src_id) {
-        delete pkt;
+    bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) override {
+        PacketPool::get().release(pkt);
         return true;
     }
 
@@ -35,8 +36,6 @@ public:
                 } else {
                     req_queue.push({pkt, src_id});
                 }
-            } else {
-                delete pkt;
             }
         }
     }

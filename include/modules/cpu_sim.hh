@@ -2,9 +2,9 @@
 #ifndef CPU_SIM_HH
 #define CPU_SIM_HH
 
-#include "../sim_core.hh"
-#include "../sim_object.hh"
-#include "../packet.hh"
+#include "../core/sim_object.hh"
+#include "../core/packet.hh"
+#include "../core/ext/packet_pool.hh"
 #include <unordered_map>
 #include <vector>
 #include <cstdlib>
@@ -23,10 +23,10 @@ public:
             uint64_t addr = pkt->original_req->payload->get_address();
             DPRINTF(CPU, "Received response for 0x%" PRIx64 "\n", addr);
             inflight_reqs.erase(addr);
-            delete pkt;
+            PacketPool::get().release(pkt);
             return true;
         }
-        delete pkt;
+        PacketPool::get().release(pkt);
         return false;
     }
 
@@ -41,7 +41,10 @@ public:
             trans->set_data_length(4);
             trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-            Packet* pkt = new Packet(trans, event_queue->getCurrentCycle(), PKT_REQ_READ);
+            Packet* pkt = PacketPool::get().acquire();
+            pkt->payload = trans;
+            pkt->src_cycle = event_queue->getCurrentCycle();
+            pkt->type = PKT_REQ;
             MasterPort* port = pm.getDownstreamPorts()[next_addr % pm.getDownstreamPorts().size()];
             pkt->vc_id = 0; // 设置VC ID
 
@@ -50,7 +53,7 @@ public:
                 DPRINTF(CPU, "Sent to downstream[%zu]\n", (next_addr % pm.getDownstreamPorts().size()));
                 next_addr += 4;
             } else {
-                delete pkt;
+                PacketPool::get().release(pkt);
             }
         }
     }

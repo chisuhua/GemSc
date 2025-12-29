@@ -2,8 +2,9 @@
 #ifndef MEMORY_SIM_HH
 #define MEMORY_SIM_HH
 
-#include "../sim_object.hh"
-#include "../packet.hh"
+#include "../core/sim_object.hh"
+#include "../core/packet.hh"
+#include "../core/ext/packet_pool.hh"
 
 class MemorySim : public SimObject {
 public:
@@ -11,7 +12,10 @@ public:
 
     bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) override {
         pkt->payload->set_response_status(tlm::TLM_OK_RESPONSE);
-        Packet* resp = new Packet(pkt->payload, event_queue->getCurrentCycle(), PKT_RESP);
+        Packet* resp = PacketPool::get().acquire();
+        resp->payload = pkt->payload;
+        resp->src_cycle = event_queue->getCurrentCycle();
+        resp->type = PKT_RESP;
         resp->original_req = pkt;
         resp->vc_id = pkt->vc_id; // 保持相同的VC
 
@@ -19,7 +23,6 @@ public:
             getPortManager().getUpstreamPorts()[src_id]->sendResp(resp);
         }), 100);
 
-        delete pkt;
         DPRINTF(MEM, "Received request, responding in 100 cycles\n");
         return true;
     }

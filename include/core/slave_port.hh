@@ -46,7 +46,7 @@ public:
     // 接收请求（由子类实现）
     virtual bool recvReq(Packet* pkt) = 0;
 
-    virtual void tick() {} = 0;
+    virtual void tick() = 0;
 
     // 发送响应
     bool sendResp(Packet* pkt) {

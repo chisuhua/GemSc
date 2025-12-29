@@ -26,8 +26,7 @@ int main(int argc, char* argv[]) {
 
 
     // 加载配置文件
-    //json config = loadConfig(argv[1]);
-    json config = JsonIncluder::loadAndInclude("configs/base.json");
+    json config = JsonIncluder::loadAndInclude(argv[1]);
 
     // 构建系统
     ModuleFactory factory(&eq);

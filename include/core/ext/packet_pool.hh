@@ -92,41 +92,8 @@ public:
         return pkt;
     }
 
-    // --- 便捷工厂方法 ---
-    /**
-     * @brief 创建一个新的请求包
-     * 
-     * @param src_cycle 请求发起的周期
-     * @param stream_id 流ID
-     * @param seq_num 序列号
-     * @return std::unique_ptr<Packet> 返回一个智能指针，移交所有权
-     */
-    std::unique_ptr<Packet> createRequest(uint64_t src_cycle, uint64_t stream_id, uint64_t seq_num) {
-        auto pkt = std::unique_ptr<Packet>(acquire());
-        pkt->src_cycle = src_cycle;
-        pkt->stream_id = stream_id;
-        pkt->seq_num = seq_num;
-        pkt->type = PKT_REQ;
-        pkt->original_req = pkt.get(); // 自身就是原始请求
-        add_ref(pkt.get()); // 增加自身引用
-        return pkt;
-    }
-
-    /**
-     * @brief 创建一个新的响应包
-     * 
-     * @param req_pkt 对应的请求包
-     * @return std::unique_ptr<Packet> 返回一个智能指针，移交所有权
-     */
-    std::unique_ptr<Packet> createResponse(const Packet* req_pkt) {
-        auto resp_pkt = std::unique_ptr<Packet>(acquire());
-        resp_pkt->type = PKT_RESP;
-        resp_pkt->stream_id = req_pkt->stream_id;
-        resp_pkt->seq_num = req_pkt->seq_num;
-        resp_pkt->original_req = const_cast<Packet*>(req_pkt); // 设置原始请求
-        add_ref(resp_pkt->original_req); // 增加对原始请求的引用
-        return resp_pkt;
-    }
+    // --- 便捷工厂方法已移除，因为返回 std::unique_ptr 会导致析构问题 ---
+    // 使用 acquire() 和手动设置字段代替
 
     // --- 释放资源 ---
     void release(Packet* pkt) {

@@ -85,7 +85,6 @@ struct OutputVC {
         Packet* pkt = buffer.front();
         if (port->sendReq(pkt)) {
             buffer.pop();
-            delete pkt;
             stats.forwarded++;
             return true;
         }

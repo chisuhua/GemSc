@@ -37,7 +37,6 @@ struct UpstreamPort : public SlavePort {
         int vc_id = pkt->vc_id;
         if (vc_id < 0 || vc_id >= (int)input_vcs.size()) {
             DPRINTF(VC, "[%s] Invalid VC ID %d\n", owner->getName().c_str(), vc_id);
-            delete pkt;
             return false;
         }
 
@@ -48,7 +47,6 @@ struct UpstreamPort : public SlavePort {
         } else {
             DPRINTF(VC, "[%s] VC%d buffer full! Backpressure\n", owner->getName().c_str(), vc_id);
             input_vcs[vc_id].stats.dropped++;
-            delete pkt;
             return false;
         }
     }
@@ -106,7 +104,6 @@ struct DownstreamPort : public MasterPort {
     bool sendReq(Packet* pkt) override {
         int vc_id = pkt->vc_id;
         if (vc_id < 0 || vc_id >= (int)output_vcs.size()) {
-            delete pkt;
             return false;
         }
 
@@ -118,7 +115,6 @@ struct DownstreamPort : public MasterPort {
             } else {
                 DPRINTF(VC, "[%s] VC%d full, dropped\n", owner->getName().c_str(), vc_id);
                 vc.stats.dropped++;
-                delete pkt;
                 return false;
             }
         }
@@ -133,7 +129,6 @@ struct DownstreamPort : public MasterPort {
             return true;
         } else {
             vc.stats.dropped++;
-            delete pkt;
             return false;
         }
     }

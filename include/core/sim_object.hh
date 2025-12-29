@@ -49,14 +49,12 @@ public:
     // 更新函数签名，增加 label 参数
     virtual bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) {
         DPRINTF(MODULE, "[WARNING] Unhandled downstream response in %s\n", name.c_str());
-        delete pkt;
         return false;
     }
     
     // 更新函数签名，增加 label 参数
     virtual bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) {
         DPRINTF(MODULE, "[WARNING] Unhandled upstream request in %s\n", name.c_str());
-        delete pkt;
         return false;
     }
 };

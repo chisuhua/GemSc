@@ -2,8 +2,9 @@
 #ifndef TRAFFIC_GEN_HH
 #define TRAFFIC_GEN_HH
 
-#include "../sim_object.hh"
-#include "../packet.hh"
+#include "../core/sim_object.hh"
+#include "../core/packet.hh"
+#include "../core/ext/packet_pool.hh"
 #include <vector>
 #include <random>
 
@@ -46,13 +47,14 @@ public:
     }
 
     // 回调函数：处理响应
-    bool handleDownstreamResponse(Packet* pkt, int src_id) {
+    bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) override {
         if (pkt->isResponse()) {
             DPRINTF(TG, "Received response for 0x%" PRIx64 "\n", pkt->payload->get_address());
             completed++;
-            delete pkt;
+            PacketPool::get().release(pkt);
             return true;
         }
+        PacketPool::get().release(pkt);
         return false;
     }
 
@@ -96,15 +98,17 @@ private:
         trans->set_data_length(4);
         trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-        Packet* pkt = new Packet(trans, event_queue->getCurrentCycle(), 
-                                is_write ? PKT_REQ_WRITE : PKT_REQ_READ);
+        Packet* pkt = PacketPool::get().acquire();
+        pkt->payload = trans;
+        pkt->src_cycle = event_queue->getCurrentCycle();
+        pkt->type = is_write ? PKT_REQ : PKT_REQ;
 
         MasterPort* port = getPortManager().getDownstreamPorts()[0];
         if (port->sendReq(pkt)) {
             DPRINTF(TG, "Generated request to 0x%" PRIx64 "%s\n", 
                     trans->get_address(), is_write ? " (write)" : "");
         } else {
-            delete pkt;
+            PacketPool::get().release(pkt);
         }
     }
 };

@@ -2,8 +2,9 @@
 #ifndef CROSSBAR_HH
 #define CROSSBAR_HH
 
-#include "../sim_object.hh"
-#include "../packet.hh"
+#include "../core/sim_object.hh"
+#include "../core/packet.hh"
+#include "../core/ext/packet_pool.hh"
 #include <queue>
 
 class Crossbar : public SimObject {
@@ -21,13 +22,13 @@ public:
     Crossbar(const std::string& n, EventQueue* eq) : SimObject(n, eq) {}
 
     // 回调函数（由 UpstreamPort<Owner> 调用）
-    bool handleUpstreamRequest(Packet* pkt, int src_id) {
+    bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) override {
         req_queue.push({pkt, src_id});
         return true;
     }
 
-    bool handleDownstreamResponse(Packet* pkt, int src_id) {
-        delete pkt;
+    bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) override {
+        PacketPool::get().release(pkt);
         return true;
     }
 
@@ -44,7 +45,8 @@ public:
                     req_queue.push({pkt, src_id});  // 重试
                 }
             } else {
-                delete pkt;
+                // 如果没有可用的下游端口，需要释放这个包
+                PacketPool::get().release(pkt);
             }
         }
     }

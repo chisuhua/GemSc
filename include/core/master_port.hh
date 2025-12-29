@@ -28,7 +28,6 @@ protected:
             }
         } else if (pkt->isCredit()) {
             stats.credit_received++;
-            stats.credit_value += pkt->credits;
         }
     }
 
@@ -44,7 +43,7 @@ public:
         return recvResp(pkt);
     }
 
-    virtual void tick() {} = 0;
+    virtual void tick() = 0;
 
     // 接收响应（由子类实现）
     virtual bool recvResp(Packet* pkt) = 0;

@@ -2,8 +2,9 @@
 #ifndef ROUTER_HH
 #define ROUTER_HH
 
-#include "../sim_object.hh"
-#include "../packet.hh"
+#include "../core/sim_object.hh"
+#include "../core/packet.hh"
+#include "../core/ext/packet_pool.hh"
 
 class Router : public SimObject {
 private:
@@ -16,23 +17,23 @@ private:
 public:
     Router(const std::string& n, EventQueue* eq) : SimObject(n, eq) {}
 
-    bool handleUpstreamRequest(Packet* pkt, int src_id) {
+    bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) override {
         int dst = routeByAddress(pkt->payload->get_address());
         auto& pm = getPortManager();
         if (dst < (int)pm.getDownstreamPorts().size()) {
             pm.getDownstreamPorts()[dst]->sendReq(pkt);
             DPRINTF(ROUTER, "[%s] Route 0x%" PRIx64 " → out[%d]\n", name.c_str(), pkt->payload->get_address(), dst);
         } else {
-            delete pkt;
+            PacketPool::get().release(pkt);
         }
         return true;
     }
 
-    bool handleDownstreamResponse(Packet* pkt, int src_id) {
+    bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) override {
         if (pkt->original_req && src_id < (int)getPortManager().getUpstreamPorts().size()) {
             getPortManager().getUpstreamPorts()[src_id]->sendResp(pkt);
         } else {
-            delete pkt;
+            PacketPool::get().release(pkt);
         }
         return true;
     }

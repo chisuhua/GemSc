@@ -2,7 +2,7 @@
 #ifndef CPU_CLUSTER_HH
 #define CPU_CLUSTER_HH
 
-#include "../sim_module.hh"
+#include "../core/sim_module.hh"
 
 // CpuCluster 是一个具体的 SimModule 实现
 class CpuCluster : public SimModule {
