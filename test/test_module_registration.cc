@@ -1,6 +1,7 @@
 // test/test_module_registration.cc
-#include <gtest/gtest.h>
+#include "catch_amalgamated.hpp"
 #include "../include/module_factory.hh"
+#include "../include/event_queue.hh"
 
 // 测试专用 Mock 模块
 class TestModuleA : public SimObject {
@@ -15,61 +16,68 @@ public:
     void tick() override {}
 };
 
-TEST(ModuleRegistrationTest, RegisterAndUnregisterSingleType) {
-    // 注册
-    ModuleFactory::registerType<TestModuleA>("TestModuleA");
-    EXPECT_EQ(ModuleFactory::getRegisteredTypes().size(), 1);
-
-    // 注销
-    bool success = ModuleFactory::unregisterType("TestModuleA");
-    EXPECT_TRUE(success);
-    EXPECT_EQ(ModuleFactory::getRegisteredTypes().size(), 0);
-
-    // 再次注销应返回 false
-    success = ModuleFactory::unregisterType("TestModuleA");
-    EXPECT_FALSE(success);
-}
-
-TEST(ModuleRegistrationTest, ClearAllTypes) {
-    ModuleFactory::registerType<TestModuleA>("TestModuleA");
-    ModuleFactory::registerType<TestModuleB>("TestModuleB");
-
-    EXPECT_EQ(ModuleFactory::getRegisteredTypes().size(), 2);
-
-    ModuleFactory::clearAllTypes();
-
-    EXPECT_EQ(ModuleFactory::getRegisteredTypes().size(), 0);
-}
-
-TEST(ModuleRegistrationTest, InstantiateAfterRegistration) {
+TEST_CASE("Module Registration and Instantiation Tests", "[module][factory]") {
     EventQueue eq;
-    ModuleFactory::registerType<TestModuleA>("TestModuleA");
+    ModuleFactory::clearAllTypes(); // 确保测试开始前是干净的
 
-    json config = R"({
-        "modules": [
-            { "name": "inst0", "type": "TestModuleA" }
-        ],
-        "connections": []
-    })"_json;
+    SECTION("Register and unregister single module type") {
+        // 注册
+        ModuleFactory::registerType<TestModuleA>("TestModuleA");
+        REQUIRE(ModuleFactory::getRegisteredTypes().size() == 1);
 
-    ModuleFactory factory(&eq);
-    factory.instantiateAll(config);
+        // 验证注册的类型存在
+        auto types = ModuleFactory::getRegisteredTypes();
+        REQUIRE(std::find(types.begin(), types.end(), "TestModuleA") != types.end());
 
-    SimObject* obj = factory.getInstance("inst0");
-    ASSERT_NE(obj, nullptr);
-    EXPECT_EQ(obj->getName(), "inst0");
+        // 注销
+        bool success = ModuleFactory::unregisterType("TestModuleA");
+        REQUIRE(success == true);
+        REQUIRE(ModuleFactory::getRegisteredTypes().size() == 0);
 
-    // 清理
-    ModuleFactory::clearAllTypes();
-}
+        // 再次注销应返回 false
+        success = ModuleFactory::unregisterType("TestModuleA");
+        REQUIRE(success == false);
+    }
 
-TEST(ModuleRegistrationTest, IsolationBetweenTests) {
-    // 测试前：应为空
-    EXPECT_EQ(ModuleFactory::getRegisteredTypes().size(), 0);
+    SECTION("Register multiple types and clear all") {
+        ModuleFactory::registerType<TestModuleA>("TestModuleA");
+        ModuleFactory::registerType<TestModuleB>("TestModuleB");
 
-    ModuleFactory::registerType<TestModuleA>("TestModuleA");
-    EXPECT_EQ(ModuleFactory::getRegisteredTypes().size(), 1);
+        REQUIRE(ModuleFactory::getRegisteredTypes().size() == 2);
 
-    // 测试结束时自动清理（或手动）
+        ModuleFactory::clearAllTypes();
+
+        REQUIRE(ModuleFactory::getRegisteredTypes().size() == 0);
+    }
+
+    SECTION("Instantiate module after registration") {
+        ModuleFactory::registerType<TestModuleA>("TestModuleA");
+
+        json config = R"({
+            "modules": [
+                { "name": "inst0", "type": "TestModuleA" }
+            ],
+            "connections": []
+        })"_json;
+
+        ModuleFactory factory(&eq);
+        REQUIRE_NOTHROW(factory.instantiateAll(config));
+
+        SimObject* obj = factory.getInstance("inst0");
+        REQUIRE(obj != nullptr);
+        REQUIRE(obj->getName() == "inst0");
+    }
+
+    SECTION("Test isolation - initial state should be clean") {
+        // 测试开始时应该是干净的
+        REQUIRE(ModuleFactory::getRegisteredTypes().size() == 0);
+
+        ModuleFactory::registerType<TestModuleA>("TestModuleA");
+        REQUIRE(ModuleFactory::getRegisteredTypes().size() == 1);
+
+        // 测试结束时会被自动清理（SECTION 结束作用域）
+    }
+
+    // 确保清理
     ModuleFactory::clearAllTypes();
 }
