@@ -76,7 +76,7 @@ PortPair* pair = new PortPair(port_a, port_b);
 | **Req: CPU → Cache → Memory** | `cpu.out_port->send(req)` → `cache.recv(req)` → `memory.recv(req)` |
 | **Resp: Memory → Cache → CPU** | `memory.send(resp)` → `cache.recv(resp)` → `cpu.out_port->recv(resp)` |
 
-> ✅ `send()` 的本质是“触发对端的 `recv()`”。
+> ✅ `send()` 的本质是"触发对端的 `recv()`"。
 
 ---
 
@@ -132,7 +132,7 @@ make
 ```
 
 输出：
-```text
+```
 [CPU] Sent request to 0x1000
 [CACHE] Forwarded request to downstream
 [MEM] Received request, will respond in 100 cycles
@@ -208,7 +208,7 @@ DPRINTF(CPU, "Sent request to 0x%" PRIx64 "\n", addr);
 ```
 
 输出格式：
-```text
+```
 [CPU] Sent request to 0x1000
 ```
 
@@ -218,7 +218,7 @@ DPRINTF(CPU, "Sent request to 0x%" PRIx64 "\n", addr);
 
 ## 📦 依赖说明
 
-- **C++17** 编译器（g++-7+, clang++-6+）
+- **C++20** 编译器（支持C++20特性的g++-10+, clang++-12+）
 - **nlohmann/json**（单头文件，已包含在 `external/json/`）
 - 无需安装 SystemC，使用 `tlm_fake.hh` 替代
 
