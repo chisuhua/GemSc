@@ -1,8 +1,11 @@
 // test/test_debug_log_system.cc
 #include "catch_amalgamated.hpp"
-#include "../include/core/sim_core.hh"
-#include "../include/sim_object.hh"
-#include "../include/packet.hh"
+#include "core/sim_core.hh"
+#include "core/sim_object.hh"
+#include "core/packet.hh"
+#include "core/packet_pool.hh"
+#include "core/event_queue.hh"
+#include "tlm.h"
 #include <iostream>
 #include <sstream>
 
@@ -14,14 +17,16 @@ public:
     bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) {
         // 触发调试输出
         DPRINTF(TEST, "[%s] Handling upstream request\n", getName().c_str());
-        delete pkt;
+        // 不再直接delete pkt，因为Packet的析构函数是私有的
+        // 应该由PacketPool或专门的管理类来处理
         return true;
     }
 
     bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) {
         // 触发调试输出
         DPRINTF(TEST, "[%s] Handling downstream response\n", getName().c_str());
-        delete pkt;
+        // 不再直接delete pkt，因为Packet的析构函数是私有的
+        // 应该由PacketPool或专门的管理类来处理
         return true;
     }
 
@@ -42,9 +47,15 @@ TEST_CASE("Debug Log System Tests", "[debug][log][dprintf]") {
         auto* payload = new tlm::tlm_generic_payload();
         payload->set_command(tlm::TLM_READ_COMMAND);
         payload->set_address(0x1000);
-        Packet* pkt = new Packet(payload, eq.getCurrentCycle(), PKT_REQ_READ);
+        Packet* pkt = PacketPool::get().acquire();
+        pkt->payload = payload;
+        pkt->src_cycle = eq.getCurrentCycle();
+        pkt->type = PKT_REQ;
         
         REQUIRE_NOTHROW(module.handleUpstreamRequest(pkt, 0, "input"));
+        
+        // 释放Packet
+        PacketPool::get().release(pkt);
         
         // 如果能执行到这里，说明宏没有导致崩溃
         REQUIRE(true);
@@ -54,9 +65,9 @@ TEST_CASE("Debug Log System Tests", "[debug][log][dprintf]") {
         DebugTestModule module("consistent_test", &eq);
         
         // 验证不同调试类别都能正常工作
-        REQUIRE_NOTHROW(DPRINTF(CPU, "[%s] CPU event\n", module.getName().c_str()));
-        REQUIRE_NOTHROW(DPRINTF(MEM, "[%s] Memory event\n", module.getName().c_str()));
-        REQUIRE_NOTHROW(DPRINTF(CACHE, "[%s] Cache event\n", module.getName().c_str()));
+        DPRINTF(CPU, "[%s] CPU event\n", module.getName().c_str());
+        DPRINTF(MEM, "[%s] Memory event\n", module.getName().c_str());
+        DPRINTF(CACHE, "[%s] Cache event\n", module.getName().c_str());
         
         REQUIRE(true);
     }
@@ -78,9 +89,15 @@ TEST_CASE("Debug Log System Tests", "[debug][log][dprintf]") {
         auto* payload = new tlm::tlm_generic_payload();
         payload->set_command(tlm::TLM_READ_COMMAND);
         payload->set_address(0x2000);
-        Packet* pkt = new Packet(payload, eq.getCurrentCycle(), PKT_REQ_READ);
+        Packet* pkt = PacketPool::get().acquire();
+        pkt->payload = payload;
+        pkt->src_cycle = eq.getCurrentCycle();
+        pkt->type = PKT_REQ;
         
         REQUIRE_NOTHROW(consumer.handleUpstreamRequest(pkt, 0, "input"));
+        
+        // 释放Packet
+        PacketPool::get().release(pkt);
         
         REQUIRE(true);
     }
@@ -91,14 +108,26 @@ TEST_CASE("Debug Log System Tests", "[debug][log][dprintf]") {
         // 测试读请求
         auto* read_payload = new tlm::tlm_generic_payload();
         read_payload->set_command(tlm::TLM_READ_COMMAND);
-        Packet* read_pkt = new Packet(read_payload, eq.getCurrentCycle(), PKT_REQ_READ);
+        Packet* read_pkt = PacketPool::get().acquire();
+        read_pkt->payload = read_payload;
+        read_pkt->src_cycle = eq.getCurrentCycle();
+        read_pkt->type = PKT_REQ;
         REQUIRE_NOTHROW(module.handleUpstreamRequest(read_pkt, 0, "input"));
+        
+        // 释放Packet
+        PacketPool::get().release(read_pkt);
         
         // 测试写请求
         auto* write_payload = new tlm::tlm_generic_payload();
         write_payload->set_command(tlm::TLM_WRITE_COMMAND);
-        Packet* write_pkt = new Packet(write_payload, eq.getCurrentCycle(), PKT_REQ_WRITE);
+        Packet* write_pkt = PacketPool::get().acquire();
+        write_pkt->payload = write_payload;
+        write_pkt->src_cycle = eq.getCurrentCycle();
+        write_pkt->type = PKT_REQ;
         REQUIRE_NOTHROW(module.handleUpstreamRequest(write_pkt, 0, "input"));
+        
+        // 释放Packet
+        PacketPool::get().release(write_pkt);
         
         REQUIRE(true);
     }

@@ -1,4 +1,7 @@
-TEST(LatencyTest, InjectedDelayPropagates) {
+#include "catch_amalgamated.hpp"
+#include "mock_modules.hh"
+
+TEST_CASE("LatencyTest InjectedDelayPropagates", "[latency][injection]") {
     EventQueue eq;
     MockProducer producer("producer", &eq);
     MockConsumer consumer("consumer", &eq);
@@ -21,9 +24,9 @@ TEST(LatencyTest, InjectedDelayPropagates) {
 
     eq.run(110);
 
-    ASSERT_FALSE(consumer.received_packets.empty());
+    REQUIRE_FALSE(consumer.received_packets.empty());
     Packet* pkt = consumer.received_packets[0];
 
-    EXPECT_EQ(pkt->src_cycle, send_cycle);
-    EXPECT_EQ(pkt->dst_cycle, send_cycle + 5);
+    REQUIRE(pkt->src_cycle == send_cycle);
+    REQUIRE(pkt->dst_cycle == send_cycle + 5);
 }

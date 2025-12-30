@@ -1,8 +1,8 @@
 // test/test_response_path.cc
-#include <gtest/gtest.h>
+#include "catch_amalgamated.hpp"
 #include "mock_modules.hh"
 
-TEST(ResponsePathTest, RequestReceivedByConsumer) {
+TEST_CASE("ResponsePathTest RequestReceivedByConsumer", "[response][path]") {
     EventQueue eq;
     MockProducer producer("producer", &eq);
     MockConsumer consumer("consumer", &eq);
@@ -19,6 +19,6 @@ TEST(ResponsePathTest, RequestReceivedByConsumer) {
     producer.sendPacket();
     eq.run(1);
 
-    EXPECT_EQ(consumer.received_packets.size(), 1);
-    EXPECT_EQ(consumer.received_packets[0]->seq_num, 0);
+    REQUIRE(consumer.received_packets.size() == 1);
+    REQUIRE(consumer.received_packets[0]->seq_num == 0);
 }

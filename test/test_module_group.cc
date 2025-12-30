@@ -1,23 +1,23 @@
 // test/test_module_group.cc
-#include <gtest/gtest.h>
-#include "../include/utils/module_group.hh"
+#include "catch_amalgamated.hpp"
+#include "utils/module_group.hh"
 
-TEST(ModuleGroupTest, DefineAndResolve) {
+TEST_CASE("ModuleGroupTest DefineAndResolve", "[module][group]") {
     std::vector<std::string> members = {"cpu0", "cpu1", "cpu2"};
     ModuleGroup::define("cpus", members);
 
     auto resolved = ModuleGroup::getMembers("cpus");
-    EXPECT_EQ(resolved.size(), 3);
-    EXPECT_EQ(resolved[0], "cpu0");
+    REQUIRE(resolved.size() == 3);
+    REQUIRE(resolved[0] == "cpu0");
 
     auto empty = ModuleGroup::getMembers("not_exist");
-    EXPECT_TRUE(empty.empty());
+    REQUIRE(empty.empty());
 }
 
-TEST(ModuleGroupTest, GroupReferenceParsing) {
-    EXPECT_TRUE(ModuleGroup::isGroupReference("group:cpus"));
-    EXPECT_FALSE(ModuleGroup::isGroupReference("cpus"));
+TEST_CASE("ModuleGroupTest GroupReferenceParsing", "[module][group]") {
+    REQUIRE(ModuleGroup::isGroupReference("group:cpus"));
+    REQUIRE_FALSE(ModuleGroup::isGroupReference("cpus"));
 
-    EXPECT_EQ(ModuleGroup::extractGroupName("group:cpus"), "cpus");
-    EXPECT_EQ(ModuleGroup::extractGroupName("group:"), "");
+    REQUIRE(ModuleGroup::extractGroupName("group:cpus") == "cpus");
+    REQUIRE(ModuleGroup::extractGroupName("group:") == "");
 }

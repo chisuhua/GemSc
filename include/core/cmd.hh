@@ -123,10 +123,5 @@ inline std::ostream& operator<<(std::ostream& os, const StreamUniqID& s) {
     return os;
 }
 
-// 👇 为简单类型 int32_t 也提供打印（虽然默认有，但统一风格）
-inline std::ostream& operator<<(std::ostream& os, int32_t val) {
-    os << val;
-    return os;
-}
 
 #endif // GEMSC_EXTENSIONS_COMMON_HH

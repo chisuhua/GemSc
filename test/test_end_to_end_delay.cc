@@ -1,23 +1,29 @@
 // test/test_end_to_end_delay.cc
-#include <gtest/gtest.h>
+#include "catch_amalgamated.hpp"
 #include "mock_modules.hh"
+#include "core/packet.hh"
+#include "core/packet_pool.hh"
 
 class DelayConsumer : public SimObject {
 public:
     explicit DelayConsumer(const std::string& n, EventQueue* eq) : SimObject(n, eq) {}
 
-    bool handleUpstreamRequest(Packet* pkt, int src_id, uint64_t current_cycle) {
-        event_queue->schedule(new LambdaEvent([this, pkt, current_cycle]() {
-            Packet* resp = new Packet(pkt->payload, current_cycle, PKT_RESP);
+    bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& label) {
+        event_queue->schedule(new LambdaEvent([this, pkt]() {
+            // 使用 PacketPool::acquire 而不是 alloc，因为alloc方法不存在
+            Packet* resp = PacketPool::get().acquire();
+            resp->payload = pkt->payload;
+            resp->src_cycle = pkt->src_cycle;
+            resp->type = PKT_RESP;
             resp->original_req = pkt;
 
             auto& pm = getPortManager();
             if (!pm.getUpstreamPorts().empty()) {
                 pm.getUpstreamPorts()[0]->sendResp(resp);
             } else {
-                delete resp;
+                PacketPool::get().release(resp);
             }
-            delete pkt;
+            PacketPool::get().release(pkt);
         }), 5);
 
         return true;
@@ -26,7 +32,7 @@ public:
     void tick() override {}
 };
 
-TEST(EndToEndDelayTest, FiveCycleProcessingPlusLinkLatency) {
+TEST_CASE("EndToEndDelayTest FiveCycleProcessingPlusLinkLatency", "[end][to][end][delay]") {
     EventQueue eq;
     MockProducer producer("producer", &eq);
     DelayConsumer consumer("consumer", &eq);
@@ -46,7 +52,7 @@ TEST(EndToEndDelayTest, FiveCycleProcessingPlusLinkLatency) {
 
     eq.run(120);
 
-    auto& stats = producer.getPortManager().getDownstreamStats();
-    EXPECT_EQ(stats.resp_count, 1);
-    EXPECT_EQ(stats.total_delay_cycles, 7);  // 2 + 5
+    auto stats = producer.getPortManager().getDownstreamStats();  // 修复：接收值而不是引用
+    REQUIRE(stats.resp_count == 1);
+    REQUIRE(stats.total_delay == 7);
 }

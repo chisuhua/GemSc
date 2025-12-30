@@ -1,8 +1,17 @@
 // test/test_valid_only.cc
-#include <gtest/gtest.h>
+#include "catch_amalgamated.hpp"
 #include "mock_modules.hh"
 
-TEST(ValidOnlyTest, LargeInputBuffer_NoBackpressure) {
+TEST_CASE("ValidOnly Basic", "[valid][only]") {
+    EventQueue eq;
+    MockSim module("test_module", &eq);
+
+    eq.run(5);
+
+    REQUIRE(module.getName() == "test_module");
+}
+
+TEST_CASE("ValidOnlyTest LargeInputBuffer_NoBackpressure", "[valid][only]") {
     EventQueue eq;
     MockProducer producer("producer", &eq);
     MockConsumer consumer("consumer", &eq);
@@ -21,7 +30,7 @@ TEST(ValidOnlyTest, LargeInputBuffer_NoBackpressure) {
         producer.sendPacket();
     }
 
-    EXPECT_EQ(producer.send_count, 100);
-    EXPECT_EQ(producer.fail_count, 0);
-    EXPECT_EQ(consumer.received_packets.size(), 100);
+    REQUIRE(producer.send_count == 100);
+    REQUIRE(producer.fail_count == 0);
+    REQUIRE(consumer.received_packets.size() == 100);
 }

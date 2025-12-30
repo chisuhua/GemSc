@@ -1,0 +1,10 @@
+{
+  "modules": [
+    { "name": "mem_a", "type": "MemorySim" },
+    { "name": "mem_b", "type": "MemorySim" }
+  ],
+  "inputs": [
+    { "internal":  "mem_a.input", "external": "request_in0"},
+    { "internal":  "mem_b.input", "external": "request_in1"}
+  ]
+}

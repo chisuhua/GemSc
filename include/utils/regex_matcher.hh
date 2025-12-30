@@ -5,7 +5,10 @@
 #include <string>
 #include <regex>
 #include <vector>
-#include "regex_matcher.hh"
+#include <nlohmann/json.hpp>
+#include "utils/wildcard.hh"
+
+using json = nlohmann::json;
 
 class RegexMatcher {
 public:
@@ -36,6 +39,7 @@ public:
         return Wildcard::match(pattern, str);
     }
 };
+
 // 工具函数：从列表中移除被排除的项
 inline std::vector<std::string> filterExcluded(
     const std::vector<std::string>& candidates,

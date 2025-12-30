@@ -1,19 +1,20 @@
 // test/test_config_loader.cc
 #include "catch_amalgamated.hpp"
-#include "../include/module_factory.hh"
-#include "../include/sim_object.hh"
-#include "../include/packet.hh"
+#include "core/module_factory.hh"
+#include "core/sim_object.hh"
+#include "core/packet.hh"
+#include "ext/packet_pool.hh"
 
 // Mock 模块用于测试
 class MockSim : public SimObject {
 public:
     explicit MockSim(const std::string& n, EventQueue* eq) : SimObject(n, eq) {}
 
-    bool handleUpstreamRequest(Packet* pkt, int src_id) {
+    bool handleUpstreamRequest(Packet* pkt, int src_id, const std::string& src_label) {
         return true;
     }
 
-    bool handleDownstreamResponse(Packet* pkt, int src_id) {
+    bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) {
         return true;
     }
 
@@ -22,8 +23,8 @@ public:
 
 // 为测试注册类型
 namespace {
-auto register_mock = []() {
-    ModuleFactory::registerType<MockSim>("MockSim");
+auto _register = []() {
+    ModuleFactory::registerObject<MockSim>("MockSim");
     return 0;
 }();
 }
@@ -105,11 +106,12 @@ TEST_CASE("Config Loader Tests", "[config][factory]") {
         CHECK(in_port->getDelay() == 0);  // 只有发送端注入
 
         // 验证连接可工作
-        Packet* pkt = new Packet(nullptr, 0, PKT_REQ_READ);
+        PacketPool& pool = PacketPool::get();
+        Packet* pkt = pool.acquire();
         pkt->vc_id = 0;
         bool sent = out_port->sendReq(pkt);
         CHECK(sent == true);  // 应能入队或直发
-        delete pkt;
+        pool.release(pkt);
     }
 
     SECTION("MultipleConnections_PerConnectionVCConfig") {

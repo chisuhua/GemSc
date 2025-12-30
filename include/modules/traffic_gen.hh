@@ -49,7 +49,7 @@ public:
     // 回调函数：处理响应
     bool handleDownstreamResponse(Packet* pkt, int src_id, const std::string& src_label) override {
         if (pkt->isResponse()) {
-            DPRINTF(TG, "Received response for 0x%" PRIx64 "\n", pkt->payload->get_address());
+            DPRINTF(TG, "Received response for 0x%llx\n", (unsigned long long)pkt->payload->get_address());
             completed++;
             PacketPool::get().release(pkt);
             return true;
@@ -105,8 +105,8 @@ private:
 
         MasterPort* port = getPortManager().getDownstreamPorts()[0];
         if (port->sendReq(pkt)) {
-            DPRINTF(TG, "Generated request to 0x%" PRIx64 "%s\n", 
-                    trans->get_address(), is_write ? " (write)" : "");
+            DPRINTF(TG, "Generated request to 0x%llx%s\n", 
+                    (unsigned long long)trans->get_address(), is_write ? " (write)" : "");
         } else {
             PacketPool::get().release(pkt);
         }

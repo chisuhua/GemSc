@@ -1,0 +1,19 @@
+{
+  "plugin" : ["libcpu_cluster.so", "libmem_cluster.so"],
+  "modules": [
+    { "name": "cpu_cluster", "type": "CPUCluster", "config": "cpu_cluster.json"},
+    { "name": "mem_cluster", "type": "MemCluster", "config": "mem.json"}
+  ],
+  "connections": [
+    { "src": "cpu_cluster.cache_request0", "dst": "mem_cluster.request_in0",
+      "input_buffer_sizes" : [8, 4], 
+      "output_buffer_sizes" : [0, 0],
+      "vc_priorities" : [0, 1]
+    },
+    { "src": "cpu_cluster.cache_request1", "dst": "mem_cluster.request_in1",
+      "input_buffer_size" : [8, 4], 
+      "output_buffer_size" : [0, 0],
+      "vc_priorities" : [0, 1]
+    }
+  ]
+}

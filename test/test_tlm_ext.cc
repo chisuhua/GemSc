@@ -2,7 +2,7 @@
 #include "catch_amalgamated.hpp"
 #include <tlm>
 #include <sstream>
-#include "mem_exts.hh"
+#include "ext/mem_exts.hh"
 
 // 辅助函数：捕获 print() 输出
 template<typename ExtType>

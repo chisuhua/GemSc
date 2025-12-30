@@ -1,0 +1,16 @@
+{
+  "modules": [
+    { "name": "cpu0", "type": "CPUSim" },
+    { "name": "cpu1", "type": "CPUSim" },
+    { "name": "cache", "type": "CacheSim" }
+  ],
+  "connections": [
+    { "src": "cpu0.port0", "dst": "cache.port_in0" },
+    { "src": "cpu1.port1", "dst": "cache.port_in1" }
+  ],
+  "outputs": [
+    { "internal":  "cache.downstream0", "external": "cache_request0"},
+    { "internal":  "cache.downstream1", "external": "cache_request1"}
+  ]
+}
+

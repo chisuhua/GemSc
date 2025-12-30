@@ -1,4 +1,8 @@
-TEST(LayoutStyleTest, ManualModeRequiresCoordinates) {
+#include "catch_amalgamated.hpp"
+#include "mock_modules.hh"
+#include "utils/topology_dumper.hh"
+
+TEST_CASE("LayoutStyleTest ManualModeRequiresCoordinates", "[layout][style]") {
     json config = R"({
         "layout": { "style": "manual" },
         "modules": [
@@ -16,7 +20,7 @@ TEST(LayoutStyleTest, ManualModeRequiresCoordinates) {
     // Assert content...
 }
 
-TEST(GroupPlacementTest, RadialPlacementCreatesCircle) {
+TEST_CASE("GroupPlacementTest RadialPlacementCreatesCircle", "[layout][style]") {
     json config = R"({
         "groups": {
             "ring": {

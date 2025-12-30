@@ -1,4 +1,3 @@
-
 enable_testing()
 
 set(CATCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -26,6 +25,14 @@ function(add_catch_test TEST_NAME)
     # 链接库（如果存在）
     if(TARGET systemc)
         target_link_libraries(${TEST_NAME} systemc)
+    endif()
+
+    # 链接核心库
+    target_link_libraries(${TEST_NAME} gemsc_core)
+
+    # 如果sc_main_obj库存在，也链接它
+    if(TARGET sc_main_obj)
+        target_link_libraries(${TEST_NAME} sc_main_obj)
     endif()
 
     # 注册为 CTest 测试
@@ -63,5 +70,3 @@ endforeach()
 
 # add_executable(tlm_exts_test test_tlm_exts.cpp)
 # target_link_libraries(tlm_exts_test GTest::gtest GTest::gtest_main pthread systemc)
-
-

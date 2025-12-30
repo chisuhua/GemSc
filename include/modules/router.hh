@@ -22,7 +22,7 @@ public:
         auto& pm = getPortManager();
         if (dst < (int)pm.getDownstreamPorts().size()) {
             pm.getDownstreamPorts()[dst]->sendReq(pkt);
-            DPRINTF(ROUTER, "[%s] Route 0x%" PRIx64 " → out[%d]\n", name.c_str(), pkt->payload->get_address(), dst);
+            DPRINTF(ROUTER, "[%s] Route 0x%llx → out[%d]\n", name.c_str(), (unsigned long long)pkt->payload->get_address(), dst);
         } else {
             PacketPool::get().release(pkt);
         }

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include "core/sim_core.hh"
 
 class ModuleGroup {
 private:

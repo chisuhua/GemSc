@@ -1,17 +1,17 @@
 // test/test_connection_resolution.cc
-#include <gtest/gtest.h>
-#include "../include/module_factory.hh"
+#include "catch_amalgamated.hpp"
+#include "core/module_factory.hh"
 #include "mock_modules.hh"
 
 // 注册 MockSim 类型
 namespace {
 auto _register = []() {
-    ModuleFactory::registerType<MockSim>("MockSim");
+    ModuleFactory::registerObject<MockSim>("MockSim");
     return 0;
 }();
 }
 
-TEST(ConnectionResolutionTest, WildcardConnection) {
+TEST_CASE("ConnectionResolutionTest WildcardConnection", "[connection][resolution]") {
     EventQueue eq;
 
     json config = R"({
@@ -29,13 +29,13 @@ TEST(ConnectionResolutionTest, WildcardConnection) {
     factory.instantiateAll(config);
 
     auto* l1 = factory.getInstance("l1");
-    ASSERT_NE(l1, nullptr);
+    REQUIRE(l1 != nullptr);
 
     const auto& upstream_ports = l1->getPortManager().getUpstreamPorts();
-    EXPECT_EQ(upstream_ports.size(), 2);  // cpu0 + cpu1
+    REQUIRE(upstream_ports.size() == 2);  // cpu0 + cpu1
 }
 
-TEST(ConnectionResolutionTest, RegexConnection) {
+TEST_CASE("ConnectionResolutionTest RegexConnection", "[connection][resolution]") {
     EventQueue eq;
 
     json config = R"({
@@ -55,10 +55,10 @@ TEST(ConnectionResolutionTest, RegexConnection) {
 
     auto* l1 = factory.getInstance("l1");
     const auto& upstream_ports = l1->getPortManager().getUpstreamPorts();
-    EXPECT_EQ(upstream_ports.size(), 2);  // cpu0 + cpu1
+    REQUIRE(upstream_ports.size() == 2);  // cpu0 + cpu1
 }
 
-TEST(ConnectionResolutionTest, ModuleGroupConnection) {
+TEST_CASE("ConnectionResolutionTest ModuleGroupConnection", "[connection][resolution]") {
     EventQueue eq;
 
     json config = R"({
@@ -80,10 +80,10 @@ TEST(ConnectionResolutionTest, ModuleGroupConnection) {
 
     auto* l1 = factory.getInstance("l1");
     const auto& upstream_ports = l1->getPortManager().getUpstreamPorts();
-    EXPECT_EQ(upstream_ports.size(), 2);
+    REQUIRE(upstream_ports.size() == 2);
 }
 
-TEST(ConnectionResolutionTest, ExcludeList) {
+TEST_CASE("ConnectionResolutionTest ExcludeList", "[connection][resolution]") {
     EventQueue eq;
 
     json config = R"({
@@ -107,5 +107,5 @@ TEST(ConnectionResolutionTest, ExcludeList) {
 
     auto* l1 = factory.getInstance("l1");
     const auto& upstream_ports = l1->getPortManager().getUpstreamPorts();
-    EXPECT_EQ(upstream_ports.size(), 1);  // 只有 cpu0
+    REQUIRE(upstream_ports.size() == 1);  // 只有 cpu0
 }
