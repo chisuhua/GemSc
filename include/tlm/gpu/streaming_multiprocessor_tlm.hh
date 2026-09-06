@@ -59,6 +59,20 @@ namespace tlm {
         }
         void set_stream_adapter(cpptlm::StreamAdapterBase* adapter) override;
 
+    // === SM 顶层 accessor (per Oracle 预审 Task 2.2 F-4) ===
+    // fetch_next_instr: 取 ring front + consume (封装, instr_ring_ 保持 private)
+    bool fetch_next_instr(cpptlm::gpu::InstrDescriptor& out) {
+        if (ring_count_ == 0) return false;
+        out = instr_ring_[ring_head_];
+        ring_head_ = (ring_head_ + 1) % 64;
+        --ring_count_;
+        return true;
+    }
+    // fu(): 返回 FetchUnitTLM 指针 (per Oracle F-2 P0 修复, 12 子模块唯一构造入口)
+    sm::FetchUnitTLM* fu() { return fu_.get(); }
+    // ring_count(): 返回当前 ring buffer 指令数 (per Oracle 测试断言)
+    uint32_t ring_count() const { return ring_count_; }
+
         // === 4 端口访问器 (GPUTLM 范式, per include/tlm/gpu/gpu_tlm.hh:177-189) ===
         // StreamAdapter::tick() 契约要求 ModuleT 提供 req_out()/resp_in() (master 方向)
         // + req_in()/resp_out() (slave 方向), 全部 4 方向 (per plan Task 1.1 v2 P0-1 修订)
@@ -99,18 +113,20 @@ namespace tlm {
         void shutdown() override {
         }
         int exe_once() override {
+            // Task 2.2 P1-2 (per Oracle 预审 Task 2.2 F-1 P0 修复):
+            // 取指/consume 下沉到 FetchUnitTLM.tick() (消除双消费者 bug)
+            // 行为等价: 1 cycle consume 一条, ScalarALU 真值仍调, completed_instr_ids_ 仍标记
             if (ring_count_ == 0)
                 return 0;
-            auto& desc = instr_ring_[ring_head_];
-            if (desc.pipe == cpptlm::gpu::PipeClass::kScalarALU) {
-                scalar_alu_->execute(desc);
-                // Task 1.4 P1-4: ScalarALU 完成后, 标记 instr_id 已完成 (per HSK-9 §3
-                // is_instruction_completed 协议)
-                completed_instr_ids_.insert(desc.instr_id);
+            fu_->tick();  // 取指 + consume (封装 via fetch_next_instr accessor)
+            // Task 2.2 P1-2: copy fetched_.instr_desc (per HSK-9 §3 buf 内存所有权: PTX-EMU 持有,
+            // SM 仅在调用期间浅拷贝; ScalarALU::execute 接受 non-const ref 需 copy)
+            auto d = fu_->fetched().instr_desc;
+            if (d.pipe == cpptlm::gpu::PipeClass::kScalarALU) {
+                scalar_alu_->execute(d);
+                // Task 1.4 P1-4: ScalarALU 完成后, 标记 instr_id 已完成
+                completed_instr_ids_.insert(d.instr_id);
             }
-            // ring buffer consume: 推进 head, 减 count
-            ring_head_ = (ring_head_ + 1) % 64;
-            --ring_count_;
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {

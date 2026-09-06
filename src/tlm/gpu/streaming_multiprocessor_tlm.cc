@@ -13,6 +13,21 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     // parent_ = this, ScalarALU 通过 parent_->get_scalar_reg / set_scalar_reg
     // 访问 SM 顶层 scalar_regs_ 真值源 (Task 1.1 interim, Task 2.11 迁移到 RegFileUnit)
     scalar_alu_ = std::make_unique<cpptlm::gpu::ScalarALU>(this);
+    // Task 2.2 P1-2: 构造 12 子模块 (per Oracle 预审 Task 2.2 F-2 P0 修复)
+    // 之前 12 子模块 unique_ptr 从未构造 (P0 blocker), 现在 make_unique 全集
+    fu_ = std::make_unique<sm::FetchUnitTLM>(name + ".fu", eq);
+    fu_->set_parent(this);  // Task 2.2 P1-2: 注入 parent (per Oracle F-2 P0)
+    du_ = std::make_unique<sm::DecodeUnitTLM>(name + ".du", eq);
+    iu_ = std::make_unique<sm::IssueUnitTLM>(name + ".iu", eq);
+    sa_ = std::make_unique<sm::ScalarALU>(name + ".sa", eq);
+    va_ = std::make_unique<sm::VectorALU>(name + ".va", eq);
+    mc_ = std::make_unique<sm::MatrixCore>(name + ".mc", eq);
+    sl_ = std::make_unique<sm::SIMTLane>(name + ".sl", eq);
+    lg_ = std::make_unique<sm::LsuGlobal>(name + ".lg", eq);
+    ll_ = std::make_unique<sm::LsuLDS>(name + ".ll", eq);
+    rf_ = std::make_unique<sm::RegFileUnit>(name + ".rf", eq);
+    wb_ = std::make_unique<sm::WritebackUnit>(name + ".wb", eq);
+    ht_ = std::make_unique<sm::HazardTracker>(name + ".ht", eq);
 }
 
 void StreamingMultiprocessorTLM::set_stream_adapter(cpptlm::StreamAdapterBase* adapter) {
