@@ -72,6 +72,8 @@ namespace tlm {
     sm::FetchUnitTLM* fu() { return fu_.get(); }
     // du(): 返回 DecodeUnitTLM 指针 (per Oracle 预审 Task 2.3 F-4 P1)
     sm::DecodeUnitTLM* du() { return du_.get(); }
+    // iu(): 返回 IssueUnitTLM 指针 (per Oracle 预审 Task 2.4 F-4 P1)
+    sm::IssueUnitTLM* iu() { return iu_.get(); }
     // ring_count(): 返回当前 ring buffer 指令数 (per Oracle 测试断言)
     uint32_t ring_count() const { return ring_count_; }
 
@@ -124,6 +126,9 @@ namespace tlm {
             // Task 2.3 P1-3: Decode 真值 (per Oracle Q4 A 策略, pipeline 推进 1 步)
             // 保持 auto d = fu_->fetched().instr_desc; 不动 (不改用 du_->decoded(), 纯拷贝零行为变化)
             du_->tick();  // 字段提取 (pipe + latency_class), 不 consume ring
+            // Task 2.4 P1-4: Issue 真值 (per Oracle Q4 A 策略, pipeline 推进 1 步)
+            // Round-robin warp 调度, 仍读 decoded (已 Decode, 不再 Decode, 不 consume ring)
+            iu_->tick();  // 调度 warp_id (1→2→3→0 wrap-around), 继承字段透传
             // Task 2.2 P1-2: copy fetched_.instr_desc (per HSK-9 §3 buf 内存所有权: PTX-EMU 持有,
             // SM 仅在调用期间浅拷贝; ScalarALU::execute 接受 non-const ref 需 copy)
             auto d = fu_->fetched().instr_desc;
