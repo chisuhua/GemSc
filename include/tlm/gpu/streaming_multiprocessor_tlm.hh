@@ -38,6 +38,7 @@
 #include "tlm/gpu/sm/writeback_unit_tlm.hh"    // Task 2.1 P1-1 拆分: 写回单元 stub
 #include "tlm/gpu/sm/hazard_tracker_tlm.hh"    // Task 2.1 P1-1 拆分: 冒险跟踪器 stub
 #include "tlm/gpu/sm/scalar_alu.hh" // Task 1.3 P1-3 ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU)
+#include "tlm/gpu/sm/vector_alu.hh" // Task 2.6 P1-6 VectorALU 真值 (独立 cpptlm::gpu::VectorALU)
 
 #include <array>
 #include <memory>
@@ -78,6 +79,10 @@ namespace tlm {
     sm::ScalarALU* sa() { return sa_.get(); }
     // scalar_alu(): 返回 cpptlm::gpu::ScalarALU 真值类指针 (per Oracle Q12 Q7)
     cpptlm::gpu::ScalarALU* scalar_alu() { return scalar_alu_.get(); }
+    // va(): 返回 VectorALU stub 指针 (per Oracle 预审 Task 2.6 F-4 P1)
+    sm::VectorALU* va() { return va_.get(); }
+    // vector_alu(): 返回 cpptlm::gpu::VectorALU 真值类指针 (va_ tick dispatch 目标)
+    cpptlm::gpu::VectorALU* vector_alu() { return vector_alu_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -140,6 +145,9 @@ namespace tlm {
             // Task 2.5 P1-5: 端口接线 — sa_ tick() 内部 pipe 判断 + dispatch 到 scalar_alu_ 真值
             // (per Oracle Q12: pipe 判断只驻留 sa_, exe_once 不得保留避免双 dispatch, Task 2.2 F-1 教训)
             sa_->tick();
+            // Task 2.6 P1-6: 端口接线 — va_ tick() 内部 pipe 判断 + dispatch 到 vector_alu_ 真值
+            // (per Oracle Q12 Q3 C 推荐: sa/va 并列, 各 pipe 判断, 读同一 fu()->fetched())
+            va_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
@@ -260,6 +268,10 @@ namespace tlm {
         // cpptlm::gpu::ScalarALU 独立真值类 (include/tlm/gpu/sm/scalar_alu.hh),
         // SM 顶层持 unique_ptr, exe_once() 调用其 execute() 处理 ring buffer 中 kScalarALU 指令
         std::unique_ptr<cpptlm::gpu::ScalarALU> scalar_alu_;
+        // === Task 2.6 P1-6 VectorALU 真值 (per plan, 镜像 ScalarALU 模式) ===
+        // cpptlm::gpu::VectorALU 独立真值类 (include/tlm/gpu/sm/vector_alu.hh),
+        // va_ tick() 内部 pipe 判断 + dispatch 到 vector_alu_->execute() 处理 kVectorALU 指令
+        std::unique_ptr<cpptlm::gpu::VectorALU> vector_alu_;
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)
         std::array<cpptlm::gpu::InstrDescriptor, 64> instr_ring_{};

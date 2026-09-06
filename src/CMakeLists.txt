@@ -53,6 +53,9 @@ set(CORE_SOURCES
     tlm/gpu/sm/decode_unit_tlm.cc
     tlm/gpu/sm/issue_unit_tlm.cc
     tlm/gpu/sm/scalar_alu_tlm.cc        # stub (NOT cpptlm::gpu::ScalarALU 真值)
+    tlm/gpu/sm/vector_alu_tlm.cc        # stub (NOT cpptlm::gpu::VectorALU 真值)
+    # SM Task 2.6 P1-6: VectorALU 真值类 (独立 cpptlm::gpu::VectorALU, VIADD.U8x4)
+    tlm/gpu/sm/vector_alu.cc
     tlm/gpu/sm/vector_alu_tlm.cc
     tlm/gpu/sm/matrix_core_tlm.cc
     tlm/gpu/sm/simt_lane_tlm.cc

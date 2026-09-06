@@ -23,7 +23,10 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     iu_->set_parent(this);  // Task 2.4 P1-4: 注入 parent (per Oracle F-2 P0 修复)
     sa_ = std::make_unique<sm::ScalarALU>(name + ".sa", eq);
     sa_->set_parent(this);  // Task 2.5 P1-5: 注入 parent (per Oracle F-2 P0 修复, 镜像 Task 2.3 du_ 模式)
+    // Task 2.6 P1-6: VectorALU 真值类 (镜像 cpptlm::gpu::ScalarALU, 持 SM 顶层 parent)
+    vector_alu_ = std::make_unique<cpptlm::gpu::VectorALU>(this);
     va_ = std::make_unique<sm::VectorALU>(name + ".va", eq);
+    va_->set_parent(this);  // Task 2.6 P1-6: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_ 模式)
     mc_ = std::make_unique<sm::MatrixCore>(name + ".mc", eq);
     sl_ = std::make_unique<sm::SIMTLane>(name + ".sl", eq);
     lg_ = std::make_unique<sm::LsuGlobal>(name + ".lg", eq);
