@@ -39,6 +39,7 @@
 #include "tlm/gpu/sm/hazard_tracker_tlm.hh"    // Task 2.1 P1-1 拆分: 冒险跟踪器 stub
 #include "tlm/gpu/sm/scalar_alu.hh" // Task 1.3 P1-3 ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU)
 #include "tlm/gpu/sm/vector_alu.hh" // Task 2.6 P1-6 VectorALU 真值 (独立 cpptlm::gpu::VectorALU)
+#include "tlm/gpu/sm/matrix_alu.hh" // Task 2.7 P1-7 MatrixCore stub (cpptlm::gpu::MatrixCore 真值推迟 Task 4.6)
 
 #include <array>
 #include <memory>
@@ -83,6 +84,10 @@ namespace tlm {
     sm::VectorALU* va() { return va_.get(); }
     // vector_alu(): 返回 cpptlm::gpu::VectorALU 真值类指针 (va_ tick dispatch 目标)
     cpptlm::gpu::VectorALU* vector_alu() { return vector_alu_.get(); }
+    // mc(): 返回 MatrixCore stub 指针 (per Oracle 预审 Task 2.7 F-4 P1)
+    sm::MatrixCore* mc() { return mc_.get(); }
+    // matrix_alu(): 返回 cpptlm::gpu::MatrixCore 真值类指针 (mc_ tick dispatch 目标)
+    cpptlm::gpu::MatrixCore* matrix_alu() { return matrix_alu_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -148,6 +153,9 @@ namespace tlm {
             // Task 2.6 P1-6: 端口接线 — va_ tick() 内部 pipe 判断 + dispatch 到 vector_alu_ 真值
             // (per Oracle Q12 Q3 C 推荐: sa/va 并列, 各 pipe 判断, 读同一 fu()->fetched())
             va_->tick();
+            // Task 2.7 P1-7: 端口接线 stub — mc_ tick() 内部 pipe 判断 + dispatch 到 matrix_alu_ stub
+            // (per Oracle Q12 Q3 C 推荐: sa/va/mc 并列, pipe 互斥, stub 阶段不标 completed 避免假完成)
+            mc_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
@@ -272,6 +280,11 @@ namespace tlm {
         // cpptlm::gpu::VectorALU 独立真值类 (include/tlm/gpu/sm/vector_alu.hh),
         // va_ tick() 内部 pipe 判断 + dispatch 到 vector_alu_->execute() 处理 kVectorALU 指令
         std::unique_ptr<cpptlm::gpu::VectorALU> vector_alu_;
+        // === Task 2.7 P1-7 MatrixCore stub (per plan, 真值推迟 Task 4.6) ===
+        // cpptlm::gpu::MatrixCore stub 真值类 (include/tlm/gpu/sm/matrix_alu.hh),
+        // mc_ tick() 内部 pipe 判断 + dispatch 到 matrix_alu_->execute() stub (return 0)
+        std::unique_ptr<cpptlm::gpu::MatrixCore> matrix_alu_;
+
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)
         std::array<cpptlm::gpu::InstrDescriptor, 64> instr_ring_{};

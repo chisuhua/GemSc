@@ -56,6 +56,8 @@ set(CORE_SOURCES
     tlm/gpu/sm/vector_alu_tlm.cc        # stub (NOT cpptlm::gpu::VectorALU 真值)
     # SM Task 2.6 P1-6: VectorALU 真值类 (独立 cpptlm::gpu::VectorALU, VIADD.U8x4)
     tlm/gpu/sm/vector_alu.cc
+    # SM Task 2.7 P1-7: MatrixCore stub 真值类 (独立 cpptlm::gpu::MatrixCore, 真值推迟 Task 4.6 MFMA)
+    tlm/gpu/sm/matrix_alu.cc
     tlm/gpu/sm/vector_alu_tlm.cc
     tlm/gpu/sm/matrix_core_tlm.cc
     tlm/gpu/sm/simt_lane_tlm.cc
