@@ -74,6 +74,14 @@ namespace tlm {
     sm::DecodeUnitTLM* du() { return du_.get(); }
     // iu(): 返回 IssueUnitTLM 指针 (per Oracle 预审 Task 2.4 F-4 P1)
     sm::IssueUnitTLM* iu() { return iu_.get(); }
+    // sa(): 返回 ScalarALU stub 指针 (per Oracle 预审 Task 2.5 Q6)
+    sm::ScalarALU* sa() { return sa_.get(); }
+    // scalar_alu(): 返回 cpptlm::gpu::ScalarALU 真值类指针 (per Oracle Q12 Q7)
+    cpptlm::gpu::ScalarALU* scalar_alu() { return scalar_alu_.get(); }
+    // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
+    void mark_completed(uint64_t instr_id) {
+        completed_instr_ids_.insert(instr_id);
+    }
     // ring_count(): 返回当前 ring buffer 指令数 (per Oracle 测试断言)
     uint32_t ring_count() const { return ring_count_; }
 
@@ -129,14 +137,9 @@ namespace tlm {
             // Task 2.4 P1-4: Issue 真值 (per Oracle Q4 A 策略, pipeline 推进 1 步)
             // Round-robin warp 调度, 仍读 decoded (已 Decode, 不再 Decode, 不 consume ring)
             iu_->tick();  // 调度 warp_id (1→2→3→0 wrap-around), 继承字段透传
-            // Task 2.2 P1-2: copy fetched_.instr_desc (per HSK-9 §3 buf 内存所有权: PTX-EMU 持有,
-            // SM 仅在调用期间浅拷贝; ScalarALU::execute 接受 non-const ref 需 copy)
-            auto d = fu_->fetched().instr_desc;
-            if (d.pipe == cpptlm::gpu::PipeClass::kScalarALU) {
-                scalar_alu_->execute(d);
-                // Task 1.4 P1-4: ScalarALU 完成后, 标记 instr_id 已完成
-                completed_instr_ids_.insert(d.instr_id);
-            }
+            // Task 2.5 P1-5: 端口接线 — sa_ tick() 内部 pipe 判断 + dispatch 到 scalar_alu_ 真值
+            // (per Oracle Q12: pipe 判断只驻留 sa_, exe_once 不得保留避免双 dispatch, Task 2.2 F-1 教训)
+            sa_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {

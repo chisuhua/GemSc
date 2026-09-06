@@ -22,6 +22,7 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     iu_ = std::make_unique<sm::IssueUnitTLM>(name + ".iu", eq);
     iu_->set_parent(this);  // Task 2.4 P1-4: 注入 parent (per Oracle F-2 P0 修复)
     sa_ = std::make_unique<sm::ScalarALU>(name + ".sa", eq);
+    sa_->set_parent(this);  // Task 2.5 P1-5: 注入 parent (per Oracle F-2 P0 修复, 镜像 Task 2.3 du_ 模式)
     va_ = std::make_unique<sm::VectorALU>(name + ".va", eq);
     mc_ = std::make_unique<sm::MatrixCore>(name + ".mc", eq);
     sl_ = std::make_unique<sm::SIMTLane>(name + ".sl", eq);
