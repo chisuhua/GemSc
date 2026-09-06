@@ -25,6 +25,18 @@
 #include "core/chstream_module.hh"
 #include "framework/stream_adapter.hh"
 #include "tlm/gpu/i_compute_device.hh"
+#include "tlm/gpu/sm/fetch_unit_tlm.hh"        // Task 2.1 P1-1 拆分: 取指单元 stub
+#include "tlm/gpu/sm/decode_unit_tlm.hh"       // Task 2.1 P1-1 拆分: 译码单元 stub
+#include "tlm/gpu/sm/issue_unit_tlm.hh"        // Task 2.1 P1-1 拆分: 发射单元 stub
+#include "tlm/gpu/sm/scalar_alu_tlm.hh"        // Task 2.1 P1-1 拆分: ScalarALU stub (NOT cpptlm::gpu::ScalarALU)
+#include "tlm/gpu/sm/vector_alu_tlm.hh"        // Task 2.1 P1-1 拆分: 向量 ALU stub
+#include "tlm/gpu/sm/matrix_core_tlm.hh"       // Task 2.1 P1-1 拆分: 矩阵核心 stub
+#include "tlm/gpu/sm/simt_lane_tlm.hh"         // Task 2.1 P1-1 拆分: SIMT lane stub
+#include "tlm/gpu/sm/lsu_global_tlm.hh"        // Task 2.1 P1-1 拆分: 全局内存 stub
+#include "tlm/gpu/sm/lsu_lds_tlm.hh"           // Task 2.1 P1-1 拆分: 共享内存 stub
+#include "tlm/gpu/sm/reg_file_unit_tlm.hh"     // Task 2.1 P1-1 拆分: 寄存器文件 stub (SM-owns-state §15.5.6)
+#include "tlm/gpu/sm/writeback_unit_tlm.hh"    // Task 2.1 P1-1 拆分: 写回单元 stub
+#include "tlm/gpu/sm/hazard_tracker_tlm.hh"    // Task 2.1 P1-1 拆分: 冒险跟踪器 stub
 #include "tlm/gpu/sm/scalar_alu.hh" // Task 1.3 P1-3 ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU)
 
 #include <array>
@@ -33,181 +45,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-namespace tlm::sm {
-
-    // === 12 个 SM 子模块 stub 定义 (per architecture/15 §15.3) ===
-    // Task 5: 这些 stub 将拆分到独立 .hh 文件; Task 7: 完整实现
-
-    class FetchUnitTLM : public ChStreamModuleBase {
-    public:
-        explicit FetchUnitTLM(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "FetchUnitTLM";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class DecodeUnitTLM : public ChStreamModuleBase {
-    public:
-        explicit DecodeUnitTLM(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "DecodeUnitTLM";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class IssueUnitTLM : public ChStreamModuleBase {
-    public:
-        explicit IssueUnitTLM(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "IssueUnitTLM";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class ScalarALU : public ChStreamModuleBase {
-    public:
-        explicit ScalarALU(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "ScalarALU";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class VectorALU : public ChStreamModuleBase {
-    public:
-        explicit VectorALU(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "VectorALU";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class MatrixCore : public ChStreamModuleBase {
-    public:
-        explicit MatrixCore(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "MatrixCore";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class SIMTLane : public ChStreamModuleBase {
-    public:
-        explicit SIMTLane(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "SIMTLane";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class LsuGlobal : public ChStreamModuleBase {
-    public:
-        explicit LsuGlobal(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "LsuGlobal";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class LsuLDS : public ChStreamModuleBase {
-    public:
-        explicit LsuLDS(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "LsuLDS";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class RegFileUnit : public ChStreamModuleBase {
-    public:
-        explicit RegFileUnit(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "RegFileUnit";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class WritebackUnit : public ChStreamModuleBase {
-    public:
-        explicit WritebackUnit(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "WritebackUnit";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-    class HazardTracker : public ChStreamModuleBase {
-    public:
-        explicit HazardTracker(const std::string& n, EventQueue* eq) : ChStreamModuleBase(n, eq) {
-        }
-        std::string get_module_type() const override {
-            return "HazardTracker";
-        }
-        void set_stream_adapter(cpptlm::StreamAdapterBase* a) override {
-            (void)a;
-        }
-        void tick() override {
-        }
-    };
-
-} // namespace tlm::sm
 
 namespace tlm {
 

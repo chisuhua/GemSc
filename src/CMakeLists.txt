@@ -48,6 +48,19 @@ set(CORE_SOURCES
     tlm/gpu/streaming_multiprocessor_tlm.cc
     # SM Task 1.3 P1-3: ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU, per plan)
     tlm/gpu/sm/scalar_alu.cc
+    # SM Task 2.1 P1-1: 12 子模块 stub 拆分 (保类名 FetchUnitTLM, per plan v2 P0-5)
+    tlm/gpu/sm/fetch_unit_tlm.cc
+    tlm/gpu/sm/decode_unit_tlm.cc
+    tlm/gpu/sm/issue_unit_tlm.cc
+    tlm/gpu/sm/scalar_alu_tlm.cc        # stub (NOT cpptlm::gpu::ScalarALU 真值)
+    tlm/gpu/sm/vector_alu_tlm.cc
+    tlm/gpu/sm/matrix_core_tlm.cc
+    tlm/gpu/sm/simt_lane_tlm.cc
+    tlm/gpu/sm/lsu_global_tlm.cc
+    tlm/gpu/sm/lsu_lds_tlm.cc
+    tlm/gpu/sm/reg_file_unit_tlm.cc
+    tlm/gpu/sm/writeback_unit_tlm.cc
+    tlm/gpu/sm/hazard_tracker_tlm.cc
     # HSK-8 Phase 2 Step 4: 桥接残留簇删除 (PTX-EMU 已废弃 cpptlm_bridge.h)
     # - tlm/gpu/memory_bridge.cc       (deprecated by HSK-6, removed in v3.0 P4 — early delete OK)
     # - tlm/gpu/ptx_emu_driver_shim.cc (cpptlm_set_driver removed by HSK-6 — early delete OK)
