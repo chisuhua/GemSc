@@ -48,9 +48,9 @@ TEST_CASE("Bundle FetchUnit → DecodeUnit (单描述 accessor, A1)",
 
     // 验证 DecodeUnit 收到 desc (字段透传)
     auto decoded = sm.du()->decoded();
-    REQUIRE(decoded.instr_id == 1001);
-    REQUIRE(decoded.pipe == PipeClass::kScalarALU);
-    REQUIRE(decoded.latency_class == LatencyClass::kFixed1Cycle);
+    REQUIRE(decoded.instr_desc.instr_id == 1001);
+    REQUIRE(decoded.instr_desc.pipe == PipeClass::kScalarALU);
+    REQUIRE(decoded.instr_desc.latency_class == LatencyClass::kFixed1Cycle);
 }
 
 TEST_CASE("Bundle DecodeUnit → IssueUnit (round-robin warp 调度, A2)",
@@ -75,9 +75,9 @@ TEST_CASE("Bundle DecodeUnit → IssueUnit (round-robin warp 调度, A2)",
 
     // 验证 IssueUnit 收到 desc + round-robin warp_id == 1 (per Task 2.4 round-robin 1→2→3→0)
     auto issued = sm.iu()->issued();
-    REQUIRE(issued.instr_id == 1002);
-    REQUIRE(issued.pipe == PipeClass::kScalarALU);
-    REQUIRE(issued.warpid == 1);  // round-robin 起点 warp 1 (per Task 2.4 实现)
+    REQUIRE(issued.instr_desc.instr_id == 1002);
+    REQUIRE(issued.instr_desc.pipe == PipeClass::kScalarALU);
+    REQUIRE(issued.warp_id == 1);  // round-robin 起点 warp 1 (per Task 2.4 实现)
 }
 
 TEST_CASE("Bundle IssueUnit → ScalarALU (执行真值 + 完成, A3)",
