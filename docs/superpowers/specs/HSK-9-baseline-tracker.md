@@ -284,7 +284,47 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 - 关联: Task 1.2 Gate G6 原始意图 (F12b smoke)
 - 状态: ⏸ 跟踪项, 留子波 2 (tick() 协调 12 子模块时再补)
 
+### 子波 2 进度 (更新于 Task 2.10 完成, 2026-09-07)
+
+| Task | Commit | 内容 | Oracle verdict | 状态 |
+|------|--------|------|----------------|------|
+| 2.1 | `d271c4e` | 12 submodules split | PASS | ✅ push |
+| 2.2 | `7af74fc` | FetchUnitTLM 真值 | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.3 | `c7681f1` | DecodeUnitTLM 真值 | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.4 | `1ef6c0e` | IssueUnitTLM 真值 (Round-robin 4 cycle) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.5 | `f5cbc48` | ScalarALU 端口接线 | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.6 | `391ef28` | VectorALU 真值 (VIADD.U8x4) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.7 | `f6b075e` | MatrixCore MFMA stub | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.8 | `eccd956` | SIMTLane 真值 (EXEC mask 64-bit) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.9 | `593fb5a` | LsuGlobal 真值 (异步 10 cycle) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| 2.10 | `4516b21` | LsuLDS 真值 (同步 1 cycle, bank conflict stub) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
+| Style fix | `3ee0d72` | clang-format 7 文件 | — | ✅ push |
+| **Current HEAD** | **`4516b21`** | **Task 2.10 完成** | — | **待 Task 2.11** |
+
 ### 子波 2 启动条件 (Oracle 评审后)
 - ✅ Oracle 复审子波 1 PASS (含 P1-1 IMAD 测试)
-- ⏸ Oracle P2 修补项 5 项 (子波 2 启动决策: A.立即启动 + P2 在子波 2 内部补 | B.P2 修补完再启动)
-- 子波 2 内容: Task 2.1-2.11 (VectorALU/MatrixCore/SIMTLane/LsuGlobal/LsuLDS/WritebackUnit/HazardTracker + RegFileUnit 真值迁移)
+- ✅ 子波 2 决策: A.立即启动 + P2 在子波 2 内部补 (Tasks 2.1-2.10 全部推进, P2-4 cycles 仍待对齐, 必对齐在 Task 2.13 HazardTracker 前)
+- 子波 2 内容: Task 2.1-2.13 (12 子模块 split + 9 真值实现 + HazardTracker + RegFileUnit 端口接线 + WritebackUnit)
+- **当前进度**: 10/13 完成, 基线 44631/1257 (+133/+25 相对子波 1 完成态 44519/1238, 0 回归)
+
+### 重建基线 (Task 0 → Task 2.10)
+| 阶段 | assertions | cases | delta |
+|------|-----------|-------|-------|
+| Task 0 baseline | 44498 | 1232 | - |
+| Task 1.1 (G5) | 44508 | 1234 | +10/+2 |
+| Task 1.2 (G6) | 44510 | 1235 | +2/+1 |
+| Task 1.3 (G7) | 44513 | 1236 | +3/+1 |
+| Task 1.4 (G8) | 44519 | 1238 | +6/+2 |
+| Task 1.5 | 44519 | 1238 | 0/0 (架构升级, 无回归) |
+| **子波 1 完成态** | **44519** | **1238** | **+21/+6** |
+| Task 2.1 | 44519 | 1238 | 0/0 (架构 split, 无回归) |
+| Task 2.2 | 44522 | 1239 | +3/+1 |
+| Task 2.3 | 44524 | 1240 | +2/+1 |
+| Task 2.4 | 44528 | 1241 | +4/+1 |
+| Task 2.5 | 44531 | 1242 | +3/+1 |
+| Task 2.6 | 44548 | 1251 | +17/+9 |
+| Task 2.7 | 44552 | 1252 | +4/+1 |
+| Task 2.8 | 44584 | 1262 | +32/+10 |
+| Task 2.9 | 44620 | 1264 | +36/+2 |
+| **Task 2.10** | **44631** | **1257** | **+11/+3 (从 44620/1254 baseline)** |
+| **当前态** | **44631** | **1257** | **+133/+25 (从子波 1)** |

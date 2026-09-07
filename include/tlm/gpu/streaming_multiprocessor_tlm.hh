@@ -43,6 +43,7 @@
 #include "tlm/gpu/sm/simt_lane.hh" // Task 2.8 P1-8 SIMTLane 真值 (EXEC mask 64-bit + 分歧检测)
 #include "tlm/gpu/sm/lsu_global.hh" // Task 2.9 P1-9 LsuGlobal 真值 (异步内存回调骨架)
 #include "tlm/gpu/sm/lsu_lds.hh" // Task 2.10 P1-10 LsuLDS 真值 (共享内存 bank conflict 检测 stub)
+#include "tlm/gpu/sm/reg_file.hh" // Task 2.11 P1-11 RegFileUnit 真值 (取代 scalar_regs_, per Oracle F-1 P0 修复)
 
 #include <array>
 #include <memory>
@@ -103,6 +104,10 @@ namespace tlm {
     sm::LsuLDS* ll() { return ll_.get(); }
     // lsu_lds(): 返回 cpptlm::gpu::LsuLDS 真值类指针 (ll_ tick dispatch 目标)
     cpptlm::gpu::LsuLDS* lsu_lds() { return lsu_lds_.get(); }
+    // rf(): 返回 RegFileUnit stub 指针 (per Oracle Task 2.11 P-2 命名, 镜像 ll()/lg() 模式)
+    sm::RegFileUnit* rf() { return rf_.get(); }
+    // reg_file(): 返回 cpptlm::gpu::RegFileUnit 真值类指针 (取代 scalar_regs_, per Oracle F-1 P0)
+    cpptlm::gpu::RegFileUnit* reg_file() { return reg_file_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -127,20 +132,22 @@ namespace tlm {
         }
 
         // === get/set_scalar_reg (per Oracle P1-7, Task 1.3 依赖) ===
-        // interim 真值源, Task 2.11 须迁移到 RegFileUnit. 见 plan Task 1.1 Step 3.
+        // 真值源已迁移到 RegFileUnit (per Oracle F-1 P0 修复, Task 2.11)
+        // facade 委托保留: set_scalar_reg → reg_file_->write(0, ...), get_scalar_reg → read(0, ...)
+        // unset 语义保留: read 未设置返回 false → facade 返回 0 (per Oracle Q3)
         void set_scalar_reg(uint32_t reg_id, uint64_t value) {
-            scalar_regs_[reg_id] = value;
+            reg_file_->write(0, reg_id, value);
         }
         uint64_t get_scalar_reg(uint32_t reg_id) const {
-            auto it = scalar_regs_.find(reg_id);
-            return it != scalar_regs_.end() ? it->second : 0;
+            uint64_t v = 0;
+            return reg_file_->read(0, reg_id, &v) ? v : 0;
         }
 
         // === IComputeDevice 15 方法 stub (Task 18 完整实现) ===
         // 11 preserved
         bool initialize(const cpptlm::gpu::DeviceConfig& cfg) override {
             (void)cfg;
-            scalar_regs_.clear();
+            reg_file_->clear();
             ring_head_ = 0;
             ring_tail_ = 0;
             ring_count_ = 0;
@@ -183,6 +190,9 @@ namespace tlm {
             // Task 2.10 P1-10: 端口接线 — ll_ tick() 内部 pipe 判断 + dispatch 到 lsu_lds_ 真值
             // (per Oracle Q4 A 推荐: lg → ll 顺序, LDS 共享内存同步语义, 对照 Global 异步)
             ll_->tick();
+            // Task 2.11 P1-11: rf_ tick() 接线准备 (per Oracle P-2, 真值写回由 WritebackUnit Task 2.12 接管)
+            // 当前 stub tick() no-op; 真实 write-back 协调推迟 Task 2.12
+            rf_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
@@ -248,15 +258,11 @@ namespace tlm {
         bool get_register_value(uint32_t sm_id, uint32_t warp_id, uint32_t reg_id,
                                 uint64_t* out_value, uint32_t lane_id = 0xFFFFFFFF) override {
             (void)sm_id;
-            (void)warp_id;
             (void)lane_id;
             if (!out_value)
                 return false;
-            auto it = scalar_regs_.find(reg_id);
-            if (it == scalar_regs_.end())
-                return false;
-            *out_value = it->second;
-            return true;
+            // 委托到 RegFileUnit 真值 (per Oracle F-1 P0 修复, per-warp key via warp_id)
+            return reg_file_->read(warp_id, reg_id, out_value);
         }
         bool is_instruction_completed(uint64_t instr_id) override {
             // Task 1.4 P1-4: 已完成 instr_id 集合 (per HSK-9 §3 协议)
@@ -295,9 +301,9 @@ namespace tlm {
         cpptlm::InputStreamAdapter<bundles::ComputeReqBundle> req_in_;
         cpptlm::OutputStreamAdapter<bundles::ComputeRespBundle> resp_out_;
 
-        // === scalar_regs_ (per Oracle P1-7 Task 1.3 依赖, interim 真值源) ===
-        // Task 2.11 须迁移到 RegFileUnit
-        std::unordered_map<uint32_t, uint64_t> scalar_regs_;
+        // === scalar_regs_ 已删除 (per Oracle F-1 P0 修复, Task 2.11) ===
+        // 真值源迁至 reg_file_ (cpptlm::gpu::RegFileUnit), per-warp flat key
+        // facade set_scalar_reg/get_scalar_reg/get_register_value 委托 reg_file_
 
         // === Task 1.3 P1-3 ScalarALU 真值 (per plan) ===
         // cpptlm::gpu::ScalarALU 独立真值类 (include/tlm/gpu/sm/scalar_alu.hh),
@@ -323,6 +329,11 @@ namespace tlm {
         // cpptlm::gpu::LsuLDS 真值类 (include/tlm/gpu/sm/lsu_lds.hh),
         // ll_ tick() dispatch → lsu_lds_->execute() 同步回写 (对照 LsuGlobal 异步)
         std::unique_ptr<cpptlm::gpu::LsuLDS> lsu_lds_;
+        // === Task 2.11 P1-11 RegFileUnit 真值 (per plan, 取代 scalar_regs_, per Oracle F-1 P0) ===
+        // cpptlm::gpu::RegFileUnit 真值类 (include/tlm/gpu/sm/reg_file.hh),
+        // SM-owns-state: 持寄存器唯一真值源 (per architecture/15 §15.5.6)
+        // facade 委托保留 (set_scalar_reg/get_scalar_reg/get_register_value/initialize 全部走 reg_file_)
+        std::unique_ptr<cpptlm::gpu::RegFileUnit> reg_file_;
 
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)
