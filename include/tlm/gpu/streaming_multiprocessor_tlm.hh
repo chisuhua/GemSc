@@ -45,6 +45,7 @@
 #include "tlm/gpu/sm/lsu_lds.hh" // Task 2.10 P1-10 LsuLDS 真值 (共享内存 bank conflict 检测 stub)
 #include "tlm/gpu/sm/reg_file.hh" // Task 2.11 P1-11 RegFileUnit 真值 (取代 scalar_regs_, per Oracle F-1 P0 修复)
 #include "tlm/gpu/sm/writeback.hh" // Task 2.12 P1-12 WritebackUnit 真值 (in-flight 队列 + per-warp 写回, per Oracle F-2 re-scope)
+#include "tlm/gpu/sm/hazard_tracker.hh" // Task 2.13 P1-13 HazardTracker 真值 (kVirtualReg + kHardwareCounter, per Oracle F-2 P0 签名 (parent))
 
 #include <array>
 #include <memory>
@@ -113,6 +114,10 @@ namespace tlm {
     sm::WritebackUnit* wb() { return wb_.get(); }
     // writeback(): 返回 cpptlm::gpu::WritebackUnit 真值类指针 (re-scoped rf-only, per Oracle F-2 P0)
     cpptlm::gpu::WritebackUnit* writeback() { return writeback_.get(); }
+    // ht(): 返回 HazardTracker stub 指针 (per Oracle Task 2.13 Q3, 镜像 rf() 模式)
+    sm::HazardTracker* ht() { return ht_.get(); }
+    // hazard_tracker(): 返回 cpptlm::gpu::HazardTracker 真值类指针 (kVirtualReg + kHardwareCounter)
+    cpptlm::gpu::HazardTracker* hazard_tracker() { return hazard_tracker_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -347,6 +352,11 @@ namespace tlm {
         // wb_ tick() dispatch → writeback_->tick(current_cycle) 推进 in-flight 队列 + 写回 RF
         // re-scoped to rf-only (HT-release 推迟 Task 2.13, per Oracle F-2 P0)
         std::unique_ptr<cpptlm::gpu::WritebackUnit> writeback_;
+        // === Task 2.13 P1-13 HazardTracker 真值 (per plan, kVirtualReg + kHardwareCounter) ===
+        // cpptlm::gpu::HazardTracker 真值类 (include/tlm/gpu/sm/hazard_tracker.hh),
+        // ht_ tick() dispatch → hazard_tracker_->tick() (当前 no-op)
+        // 双容器: vmcnts_ map (kHardwareCounter) + allocated_vregs_ set (kVirtualReg RAW)
+        std::unique_ptr<cpptlm::gpu::HazardTracker> hazard_tracker_;
 
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)

@@ -51,7 +51,10 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     writeback_ = std::make_unique<cpptlm::gpu::WritebackUnit>(this);
     wb_ = std::make_unique<sm::WritebackUnit>(name + ".wb", eq);
     wb_->set_parent(this);  // Task 2.12 P1-12: 注入 parent (per Oracle Q3, 镜像 rf_ 模式)
+    // Task 2.13 P1-13: HazardTracker 真值类 (per Oracle F-2 P0 签名 (parent), kVirtualReg + kHardwareCounter)
+    hazard_tracker_ = std::make_unique<cpptlm::gpu::HazardTracker>(this);
     ht_ = std::make_unique<sm::HazardTracker>(name + ".ht", eq);
+    ht_->set_parent(this);  // Task 2.13 P1-13: 注入 parent (per Oracle Q3, 镜像 rf_/wb_ 模式)
 }
 
 void StreamingMultiprocessorTLM::set_stream_adapter(cpptlm::StreamAdapterBase* adapter) {

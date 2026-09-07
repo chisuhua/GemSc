@@ -68,6 +68,8 @@ set(CORE_SOURCES
     tlm/gpu/sm/reg_file.cc
     # SM Task 2.12 P1-12: WritebackUnit 真值类 (独立 cpptlm::gpu::WritebackUnit, in-flight 队列 + rf-only, per Oracle F-2 P0)
     tlm/gpu/sm/writeback.cc
+    # SM Task 2.13 P1-13: HazardTracker 真值类 (独立 cpptlm::gpu::HazardTracker, kVirtualReg + kHardwareCounter, per Oracle F-2 P0 签名 (parent))
+    tlm/gpu/sm/hazard_tracker.cc
     # SM Task 2.8 P1-8: SIMTLane 真值类 (独立 cpptlm::gpu::SIMTLane, EXEC mask 64-bit + 分歧检测)
     # SM Task 2.9 P1-9: LsuGlobal 真值类 (独立 cpptlm::gpu::LsuGlobal, 异步内存回调骨架)
     # SM Task 2.10 P1-10: LsuLDS 真值类 (独立 cpptlm::gpu::LsuLDS, 共享内存 bank conflict 检测 stub)
