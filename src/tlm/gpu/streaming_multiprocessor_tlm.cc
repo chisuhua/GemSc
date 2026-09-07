@@ -39,7 +39,10 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     lsu_global_ = std::make_unique<cpptlm::gpu::LsuGlobal>(this);
     lg_ = std::make_unique<sm::LsuGlobal>(name + ".lg", eq);
     lg_->set_parent(this);  // Task 2.9 P1-9: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_/sl_ 模式)
+    // Task 2.10 P1-10: LsuLDS 真值类 (镜像 cpptlm::gpu::LsuGlobal, 同步 bank conflict stub)
+    lsu_lds_ = std::make_unique<cpptlm::gpu::LsuLDS>(this);
     ll_ = std::make_unique<sm::LsuLDS>(name + ".ll", eq);
+    ll_->set_parent(this);  // Task 2.10 P1-10: 注入 parent (per Oracle F-2 P0 修复, 镜像 lg_ 模式)
     rf_ = std::make_unique<sm::RegFileUnit>(name + ".rf", eq);
     wb_ = std::make_unique<sm::WritebackUnit>(name + ".wb", eq);
     ht_ = std::make_unique<sm::HazardTracker>(name + ".ht", eq);

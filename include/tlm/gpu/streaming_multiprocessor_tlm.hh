@@ -42,6 +42,7 @@
 #include "tlm/gpu/sm/matrix_alu.hh" // Task 2.7 P1-7 MatrixCore stub (cpptlm::gpu::MatrixCore 真值推迟 Task 4.6)
 #include "tlm/gpu/sm/simt_lane.hh" // Task 2.8 P1-8 SIMTLane 真值 (EXEC mask 64-bit + 分歧检测)
 #include "tlm/gpu/sm/lsu_global.hh" // Task 2.9 P1-9 LsuGlobal 真值 (异步内存回调骨架)
+#include "tlm/gpu/sm/lsu_lds.hh" // Task 2.10 P1-10 LsuLDS 真值 (共享内存 bank conflict 检测 stub)
 
 #include <array>
 #include <memory>
@@ -98,6 +99,10 @@ namespace tlm {
     sm::LsuGlobal* lg() { return lg_.get(); }
     // lsu_global(): 返回 cpptlm::gpu::LsuGlobal 真值类指针 (lg_ tick dispatch 目标)
     cpptlm::gpu::LsuGlobal* lsu_global() { return lsu_global_.get(); }
+    // ll(): 返回 LsuLDS stub 指针 (per Oracle 预审 Task 2.10 Q6 命名修正 ll_, 镜像 lg()/sl()/mc() 模式)
+    sm::LsuLDS* ll() { return ll_.get(); }
+    // lsu_lds(): 返回 cpptlm::gpu::LsuLDS 真值类指针 (ll_ tick dispatch 目标)
+    cpptlm::gpu::LsuLDS* lsu_lds() { return lsu_lds_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -175,6 +180,9 @@ namespace tlm {
             // Task 2.9 P1-9: 端口接线 — lg_ tick() 内部 pipe 判断 + dispatch 到 lsu_global_ 真值
             // (per Oracle Q5 末尾 dispatch: lg 判断 pipe + is_memory → lsu_global_->execute() enqueue)
             lg_->tick();
+            // Task 2.10 P1-10: 端口接线 — ll_ tick() 内部 pipe 判断 + dispatch 到 lsu_lds_ 真值
+            // (per Oracle Q4 A 推荐: lg → ll 顺序, LDS 共享内存同步语义, 对照 Global 异步)
+            ll_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
@@ -311,6 +319,10 @@ namespace tlm {
         // cpptlm::gpu::LsuGlobal 真值类 (include/tlm/gpu/sm/lsu_global.hh),
         // lg_ tick() dispatch → lsu_global_->execute() enqueue; lsu_global_->tick() head 推进归零回调
         std::unique_ptr<cpptlm::gpu::LsuGlobal> lsu_global_;
+        // === Task 2.10 P1-10 LsuLDS 真值 (per plan, 共享内存 bank conflict 检测 stub) ===
+        // cpptlm::gpu::LsuLDS 真值类 (include/tlm/gpu/sm/lsu_lds.hh),
+        // ll_ tick() dispatch → lsu_lds_->execute() 同步回写 (对照 LsuGlobal 异步)
+        std::unique_ptr<cpptlm::gpu::LsuLDS> lsu_lds_;
 
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)
