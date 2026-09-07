@@ -4,3 +4,4 @@
 [submodule "external/PTX-EMU"]
 	path = external/PTX-EMU
 	url = https://github.com/chisuhua/PTX-EMU.git
+	branch = main
