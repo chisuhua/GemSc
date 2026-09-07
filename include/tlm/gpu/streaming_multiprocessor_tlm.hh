@@ -41,6 +41,7 @@
 #include "tlm/gpu/sm/vector_alu.hh" // Task 2.6 P1-6 VectorALU 真值 (独立 cpptlm::gpu::VectorALU)
 #include "tlm/gpu/sm/matrix_alu.hh" // Task 2.7 P1-7 MatrixCore stub (cpptlm::gpu::MatrixCore 真值推迟 Task 4.6)
 #include "tlm/gpu/sm/simt_lane.hh" // Task 2.8 P1-8 SIMTLane 真值 (EXEC mask 64-bit + 分歧检测)
+#include "tlm/gpu/sm/lsu_global.hh" // Task 2.9 P1-9 LsuGlobal 真值 (异步内存回调骨架)
 
 #include <array>
 #include <memory>
@@ -93,6 +94,10 @@ namespace tlm {
     sm::SIMTLane* sl() { return sl_.get(); }
     // simt_lane(): 返回 cpptlm::gpu::SIMTLane 真值类指针 (sl_ tick dispatch 目标)
     cpptlm::gpu::SIMTLane* simt_lane() { return simt_lane_.get(); }
+    // lg(): 返回 LsuGlobal stub 指针 (per Oracle 预审 Task 2.9 F-4 P1)
+    sm::LsuGlobal* lg() { return lg_.get(); }
+    // lsu_global(): 返回 cpptlm::gpu::LsuGlobal 真值类指针 (lg_ tick dispatch 目标)
+    cpptlm::gpu::LsuGlobal* lsu_global() { return lsu_global_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -140,9 +145,12 @@ namespace tlm {
         void shutdown() override {
         }
         int exe_once() override {
+            // Task 2.9 P1-9 (per Oracle 预审 Task 2.9 Q5 P0 修正):
+            // 异步推进 lsu_global_ pending 队列 — 无条件在 head (异步不依赖 ring,
+            // ring 空早退后 pending 仍需推进, 否则归零回调永不执行)
+            lsu_global_->tick();            // 无条件推进 pending (异步不依赖 ring)
             // Task 2.2 P1-2 (per Oracle 预审 Task 2.2 F-1 P0 修复):
             // 取指/consume 下沉到 FetchUnitTLM.tick() (消除双消费者 bug)
-            // 行为等价: 1 cycle consume 一条, ScalarALU 真值仍调, completed_instr_ids_ 仍标记
             if (ring_count_ == 0)
                 return 0;
             fu_->tick();  // 取指 + consume (Task 2.2 P1-2, 封装 via fetch_next_instr accessor)
@@ -164,6 +172,9 @@ namespace tlm {
             // Task 2.8 P1-8: 端口接线 — sl_ tick() 内部 pipe 判断 + dispatch 到 simt_lane_ 真值
             // (per Oracle Q12 Q3 C 推荐: sa/va/mc/sl 并列, pipe 互斥, stub 阶段不标 completed 避免假完成)
             sl_->tick();
+            // Task 2.9 P1-9: 端口接线 — lg_ tick() 内部 pipe 判断 + dispatch 到 lsu_global_ 真值
+            // (per Oracle Q5 末尾 dispatch: lg 判断 pipe + is_memory → lsu_global_->execute() enqueue)
+            lg_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
@@ -296,6 +307,10 @@ namespace tlm {
         // cpptlm::gpu::SIMTLane 真值类 (include/tlm/gpu/sm/simt_lane.hh),
         // sl_ tick() 内部 pipe 判断 + dispatch 到 simt_lane_->execute() 更新 EXEC mask
         std::unique_ptr<cpptlm::gpu::SIMTLane> simt_lane_;
+        // === Task 2.9 P1-9 LsuGlobal 真值 (per plan, 异步内存回调骨架) ===
+        // cpptlm::gpu::LsuGlobal 真值类 (include/tlm/gpu/sm/lsu_global.hh),
+        // lg_ tick() dispatch → lsu_global_->execute() enqueue; lsu_global_->tick() head 推进归零回调
+        std::unique_ptr<cpptlm::gpu::LsuGlobal> lsu_global_;
 
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)

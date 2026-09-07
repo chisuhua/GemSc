@@ -60,8 +60,12 @@ set(CORE_SOURCES
     tlm/gpu/sm/matrix_alu.cc
     # SM Task 2.8 P1-8: SIMTLane 真值类 (独立 cpptlm::gpu::SIMTLane, EXEC mask 64-bit + 分歧检测)
     tlm/gpu/sm/simt_lane.cc
+    # SM Task 2.9 P1-9: LsuGlobal 真值类 (独立 cpptlm::gpu::LsuGlobal, 异步内存回调骨架)
+    tlm/gpu/sm/lsu_global.cc
     # SM Task 2.8 P1-8: SIMTLane 真值类 (独立 cpptlm::gpu::SIMTLane, EXEC mask 64-bit + 分歧检测)
     tlm/gpu/sm/simt_lane.cc
+    # SM Task 2.9 P1-9: LsuGlobal 真值类 (独立 cpptlm::gpu::LsuGlobal, 异步内存回调骨架)
+    tlm/gpu/sm/lsu_global.cc
     tlm/gpu/sm/vector_alu_tlm.cc
     tlm/gpu/sm/matrix_core_tlm.cc
     tlm/gpu/sm/simt_lane_tlm.cc
