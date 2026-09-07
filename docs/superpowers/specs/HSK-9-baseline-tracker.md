@@ -259,30 +259,30 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 - 测试: set_instr_descriptor_buf 注入 70 条 instr (超 64 限制)
 - 期望: ring buffer 覆盖最旧 6 条 (ring_count_=64, head/tail 推进)
 - 关联: Task 1.5 ring buffer 升级 (commit 8110770)
-- 状态: ⏸ 跟踪项
+- 状态: ⏸ 跟踪项, 推迟到子波 3
 
 ### P2-2: is_instruction_completed 负测试
 - 测试: 未注入 instr, 调 is_instruction_completed(99)
 - 期望: return false (completed_instr_ids_ 空集)
 - 关联: Gate G8 真值
-- 状态: ⏸ 跟踪项
+- 状态: ⏸ 跟踪项, 推迟到子波 3
 
 ### P2-3: 非 kScalarALU 指令丢弃文档化
 - 文档: SM.exe_once() 当前只处理 kScalarALU desc, 其他 pipe (VectorALU/MatrixCore/SIMTLane/LsuGlobal/LsuLDS/Branch) 静默丢弃且永不标记 completed_instr_ids_
 - 风险: PTX-EMU 注入非 ScalarALU 指令会 spin 死循环 (is_instruction_completed 永 false)
 - 缓解: HSK-9 §3 协议明确 + PTX-EMU 端 guard
-- 状态: ⏸ 跟踪项
+- 状态: ✅ 已部分完成 (streaming_multiprocessor_tlm.hh :188-205 注释说明 per-stub pipe dispatch), 完整 PTX-EMU 端 guard 推迟子波 3
 
 ### P2-4: exe_once cycles 语义对齐
 - 当前: ScalarALU::execute(IMAD) 返回 4 cycles, 但 SM.exe_once() 不消耗 cycles, 每次只 consume ring buffer front 1 cycle
 - 风险: HazardTracker (Task 2.13) 上线后 cycle 计数失真
 - 缓解: Task 2.13 HazardTracker 实施前对齐 cycles 语义 (returns ScalarALU 实际 cycles, 多 cycle desc 保留在 ring buffer 多 cycle)
-- 状态: ⏸ 跟踪项
+- 状态: ✅ 已解决 — Task 2.11 A3 [p2-4-lock] 测试 (test_sm_reg_file_unit.cc L76-107) 锁定 exe_once==1 不受 ScalarALU::execute 返回 cycles 影响
 
 ### P2-5: G6 原始 P1-1 F12b 接线真验证
 - 当前: SM.tick() 仍空 (Task 4 stub), F12b 接线真验证未做
 - 关联: Task 1.2 Gate G6 原始意图 (F12b smoke)
-- 状态: ⏸ 跟踪项, 留子波 2 (tick() 协调 12 子模块时再补)
+- 状态: ✅ 已解决 — Task 2.13.5 (commit 1139b6a) ht_->tick() 入 exe_once 链尾, 12/12 stub 全部接入 (lsu_global head + wb head + fu→ht chain 11 tick + return 1)
 
 ### 子波 2 进度 (更新于 Task 2.10 完成, 2026-09-07)
 
