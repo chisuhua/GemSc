@@ -44,6 +44,7 @@
 #include "tlm/gpu/sm/lsu_global.hh" // Task 2.9 P1-9 LsuGlobal 真值 (异步内存回调骨架)
 #include "tlm/gpu/sm/lsu_lds.hh" // Task 2.10 P1-10 LsuLDS 真值 (共享内存 bank conflict 检测 stub)
 #include "tlm/gpu/sm/reg_file.hh" // Task 2.11 P1-11 RegFileUnit 真值 (取代 scalar_regs_, per Oracle F-1 P0 修复)
+#include "tlm/gpu/sm/writeback.hh" // Task 2.12 P1-12 WritebackUnit 真值 (in-flight 队列 + per-warp 写回, per Oracle F-2 re-scope)
 
 #include <array>
 #include <memory>
@@ -108,6 +109,10 @@ namespace tlm {
     sm::RegFileUnit* rf() { return rf_.get(); }
     // reg_file(): 返回 cpptlm::gpu::RegFileUnit 真值类指针 (取代 scalar_regs_, per Oracle F-1 P0)
     cpptlm::gpu::RegFileUnit* reg_file() { return reg_file_.get(); }
+    // wb(): 返回 WritebackUnit stub 指针 (per Oracle Task 2.12 Q3, 镜像 rf() 模式)
+    sm::WritebackUnit* wb() { return wb_.get(); }
+    // writeback(): 返回 cpptlm::gpu::WritebackUnit 真值类指针 (re-scoped rf-only, per Oracle F-2 P0)
+    cpptlm::gpu::WritebackUnit* writeback() { return writeback_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -161,6 +166,9 @@ namespace tlm {
             // 异步推进 lsu_global_ pending 队列 — 无条件在 head (异步不依赖 ring,
             // ring 空早退后 pending 仍需推进, 否则归零回调永不执行)
             lsu_global_->tick();            // 无条件推进 pending (异步不依赖 ring)
+            // Task 2.12 P1-12 (per Oracle Task 2.12 P-1): WB tick 在链头, 与 lsu_global_ 同处理
+            // (ring 空时 WB 队列仍需推进, 否则 drain 永不执行)
+            wb_->tick();                    // 无条件推进 WB 队列 (in-flight 写回 RF)
             // Task 2.2 P1-2 (per Oracle 预审 Task 2.2 F-1 P0 修复):
             // 取指/consume 下沉到 FetchUnitTLM.tick() (消除双消费者 bug)
             if (ring_count_ == 0)
@@ -334,6 +342,11 @@ namespace tlm {
         // SM-owns-state: 持寄存器唯一真值源 (per architecture/15 §15.5.6)
         // facade 委托保留 (set_scalar_reg/get_scalar_reg/get_register_value/initialize 全部走 reg_file_)
         std::unique_ptr<cpptlm::gpu::RegFileUnit> reg_file_;
+        // === Task 2.12 P1-12 WritebackUnit 真值 (per plan, in-flight 队列, per Oracle F-2 re-scope) ===
+        // cpptlm::gpu::WritebackUnit 真值类 (include/tlm/gpu/sm/writeback.hh),
+        // wb_ tick() dispatch → writeback_->tick(current_cycle) 推进 in-flight 队列 + 写回 RF
+        // re-scoped to rf-only (HT-release 推迟 Task 2.13, per Oracle F-2 P0)
+        std::unique_ptr<cpptlm::gpu::WritebackUnit> writeback_;
 
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)

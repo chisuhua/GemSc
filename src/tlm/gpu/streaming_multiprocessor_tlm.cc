@@ -47,7 +47,10 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     reg_file_ = std::make_unique<cpptlm::gpu::RegFileUnit>(this);
     rf_ = std::make_unique<sm::RegFileUnit>(name + ".rf", eq);
     rf_->set_parent(this);  // Task 2.11 P1-11: 注入 parent (per Oracle P-2 修复, 镜像 ll_/lg_ 模式)
+    // Task 2.12 P1-12: WritebackUnit 真值类 (per Oracle F-2 P0 re-scope, in-flight 队列 + rf-only)
+    writeback_ = std::make_unique<cpptlm::gpu::WritebackUnit>(this);
     wb_ = std::make_unique<sm::WritebackUnit>(name + ".wb", eq);
+    wb_->set_parent(this);  // Task 2.12 P1-12: 注入 parent (per Oracle Q3, 镜像 rf_ 模式)
     ht_ = std::make_unique<sm::HazardTracker>(name + ".ht", eq);
 }
 

@@ -66,6 +66,8 @@ set(CORE_SOURCES
     tlm/gpu/sm/lsu_lds.cc
     # SM Task 2.11 P1-11: RegFileUnit 真值类 (独立 cpptlm::gpu::RegFileUnit, 取代 scalar_regs_, per Oracle F-1 P0)
     tlm/gpu/sm/reg_file.cc
+    # SM Task 2.12 P1-12: WritebackUnit 真值类 (独立 cpptlm::gpu::WritebackUnit, in-flight 队列 + rf-only, per Oracle F-2 P0)
+    tlm/gpu/sm/writeback.cc
     # SM Task 2.8 P1-8: SIMTLane 真值类 (独立 cpptlm::gpu::SIMTLane, EXEC mask 64-bit + 分歧检测)
     # SM Task 2.9 P1-9: LsuGlobal 真值类 (独立 cpptlm::gpu::LsuGlobal, 异步内存回调骨架)
     # SM Task 2.10 P1-10: LsuLDS 真值类 (独立 cpptlm::gpu::LsuLDS, 共享内存 bank conflict 检测 stub)
