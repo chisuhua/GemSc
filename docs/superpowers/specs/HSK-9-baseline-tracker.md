@@ -299,7 +299,7 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | 2.9 | `593fb5a` | LsuGlobal 真值 (异步 10 cycle) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
 | 2.10 | `4516b21` | LsuLDS 真值 (同步 1 cycle, bank conflict stub) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
 | Style fix | `3ee0d72` | clang-format 7 文件 | — | ✅ push |
-| **Current HEAD** | **`4516b21`** | **Task 2.10 完成** | — | **待 Task 2.11** |
+| **Current HEAD** | **`1139b6a`** | **Tasks 2.11-2.13.5+2.14 完成** | — | **待 Task 2.15** |
 
 ### 子波 2 启动条件 (Oracle 评审后)
 - ✅ Oracle 复审子波 1 PASS (含 P1-1 IMAD 测试)
@@ -327,4 +327,17 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | Task 2.8 | 44584 | 1262 | +32/+10 |
 | Task 2.9 | 44620 | 1264 | +36/+2 |
 | **Task 2.10** | **44631** | **1257** | **+11/+3 (从 44620/1254 baseline)** |
-| **当前态** | **44631** | **1257** | **+133/+25 (从子波 1)** |
+| Task 2.11 | 44644 | 1258 | +13/+1 |
+| Task 2.12 | 44666 | 1261 | +22/+3 |
+| Task 2.13 | 44683 | 1264 | +17/+3 |
+| Task 2.13.5+2.14 | 44702 | 1266 | +19/+2 |
+| **Task 2.15** | **44733** | **1272** | **+31/+6** |
+| **当前态** | **44733** | **1272** | **+214/+34 (从子波 1 完成态)** |
+
+## Task 2.16 PTX-EMU build-on 验证 (per Oracle Q7 F-7 修正, 2026-09-07)
+
+| 模式 | 结果 | 备注 |
+|------|------|------|
+| `cmake -S . -B build-on -DCPPTLM_WITH_PTX_EMU=ON -DCPPTLM_DISABLE_TESTS=ON` | cmake configure PASS | src/CMakeLists.txt 修改 (Tasks 2.6-2.13 加 .cc) 不破坏 ON 路径 |
+| `cmake --build build-on --target cpptlm_core -j1` | **PASS** | cpptlm_core 静态库链接成功, src/CMakeLists.txt 加 11 .cc 不影响 PTX-EMU 集成 |
+| HSK-9 #21 兼容性 | ✅ 确认 | PTX-EMU build-on 路径 (与 OFF 共用 src/CMakeLists.txt) 未被破坏 |
