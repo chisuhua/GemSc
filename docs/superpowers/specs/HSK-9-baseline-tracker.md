@@ -259,13 +259,13 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 - 测试: set_instr_descriptor_buf 注入 70 条 instr (超 64 限制)
 - 期望: ring buffer 覆盖最旧 6 条 (ring_count_=64, head/tail 推进)
 - 关联: Task 1.5 ring buffer 升级 (commit 8110770)
-- 状态: ⏸ 跟踪项, 推迟到子波 3
+- 状态: ✅ 已解决 — test_sm_ring_buffer_overflow.cc (Subwave 3, 5 用例 / 11 断言 PASS)
 
 ### P2-2: is_instruction_completed 负测试
 - 测试: 未注入 instr, 调 is_instruction_completed(99)
 - 期望: return false (completed_instr_ids_ 空集)
 - 关联: Gate G8 真值
-- 状态: ⏸ 跟踪项, 推迟到子波 3
+- 状态: ✅ 已解决 — test_sm_instruction_completed_negative.cc (Subwave 3, 4 用例 / 22 断言 PASS)
 
 ### P2-3: 非 kScalarALU 指令丢弃文档化
 - 文档: SM.exe_once() 当前只处理 kScalarALU desc, 其他 pipe (VectorALU/MatrixCore/SIMTLane/LsuGlobal/LsuLDS/Branch) 静默丢弃且永不标记 completed_instr_ids_
@@ -301,7 +301,12 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | Style fix | `3ee0d72` | clang-format 7 文件 | — | ✅ push |
 | Task 2.15 | `471bd10` | L4 IComputeDevice stepping 测试补全 | 无 Oracle (纯测试补全) | ✅ push |
 | Task 2.16 | `cb4ccf9` | PTX-EMU build-on 库构建验证 + doc hygiene | — | ✅ push |
-| **Current HEAD** | **`cb4ccf9`** | **Tasks 2.11-2.16 完成** | — | **待 Task 2.17 final Oracle** |
+| Task 2.17 | `bcc0c55` | Final Oracle G9-G11 closure: PASS | Final Oracle | ✅ push |
+| P3 cleanup | `3357535` | CMakeLists 去重 + tracker P2-3/4/5 同步 | — | ✅ push |
+| **Subwave 3 完成态** | | | | |
+| Subwave 3 P2-1 | (pending) | ring buffer 满覆盖测试 | — | pending |
+| Subwave 3 P2-2 | (pending) | is_instruction_completed 负测试 | — | pending |
+| **Current HEAD** | **`3357535`** | **Subwave 2 完全闭合 (PR #23 merged to main)** | — | **Subwave 3 in progress** |
 
 ### 子波 2 启动条件 (Oracle 评审后)
 - ✅ Oracle 复审子波 1 PASS (含 P1-1 IMAD 测试)
@@ -334,7 +339,9 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | Task 2.13 | 44683 | 1264 | +17/+3 |
 | Task 2.13.5+2.14 | 44702 | 1266 | +19/+2 |
 | **Task 2.15** | **44733** | **1272** | **+31/+6** |
-| **当前态** | **44733** | **1272** | **+214/+34 (从子波 1 完成态)** |
+| Subwave 3 P2-1 | 44744 | 1277 | +11/+5 |
+| Subwave 3 P2-2 | 44766 | 1281 | +22/+4 |
+| **Subwave 3 完成态** | **44766** | **1281** | **+247/+43 (从子波 1)** |
 
 ## Task 2.16 PTX-EMU build-on 验证 (per Oracle Q7 F-7 修正, 2026-09-07)
 
@@ -343,3 +350,15 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | `cmake -S . -B build-on -DCPPTLM_WITH_PTX_EMU=ON -DCPPTLM_DISABLE_TESTS=ON` | cmake configure PASS | src/CMakeLists.txt 修改 (Tasks 2.6-2.13 加 .cc) 不破坏 ON 路径 |
 | `cmake --build build-on --target cpptlm_core -j1` | **PASS** | cpptlm_core 静态库链接成功, src/CMakeLists.txt 加 11 .cc 不影响 PTX-EMU 集成 |
 | HSK-9 #21 兼容性 | ✅ 确认 | PTX-EMU build-on 路径 (与 OFF 共用 src/CMakeLists.txt) 未被破坏 |
+
+## Subwave 3 PTX-EMU 集成回归 (feat/sm-mp-impl-sub3, 2026-09-07)
+
+| 检查项 | 结果 | 备注 |
+|--------|------|------|
+| build-on cpptlm_core 静态库 | **PASS** | `-j1`, libcpptlm_core.a + libcudart.so + libptxemu_core.a 全部链接 |
+| build-on cpptlm_tests 完整测试 | **PASS** | 44766/1281 全部测试绿 (含 Phase 7 + HSK-9 + PCIe + SM microarch) |
+| build-on ctest (Phase 7 + HSK-9 集成) | **63/63 PASS** | cute_* 5 个延迟跳过 (依赖完整 PTX-EMU + CuTe 重型构建, 当前 build 配置未启用) |
+| `python3 examples/demo_pcie_full_e2e.py` | **PASS** | PCIe E2E demo: PcieEndpointIP + AXI Adapter + HostBypassTLM + PcieRootComplexTLM + Per-VF config 隔离 |
+| `python3 examples/demo_e2e_soc.py` | **PASS** | 顶层 SoC E2E demo, single_cluster_soc.json 完整链路 |
+| `python3 -m pytest test/python/` | **232 passed** | Python 工具测试全绿 |
+| **Subwave 3 P2-1/P2-2 边界测试** | **✅ PASS** | ring buffer 满覆盖 (5 用例 / 11 断言) + is_instruction_completed 负测试 (4 用例 / 22 断言) |
