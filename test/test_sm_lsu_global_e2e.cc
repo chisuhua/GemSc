@@ -115,3 +115,96 @@ TEST_CASE("LsuGlobal pipe 互斥 (非 kLsuGlobal 不入 pending 队列)",
     // VectorALU 真值 (Task 2.6) 调 mark_completed → instr_id 800 已完成
     REQUIRE(sm.is_instruction_completed(800));
 }
+
+TEST_CASE("LsuGlobal 多条目 FIFO 顺序 (Task 2.13.5 A4)",
+          "[sm][lsu][sm-microarch][task18-p1-13-5]") {
+    EventQueue eq;
+    StreamingMultiprocessorTLM sm("sm0", &eq);
+    DeviceConfig cfg{};
+    REQUIRE(sm.initialize(cfg));
+
+    // 注入 2 条 kLsuGlobal desc, dst 不同, data 不同
+    InstrDescriptor d1{};
+    d1.instr_id = 901;
+    d1.pipe = PipeClass::kLsuGlobal;
+    d1.latency_class = LatencyClass::kMemory;
+    d1.is_memory = true;
+    d1.dst_regs[0] = 11;
+    d1.memory_data = 0x1111;
+    d1.num_dst = 1;
+    d1.target_vaddr = 0x1000;
+    InstrDescriptor d2{};
+    d2.instr_id = 902;
+    d2.pipe = PipeClass::kLsuGlobal;
+    d2.latency_class = LatencyClass::kMemory;
+    d2.is_memory = true;
+    d2.dst_regs[0] = 22;
+    d2.memory_data = 0x2222;
+    d2.num_dst = 1;
+    d2.target_vaddr = 0x2000;
+    sm.set_instr_descriptor_buf(&d1, 1);
+    sm.set_instr_descriptor_buf(&d2, 1);
+
+    // 推进 1 cycle: fu_ consume 第一条 (901), lg_ tick dispatch → lsu_global_ enqueue
+    sm.exe_once();
+    REQUIRE(sm.lsu_global()->pending_count() == 1);
+    // 推进 1 cycle: fu_ consume 第二条 (902), lg_ tick dispatch → lsu_global_ enqueue
+    sm.exe_once();
+    REQUIRE(sm.lsu_global()->pending_count() == 2);
+
+    // 推进 9 cycle (901 在第 11 cycle 归零回调: enqueue cycle 2 + 9 次 lg head tick 后 remaining 1→0)
+    for (int i = 0; i < 9; ++i) sm.exe_once();
+    REQUIRE(sm.is_instruction_completed(901));
+    REQUIRE_FALSE(sm.is_instruction_completed(902));
+    uint64_t v11 = 0;
+    REQUIRE(sm.get_register_value(0, 0, 11, &v11));
+    REQUIRE(v11 == 0x1111);
+
+    // 推进 1 more cycle (902 起始剩余 10, 现在 10→9)
+    sm.exe_once();
+    // 推进 9 cycle (902 在第 21 cycle 归零)
+    for (int i = 0; i < 9; ++i) sm.exe_once();
+    REQUIRE(sm.is_instruction_completed(902));
+    uint64_t v22 = 0;
+    REQUIRE(sm.get_register_value(0, 0, 22, &v22));
+    REQUIRE(v22 == 0x2222);
+    REQUIRE(sm.lsu_global()->pending_count() == 0);
+}
+
+TEST_CASE("LsuGlobal latency_cycles() 覆盖路径 (Task 2.13.5 A5)",
+          "[sm][lsu][sm-microarch][task18-p1-13-5]") {
+    EventQueue eq;
+    StreamingMultiprocessorTLM sm("sm0", &eq);
+    DeviceConfig cfg{};
+    REQUIRE(sm.initialize(cfg));
+
+    // 调短 latency_cycles=3, 验证 3 cycle 归零 (而非默认 10)
+    sm.lsu_global()->set_latency_cycles(3);
+
+    InstrDescriptor desc{};
+    desc.instr_id = 950;
+    desc.pipe = PipeClass::kLsuGlobal;
+    desc.latency_class = LatencyClass::kMemory;
+    desc.is_memory = true;
+    desc.dst_regs[0] = 33;
+    desc.memory_data = 0x3333;
+    desc.num_dst = 1;
+    desc.target_vaddr = 0x3000;
+    sm.set_instr_descriptor_buf(&desc, 1);
+
+    // 推进 2 cycle (未到 latency=3, pending 仍 active)
+    sm.exe_once();  // cycle 1: fu consume + lg enqueue (remaining=3)
+    sm.exe_once();  // cycle 2: lg tick head: remaining 3→2
+    REQUIRE_FALSE(sm.is_instruction_completed(950));
+    REQUIRE(sm.lsu_global()->pending_count() == 1);
+
+    // 推进 2 more cycle (总 4 cycle, remaining 2→1→0 归零回调)
+    sm.exe_once();  // cycle 3: remaining 2→1
+    REQUIRE_FALSE(sm.is_instruction_completed(950));
+    sm.exe_once();  // cycle 4: remaining 1→0 → 归零回调 write reg + mark_completed
+    REQUIRE(sm.is_instruction_completed(950));
+    REQUIRE(sm.lsu_global()->pending_count() == 0);
+    uint64_t v33 = 0;
+    REQUIRE(sm.get_register_value(0, 0, 33, &v33));
+    REQUIRE(v33 == 0x3333);
+}

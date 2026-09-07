@@ -206,6 +206,10 @@ namespace tlm {
             // Task 2.11 P1-11: rf_ tick() 接线准备 (per Oracle P-2, 真值写回由 WritebackUnit Task 2.12 接管)
             // 当前 stub tick() no-op; 真实 write-back 协调推迟 Task 2.12
             rf_->tick();
+            // Task 2.13 P1-13 + Task 2.13.5 P-1 修复: ht_ tick() 入链尾, F12b 闭合 12/12 wired
+            // HT 真值 tick() 当前 no-op (per Oracle Q4, 由 producer/release 驱动); 此处 stub tick
+            // 仅闭合 12 子模块 tick 调度链声明
+            ht_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
