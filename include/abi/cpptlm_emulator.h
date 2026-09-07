@@ -32,7 +32,18 @@ typedef struct cpptlm_device_info_s {
     uint32_t subsys_vendor_id;
     uint32_t subsys_device_id;
     char profile_path[256];
+
+    /* ── v1.1 扩展字段: 对齐 amdgpu / QEMU 设备拓扑 ── */
+    uint64_t visible_vram_size;
+    uint64_t invisible_vram_size;
+    uint64_t va_region_size;
+    uint32_t gpu_id;
+    uint16_t gfx_version;
+    uint16_t bdf;
+    uint64_t bar_sizes[6];
 } cpptlm_device_info_t;
+
+typedef uint64_t cpptlm_emulator_handle_t;
 
 typedef struct cpptlm_register_info_s {
     uint32_t offset;
@@ -97,6 +108,10 @@ int cpptlm_emulator_register_callbacks(cpptlm_emulator_t* emu, cpptlm_intr_deliv
 int cpptlm_emulator_register_backdoor_cb(cpptlm_emulator_t* emu, void* cb);
 
 int cpptlm_emulator_register_dma_translate_cb(cpptlm_emulator_t* emu, void* cb);
+
+int cpptlm_emulator_open(uint32_t dev_id, cpptlm_emulator_handle_t* out_handle);
+int cpptlm_emulator_close(cpptlm_emulator_handle_t handle);
+int cpptlm_emulator_get_adapter_info(cpptlm_emulator_handle_t handle, cpptlm_device_info_t* out_info);
 
 #if defined(__cplusplus)
 } // extern "C"

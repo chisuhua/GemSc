@@ -119,6 +119,18 @@ int cpptlm_emulator_get_device_info(uint32_t dev_id, cpptlm_device_info_t* out_i
         out_info->subsys_device_id = 0x1234;
         std::snprintf(out_info->profile_path, sizeof(out_info->profile_path), "%s",
                       emu->profile_path.c_str());
+        if (emu->board) {
+            const auto& dinfo = emu->board->device_info();
+            out_info->visible_vram_size = dinfo.visible_vram_size;
+            out_info->invisible_vram_size = dinfo.invisible_vram_size;
+            out_info->va_region_size = dinfo.va_region_size;
+            out_info->gpu_id = dinfo.gpu_id;
+            out_info->gfx_version = dinfo.gfx_version;
+            out_info->bdf = dinfo.bdf;
+            for (size_t i = 0; i < 6; ++i) {
+                out_info->bar_sizes[i] = dinfo.bar_sizes[i];
+            }
+        }
         return 0;
     } catch (const std::exception&) {
         return -EINVAL;
@@ -428,6 +440,69 @@ int cpptlm_emulator_register_dma_translate_cb(cpptlm_emulator_t* emu, void* cb) 
     } catch (...) {
         return -EFAULT;
     }
+}
+
+namespace {
+    std::mutex handle_mu_;
+    std::unordered_map<cpptlm_emulator_handle_t, cpptlm_emulator_t*> handle_map_;
+    std::atomic<cpptlm_emulator_handle_t> next_handle_{1000};
+}
+
+CPPTLM_EMULATOR_EXPORT
+int cpptlm_emulator_open(uint32_t dev_id, cpptlm_emulator_handle_t* out_handle) {
+    if (!out_handle) {
+        return -EINVAL;
+    }
+    *out_handle = 0;
+    cpptlm_emulator_t* emu = cpptlm_emulator_create_by_id(dev_id);
+    if (!emu) {
+        return -ENODEV;
+    }
+    cpptlm_emulator_handle_t h = next_handle_.fetch_add(1);
+    {
+        std::lock_guard<std::mutex> lk(handle_mu_);
+        handle_map_[h] = emu;
+    }
+    *out_handle = h;
+    return 0;
+}
+
+CPPTLM_EMULATOR_EXPORT
+int cpptlm_emulator_close(cpptlm_emulator_handle_t handle) {
+    if (handle == 0) {
+        return -EINVAL;
+    }
+    cpptlm_emulator_t* emu = nullptr;
+    {
+        std::lock_guard<std::mutex> lk(handle_mu_);
+        auto it = handle_map_.find(handle);
+        if (it == handle_map_.end()) {
+            return -EINVAL;
+        }
+        emu = it->second;
+        handle_map_.erase(it);
+    }
+    if (emu) {
+        cpptlm_emulator_destroy(emu);
+    }
+    return 0;
+}
+
+CPPTLM_EMULATOR_EXPORT
+int cpptlm_emulator_get_adapter_info(cpptlm_emulator_handle_t handle, cpptlm_device_info_t* out_info) {
+    if (handle == 0 || !out_info) {
+        return -EINVAL;
+    }
+    cpptlm_emulator_t* emu = nullptr;
+    {
+        std::lock_guard<std::mutex> lk(handle_mu_);
+        auto it = handle_map_.find(handle);
+        if (it == handle_map_.end()) {
+            return -EINVAL;
+        }
+        emu = it->second;
+    }
+    return cpptlm_emulator_get_device_info(emu->dev_id, out_info);
 }
 
 } // extern "C"

@@ -83,7 +83,17 @@ public:
 
     // 4. 设备枚举
     uint32_t device_id() const { return device_id_; }
-    struct DeviceInfo { uint32_t vendor_id; uint32_t device_id; uint64_t bar_sizes[6]; };
+    struct DeviceInfo {
+        uint32_t vendor_id;
+        uint32_t device_id;
+        uint64_t bar_sizes[6];
+        uint64_t visible_vram_size;
+        uint64_t invisible_vram_size;
+        uint64_t va_region_size;
+        uint32_t gpu_id;
+        uint16_t gfx_version;
+        uint16_t bdf;
+    };
     const DeviceInfo& device_info() const { return device_info_; }
 
     // 5. 生命周期
