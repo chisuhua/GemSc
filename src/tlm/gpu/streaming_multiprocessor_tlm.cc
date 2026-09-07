@@ -31,7 +31,13 @@ StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, 
     matrix_alu_ = std::make_unique<cpptlm::gpu::MatrixCore>(this);
     mc_ = std::make_unique<sm::MatrixCore>(name + ".mc", eq);
     mc_->set_parent(this);  // Task 2.7 P1-7: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_ 模式)
+    // Task 2.8 P1-8: SIMTLane 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU/MatrixCore, EXEC mask + 分歧检测)
+    simt_lane_ = std::make_unique<cpptlm::gpu::SIMTLane>(this);
+    // Task 2.8 P1-8: SIMTLane 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU/MatrixCore, EXEC mask + 分歧检测)
+    simt_lane_ = std::make_unique<cpptlm::gpu::SIMTLane>(this);
     sl_ = std::make_unique<sm::SIMTLane>(name + ".sl", eq);
+    sl_->set_parent(this);  // Task 2.8 P1-8: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_ 模式)
+    sl_->set_parent(this);  // Task 2.8 P1-8: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_ 模式)
     lg_ = std::make_unique<sm::LsuGlobal>(name + ".lg", eq);
     ll_ = std::make_unique<sm::LsuLDS>(name + ".ll", eq);
     rf_ = std::make_unique<sm::RegFileUnit>(name + ".rf", eq);

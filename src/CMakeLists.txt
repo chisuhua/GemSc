@@ -58,6 +58,10 @@ set(CORE_SOURCES
     tlm/gpu/sm/vector_alu.cc
     # SM Task 2.7 P1-7: MatrixCore stub 真值类 (独立 cpptlm::gpu::MatrixCore, 真值推迟 Task 4.6 MFMA)
     tlm/gpu/sm/matrix_alu.cc
+    # SM Task 2.8 P1-8: SIMTLane 真值类 (独立 cpptlm::gpu::SIMTLane, EXEC mask 64-bit + 分歧检测)
+    tlm/gpu/sm/simt_lane.cc
+    # SM Task 2.8 P1-8: SIMTLane 真值类 (独立 cpptlm::gpu::SIMTLane, EXEC mask 64-bit + 分歧检测)
+    tlm/gpu/sm/simt_lane.cc
     tlm/gpu/sm/vector_alu_tlm.cc
     tlm/gpu/sm/matrix_core_tlm.cc
     tlm/gpu/sm/simt_lane_tlm.cc

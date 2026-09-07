@@ -40,6 +40,7 @@
 #include "tlm/gpu/sm/scalar_alu.hh" // Task 1.3 P1-3 ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU)
 #include "tlm/gpu/sm/vector_alu.hh" // Task 2.6 P1-6 VectorALU 真值 (独立 cpptlm::gpu::VectorALU)
 #include "tlm/gpu/sm/matrix_alu.hh" // Task 2.7 P1-7 MatrixCore stub (cpptlm::gpu::MatrixCore 真值推迟 Task 4.6)
+#include "tlm/gpu/sm/simt_lane.hh" // Task 2.8 P1-8 SIMTLane 真值 (EXEC mask 64-bit + 分歧检测)
 
 #include <array>
 #include <memory>
@@ -88,6 +89,10 @@ namespace tlm {
     sm::MatrixCore* mc() { return mc_.get(); }
     // matrix_alu(): 返回 cpptlm::gpu::MatrixCore 真值类指针 (mc_ tick dispatch 目标)
     cpptlm::gpu::MatrixCore* matrix_alu() { return matrix_alu_.get(); }
+    // sl(): 返回 SIMTLane stub 指针 (per Oracle 预审 Task 2.8 F-4 P1)
+    sm::SIMTLane* sl() { return sl_.get(); }
+    // simt_lane(): 返回 cpptlm::gpu::SIMTLane 真值类指针 (sl_ tick dispatch 目标)
+    cpptlm::gpu::SIMTLane* simt_lane() { return simt_lane_.get(); }
     // mark_completed(): G8 配套接口 (per Oracle Q12, sa_ tick() dispatch 完成后调)
     void mark_completed(uint64_t instr_id) {
         completed_instr_ids_.insert(instr_id);
@@ -156,6 +161,9 @@ namespace tlm {
             // Task 2.7 P1-7: 端口接线 stub — mc_ tick() 内部 pipe 判断 + dispatch 到 matrix_alu_ stub
             // (per Oracle Q12 Q3 C 推荐: sa/va/mc 并列, pipe 互斥, stub 阶段不标 completed 避免假完成)
             mc_->tick();
+            // Task 2.8 P1-8: 端口接线 — sl_ tick() 内部 pipe 判断 + dispatch 到 simt_lane_ 真值
+            // (per Oracle Q12 Q3 C 推荐: sa/va/mc/sl 并列, pipe 互斥, stub 阶段不标 completed 避免假完成)
+            sl_->tick();
             return 1;
         }
         int sm_exe_once(uint32_t sm_id) override {
@@ -284,6 +292,10 @@ namespace tlm {
         // cpptlm::gpu::MatrixCore stub 真值类 (include/tlm/gpu/sm/matrix_alu.hh),
         // mc_ tick() 内部 pipe 判断 + dispatch 到 matrix_alu_->execute() stub (return 0)
         std::unique_ptr<cpptlm::gpu::MatrixCore> matrix_alu_;
+        // === Task 2.8 P1-8 SIMTLane 真值 (per plan, EXEC mask 64-bit + 分歧检测) ===
+        // cpptlm::gpu::SIMTLane 真值类 (include/tlm/gpu/sm/simt_lane.hh),
+        // sl_ tick() 内部 pipe 判断 + dispatch 到 simt_lane_->execute() 更新 EXEC mask
+        std::unique_ptr<cpptlm::gpu::SIMTLane> simt_lane_;
 
         // Task 1.5 P1-5: instr_descriptor ring buffer (固定大小 64, 覆盖最旧)
         // 浅拷贝 PTX-EMU 注入的 InstrDescriptor buf (per HSK-9 §3 buf 内存所有权语义)
