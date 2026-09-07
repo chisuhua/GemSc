@@ -299,7 +299,9 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | 2.9 | `593fb5a` | LsuGlobal 真值 (异步 10 cycle) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
 | 2.10 | `4516b21` | LsuLDS 真值 (同步 1 cycle, bank conflict stub) | APPROVE-WITH-FIXES F-2 P0 | ✅ push |
 | Style fix | `3ee0d72` | clang-format 7 文件 | — | ✅ push |
-| **Current HEAD** | **`1139b6a`** | **Tasks 2.11-2.13.5+2.14 完成** | — | **待 Task 2.15** |
+| Task 2.15 | `471bd10` | L4 IComputeDevice stepping 测试补全 | 无 Oracle (纯测试补全) | ✅ push |
+| Task 2.16 | `cb4ccf9` | PTX-EMU build-on 库构建验证 + doc hygiene | — | ✅ push |
+| **Current HEAD** | **`cb4ccf9`** | **Tasks 2.11-2.16 完成** | — | **待 Task 2.17 final Oracle** |
 
 ### 子波 2 启动条件 (Oracle 评审后)
 - ✅ Oracle 复审子波 1 PASS (含 P1-1 IMAD 测试)
