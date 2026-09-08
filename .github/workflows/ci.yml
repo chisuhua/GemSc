@@ -85,13 +85,17 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install CUDA toolkit
-      uses: Jimver/cuda-toolkit@v0.2.20
-      with:
-        # CUDA 12.8+ 支持 sm_100 (Blackwell), PTX-EMU 默认 gpu-architecture=compute_100
-        # (per external/PTX-EMU/CMakeLists.txt DEFAULT_CUDA_ARCH=100).
-        cuda-version: '12.8.0'
-        cuda-components: 'cuda,cudart,cupti,nvtx,nvrtc'
+    - name: Install CUDA 12.8 (manual, Jimver action only ships 12.6.1)
+      # Jimver/cuda-toolkit@v0.2.20 hardcodes cuda 12.6.1, doesn't accept 12.8
+      # via cuda-version input (warning: 'Unexpected input cuda-version').
+      # CUDA 12.8+ required for sm_100 (PTX-EMU default DEFAULT_CUDA_ARCH=100).
+      # Use official NVIDIA cuda-keyring + apt-get cuda-toolkit-12-8.
+      run: |
+        wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i cuda-keyring_1.1-1_all.deb
+        sudo apt-get update
+        sudo apt-get install -y cuda-toolkit-12-8
+        rm cuda-keyring_1.1-1_all.deb
 
     - name: Install build dependencies
       run: |
@@ -106,8 +110,10 @@ jobs:
 
     - name: Build and run PTX-EMU H2D DMA tests
       env:
+        # cuda-toolkit-12-8 installs to /usr/local/cuda-12.8, with /usr/local/cuda symlink
         CUDA_PATH: /usr/local/cuda
         CUDA_HOME: /usr/local/cuda
+        PATH: /usr/local/cuda/bin:${{ env.PATH }}
       run: ./test.sh --mode ptx-emu
 
     - name: Upload test results
