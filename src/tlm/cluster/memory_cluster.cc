@@ -15,6 +15,10 @@ namespace cpptlm::tlm {
     }
 
     void MemoryCluster::simulate_instantiate(const nlohmann::json& cfg) {
+        // 幂等守卫: 同根因 as 4 cluster fix (PR #27), 当前无活路径触发, 防御性补齐。
+        if (!internal_factory->getAllInstances().empty()) {
+            return;
+        }
         SimModule::simulate_instantiate(cfg);
         nlohmann::json full_config = {{"modules", nlohmann::json::array()}};
         for (int i = 0; i < channel_count_; ++i) {

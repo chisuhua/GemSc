@@ -11,6 +11,8 @@
 
 #include "abi/cpptlm_emulator.h"
 
+#include "chstream_register.hh"
+#include "modules_cluster.hh"
 #include "tlm/gpu/dgpu_board_shell.hh"
 
 #include <nlohmann/json.hpp>
@@ -26,6 +28,21 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+
+// 触发 REGISTER_OBJECT + REGISTER_CHSTREAM 静态初始化：libcpptlm_emulator.so
+// 被加载时执行 (cpptlm_tests Catch2 binary 不调 main.cpp 的 REGISTER_ALL,
+// 所以必须在 libcpptlm_emulator.so 中也触发以确保 ModuleFactory registry 非空).
+// registerObject/registerModule 检查 existing entry, 重复注册是 no-op.
+// __attribute__((used)) 防止链接器 GC (lib 静态变量无显式引用时可能被 GC).
+namespace {
+    struct CpptlmEmulatorRegistrar {
+        CpptlmEmulatorRegistrar() {
+            REGISTER_OBJECT;
+            REGISTER_CHSTREAM;
+        }
+    } __attribute__((used));
+    const CpptlmEmulatorRegistrar _cpptlm_emulator_registrar __attribute__((used));
+} // namespace
 
 struct cpptlm_emulator_s {
     std::unique_ptr<tlm::gpu::DGpuBoard> board;

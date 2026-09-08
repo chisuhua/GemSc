@@ -17,6 +17,10 @@ namespace cpptlm::tlm {
     }
 
     void GpcCluster::simulate_instantiate(const nlohmann::json& cfg) {
+        // 幂等守卫: 防双激活二次生成覆盖 instances map 泄漏第一批子树 (fix-asan 根因 2)。
+        if (!internal_factory->getAllInstances().empty()) {
+            return;
+        }
         SimModule::simulate_instantiate(cfg);
         nlohmann::json tpc_cfgs = nlohmann::json::array();
         for (int i = 0; i < tpc_per_gpc_; ++i) {

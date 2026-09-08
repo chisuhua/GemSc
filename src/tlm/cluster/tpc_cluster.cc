@@ -17,6 +17,10 @@ namespace cpptlm::tlm {
     }
 
     void TpcCluster::simulate_instantiate(const nlohmann::json& cfg) {
+        // 幂等守卫: 防双激活二次生成覆盖 instances map 泄漏第一批子树 (fix-asan 根因 2)。
+        if (!internal_factory->getAllInstances().empty()) {
+            return;
+        }
         SimModule::simulate_instantiate(cfg);
         if (cu_template_path_.empty()) {
             throw std::runtime_error("TpcCluster: cu_template must be set");

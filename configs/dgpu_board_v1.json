@@ -10,6 +10,7 @@
     {
       "name": "soc",
       "type": "DGpuSoc",
+      "connections": [],
       "modules": [
         {
           "name": "pcie_ep",
@@ -57,7 +58,13 @@
         {
           "name": "gpu",
           "type": "GpuCluster",
-          "config": "configs/templates/gpu_2gpc_2tpc_2cu.json"
+          "params": {
+            "gpc_count": 2,
+            "tpc_per_gpc": 2,
+            "cu_per_tpc": 2,
+            "cu_template": "configs/templates/compute_unit_v1.json"
+          },
+          "connections": []
         },
         {
           "name": "vram",
