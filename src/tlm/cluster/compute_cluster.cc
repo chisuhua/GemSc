@@ -26,6 +26,10 @@ namespace cpptlm::tlm {
     }
 
     void ComputeCluster::simulate_instantiate(const nlohmann::json& cfg) {
+        // 幂等守卫: 防双激活二次生成覆盖 instances map 泄漏第一批子树 (fix-asan 根因 2)。
+        if (!internal_factory->getAllInstances().empty()) {
+            return;
+        }
         SimModule::simulate_instantiate(cfg);
         // P1 fix: 子 ComputeCluster 场景下 cu_template_path_ 为空 (默认),
         // 但父 ComputeCluster 已在 cu_entry["modules"] 提供蓝图实例, 通过基类

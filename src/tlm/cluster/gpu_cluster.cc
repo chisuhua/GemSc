@@ -17,6 +17,11 @@ namespace cpptlm::tlm {
     }
 
     void GpuCluster::simulate_instantiate(const nlohmann::json& cfg) {
+        // 幂等守卫: 双激活 (instantiateAll Step 4.5 + SimModule 递归) 下第二次进入时
+        // 直接返回, 避免二次生成覆盖 instances map 泄漏第一批子树 (fix-asan 根因 2)。
+        if (!internal_factory->getAllInstances().empty()) {
+            return;
+        }
         SimModule::simulate_instantiate(cfg);
         nlohmann::json gpc_cfgs = nlohmann::json::array();
         for (int i = 0; i < gpc_count_; ++i) {
