@@ -131,6 +131,7 @@ jobs:
       # ubuntu-latest 默认 clang-format 版本会随镜像变化,
       # 导致本地与 CI 漂移, 引发大量假阳性.
       # Ubuntu noble 默认仓库不提供 clang-format-22, 必须从 LLVM 官方仓库装.
+      # 必须 --force 覆盖系统默认 clang-format-18 symlink, 否则 PATH 中 clang-format 仍指 18.
       run: |
         sudo apt-get update
         sudo apt-get install -y wget gnupg
@@ -138,7 +139,8 @@ jobs:
         echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm.list
         sudo apt-get update
         sudo apt-get install -y clang-format-22
-        sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100
+        sudo update-alternatives --force --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 200
+        sudo update-alternatives --set clang-format /usr/bin/clang-format-22
         clang-format --version
     - name: Check format
       run: |
