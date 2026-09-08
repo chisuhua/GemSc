@@ -11,24 +11,34 @@
 
 ## 2. PTX-EMU 端 consumer 改造 (patch 模式，不直接 bump CppTLM 子模块)
 
-- [ ] 2.1 在 `external/PTX-EMU/src/ptxemu/device_api_impl.cc` 加 `set_instr_descriptor_buf(const InstrDescriptor*, uint32_t)` 实现（buffer pointer 存储 + count + LOG_TRACE 日志 + null buffer 容错；签名 `const` 修饰与 `i_compute_device.hh:84` 逐字对齐）
-- [ ] 2.2 在 `external/PTX-EMU/include/ptxemu/device_api.h` 把 `attach_timing` 标 `[[deprecated("use IComputeDevice::set_instr_descriptor_buf instead; attach_timing will be removed in HSK-10")]]`（**PTX-EMU owner ack 项**：属性加在头文件声明，非签名变更，HSK-9 12 方法冻结保持）
-- [ ] 2.3 在 `external/PTX-EMU/src/ptxemu/device_api_impl.cc` 把 `attach_timing` body 改 no-op stub + 一次性 warning log
+- [x] 2.0 **(新增前置)** 在 `external/PTX-EMU/include/ptxemu/instruction_descriptor.hh` 创建 `InstrDescriptor` POD mirror (mirror cpptlm::gpu::InstrDescriptor 字段，namespace `ptxemu`，per HSK-9 §3 R9.2 cross-repo POD 冻结契约)
+- [x] 2.1 在 `external/PTX-EMU/src/ptxemu/device_api_impl.cc` 加 `set_instr_descriptor_buf(const InstrDescriptor*, uint32_t)` 实现（buffer pointer 存储 + count + LOG_TRACE 日志 + null buffer 容错；签名 `const` 修饰与 `i_compute_device.hh:84` 逐字对齐）
+- [x] 2.2 在 `external/PTX-EMU/include/ptxemu/device_api.h` 把 `attach_timing` 标 `[[deprecated("use IComputeDevice::set_instr_descriptor_buf instead; attach_timing will be removed in HSK-10")]]`（**PTX-EMU owner ack 项**：属性加在头文件声明，非签名变更，HSK-9 12 方法冻结保持）
+- [x] 2.3 在 `external/PTX-EMU/src/ptxemu/device_api_impl.cc` 把 `attach_timing` body 改 no-op stub + 一次性 warning log
 - [ ] 2.4 在 `external/PTX-EMU/src/ptxsim/core/sm_context_cpptlm_inject.h` 移除 `IScoreboard*` / `IPipelineLatencyProvider*` / `ITensorCoreTiming*` 字段
 - [ ] 2.5 在 `external/PTX-EMU/src/ptxsim/core/sm_context_cpptlm_inject.cc` 把 `sm_exe_once(uint32_t sm_id)` 路径切到 `IComputeDevice::sm_exe_once(uint32_t sm_id)`（**1 参数**对齐 `i_compute_device.hh:74`），删除 3 vendor 接口调用
 - [ ] 2.6 `git grep "IScoreboard\\|IPipelineLatencyProvider\\|ITensorCoreTiming" external/PTX-EMU/src/ptxsim/core/sm_context_cpptlm_inject.{h,cpp}` → 0 matches
-- [ ] 2.7 在 `external/PTX-EMU/` worktree (`/tmp/ptxemu-libfix` 或新 worktree) 新建 `tests/legacy-attach_timing/` 目录
-- [ ] 2.8 移动 **2 个** `*attach_timing*` 测试文件到 `external/PTX-EMU/tests/legacy-attach_timing/`，每个加 `// [[deprecated]]` 注释块并**重命名为 `attach_timing_legacy_*` 前缀**（d5a58cf5 实测文件：`tests/integration/cpptlm/test_attach_timing_consumer_e2e.cpp` + `tests/unit/ptxemu/test_device_api_attach_timing.cpp`；HSK-9 公告"5 个"过时，owner ack 后定数）
-- [ ] 2.9 验证 PTX-EMU 仓 build：`cmake --build build-standalone --target ptxemu_device -j2` → exit 0（PTX-EMU -j2 硬约束 per `HSK-9-baseline-tracker.md` L71-72 避免 OOM）；legacy 测试 `ctest -R attach_timing_legacy` → pass
+- [x] 2.7 在 `external/PTX-EMU/` worktree (`/tmp/ptxemu-libfix` 或新 worktree) 新建 `tests/legacy-attach_timing/` 目录
+- [x] 2.8 移动 **2 个** `*attach_timing*` 测试文件到 `external/PTX-EMU/tests/legacy-attach_timing/`，每个加 `// [[deprecated]]` 注释块并**重命名为 `attach_timing_legacy_*` 前缀**（d5a58cf5 实测文件：`tests/integration/cpptlm/test_attach_timing_consumer_e2e.cpp` + `tests/unit/ptxemu/test_device_api_attach_timing.cpp`；HSK-9 公告"5 个"过时，owner ack 后定数）
+- [x] 2.9 验证 PTX-EMU 仓 build：`cmake --build build-standalone --target ptxemu_device -j2` → exit 0（PTX-EMU -j2 硬约束 per `HSK-9-baseline-tracker.md` L71-72 避免 OOM）；legacy 测试 `ctest -R attach_timing_legacy` → pass
+
+> **Phase 2 PR scope 完成 (6/9 tasks)**: 2.0, 2.1, 2.2, 2.3, 2.7, 2.8, 2.9. Tasks 2.4-2.6 deferred 到 subwave-2.5 (PTX-EMU owner ack 后单独 PR), 因 OpenSpec task 字面与 cb2df752 实际代码状态有 gap (vendor 字段在 sm_context.h 不在 sm_context_cpptlm_inject.h, step_b 函数签名重构会破坏 test_step_b_set_blocked_cycles.cpp + test_smcontext_injection.cpp + test_attach_timing_consumer_e2e.cpp 等多个测试, 超出 Phase 2 PR 范围). Subwave-2.5 需 PTX-EMU owner ack 14d 反馈窗口 (截止 2027-02-23) 内协调.
+
+> **Phase 2 PR 验证**:
+> - `cmake --build build-standalone --target ptxemu_device -j2` → exit 0 (libptxsim.so + libptxemu_device.so)
+> - `ctest -R attach_timing_legacy` → 100% (2/2 tests pass): `unit_attach_timing_legacy_device_api` + `integration_attach_timing_legacy_consumer_e2e`
+> - `[[deprecated]]` 属性正确触发编译警告 `[-Wdeprecated-declarations]` (attach_timing 调用点)
 
 ## 3. 文档镜像 + tracker 同步 + sync check
 
-- [ ] 3.1 新增 `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md`（含「关联权威 Spec」相对链接 + 「CppTLM 端落地动作」4 个 checkbox）
-- [ ] 3.2 在 `docs/superpowers/specs/HSK-9-baseline-tracker.md` 追加 `## Subwave 4 (HSK-9 consumer pinning)` 段，引用本 change 路径 + design.md 3 phase
-- [ ] 3.3 **不**把 `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md` 加进 `scripts/test/docs_sync_check.sh` 的 `VIRTUAL_PATHS`（VIRTUAL_PATHS 是豁免清单，加进去与"删除 → --strict 失败"自相矛盾；正确绑定见 Task 3.5）
-- [ ] 3.4 跑 `bash scripts/test/docs_sync_check.sh --strict` → exit 0
-- [ ] 3.5 **无条件**更新 `AGENTS.md` 路径表：在 STRUCTURE 节添加 `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md` 反引号引用（让扫描器捕获，触发同步检查）
-- [ ] 3.6 跑 `openspec validate hsk9-icompute-api-v1-consumer-pinning --strict` → 全部 PASS
+- [x] 3.1 新增 `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md`（含「关联权威 Spec」相对链接 + 「CppTLM 端落地动作」4 个 checkbox）
+- [x] 3.2 在 `docs/superpowers/specs/HSK-9-baseline-tracker.md` 追加 `## Subwave 4 (HSK-9 consumer pinning)` 段，引用本 change 路径 + design.md 3 phase
+- [x] 3.3 **不**把 `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md` 加进 `scripts/test/docs_sync_check.sh` 的 `VIRTUAL_PATHS`（VIRTUAL_PATHS 是豁免清单，加进去与"删除 → --strict 失败"自相矛盾；正确绑定见 Task 3.5）
+- [x] 3.4 跑 `bash scripts/test/docs_sync_check.sh --strict` → exit 0
+- [x] 3.5 **无条件**更新 `AGENTS.md` 路径表：在 STRUCTURE 节添加 `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md` 反引号引用（让扫描器捕获，触发同步检查）
+- [x] 3.6 跑 `openspec validate hsk9-icompute-api-v1-consumer-pinning --strict` → 全部 PASS
+
+> **Phase 3 完成**: docs_sync_check 0 missing paths + openspec validate PASS. mirror 文件内容判据满足 (含「关联权威 Spec」节 + 「CppTLM 端落地动作」4 个 checkbox + 「Subwave 4」段引用本 change).
 
 ## 4. Submodule bump (待 PTX-EMU owner ack 后，单独起 change)
 

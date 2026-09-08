@@ -33,6 +33,7 @@ include/                 # 所有 .hh 头文件（src/ 仅放 .cc, 无混用）
   tlm/gpu/               # ★ SM 重构 GPGPU 端 (Task 4-13, 2027-02-09)
     streaming_multiprocessor_tlm.hh    # ★ SM 顶层容器 (12 子模块 + IComputeDevice 15 方法)
     i_compute_device.hh / instruction_descriptor.hh    # SM-owns-state 跨仓契约 (HSK-9)
+│       │  docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md   # HSK-9 CppTLM-side mirror (Phase 3)
     sm/                       # ★ 12 个 ChStream SM 子模块 (Fetch/Decode/Issue/ScalarALU/VectorALU/MatrixCore/SIMTLane/LsuGlobal/LsuLDS/RegFileUnit/WritebackUnit/HazardTracker)
     gpu_tlm.hh / shared_memory_tlm.hh / memory_cluster_tlm.hh
     dma_descriptor_mvp.hh / doorbell_mvp.hh / completion_ring_mvp.hh
