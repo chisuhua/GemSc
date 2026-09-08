@@ -110,10 +110,8 @@ jobs:
 
     - name: Build and run PTX-EMU H2D DMA tests
       env:
-        # cuda-toolkit-12-8 installs to /usr/local/cuda-12.8, with /usr/local/cuda symlink
         CUDA_PATH: /usr/local/cuda
         CUDA_HOME: /usr/local/cuda
-        PATH: /usr/local/cuda/bin:${{ env.PATH }}
       run: ./test.sh --mode ptx-emu
 
     - name: Upload test results
