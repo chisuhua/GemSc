@@ -25,7 +25,16 @@
 #include "tlm/gpu/instruction_descriptor.hh"
 #include <cstdint>
 #include <cstddef>
+#include <type_traits>
+#include <utility>
 #include <vector>
+
+// ICOMPUTE_API_VERSION: CppTLM 端 IComputeDevice 契约版本号 (per HSK-9 OpenSpec change
+// hsk9-icompute-api-v1-consumer-pinning Tasks 1.1-1.2). 镜像 PTX-EMU 端 PTXEMU_API_VERSION
+// 位置 (全局宏, 非 constexpr, 便于跨仓 static_assert; per contract spec Reg 1 + Oracle R4 Fix 10).
+#define ICOMPUTE_API_VERSION 1
+
+static_assert(ICOMPUTE_API_VERSION == 1, "IComputeDevice contract version mismatch");
 
 namespace cpptlm {
 namespace gpu {
@@ -92,9 +101,28 @@ public:
     virtual void reset() = 0;
 };
 
-// 静态断言: IComputeDevice 至少 15 个虚方法 (per HSK-9 §3 + ADR-SOC-16 §2.3)
-// 实际包含 1 dtor + 15 pure virtual = 16 虚方法, 通过 sizeof 测试间接验证接口签名冻结
-static_assert(sizeof(void (IComputeDevice::*)()) > 0, "IComputeDevice must have virtual methods");
+// 15 method-signature static_asserts (per HSK-9 §3 + ADR-SOC-16 §2.3 + Oracle Round 4 Fix 5)
+// 任何方法签名变更 (参数类型/返回类型/const 性) 必须 bump ICOMPUTE_API_VERSION, 否则编译失败
+// C++ 无惯用表达式对虚方法计数, 逐方法签名断言是实际可行机制 (Fix 5)
+static_assert(std::is_same_v<decltype(&IComputeDevice::initialize),                bool (IComputeDevice::*)(const DeviceConfig&)>,                "IComputeDevice::initialize signature (HSK-9 §3 method 1/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::shutdown),                  void (IComputeDevice::*)()>,                                  "IComputeDevice::shutdown signature (HSK-9 §3 method 2/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::exe_once),                  int  (IComputeDevice::*)()>,                                  "IComputeDevice::exe_once signature (HSK-9 §3 method 3/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::sm_exe_once),               int  (IComputeDevice::*)(uint32_t)>,                          "IComputeDevice::sm_exe_once signature (HSK-9 §3 method 4/15, 1-param per i_compute_device.hh:74)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::warp_exe_once),             int  (IComputeDevice::*)(uint32_t, uint32_t)>,                "IComputeDevice::warp_exe_once signature (HSK-9 §3 method 5/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::set_scoreboard),            bool (IComputeDevice::*)(uint32_t, uint32_t, uint64_t)>,     "IComputeDevice::set_scoreboard signature (HSK-9 §3 method 6/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::get_thread_state),          cpptlm::gpu::ThreadState (IComputeDevice::*)(uint32_t, uint32_t, uint32_t)>, "IComputeDevice::get_thread_state returns ThreadState NOT int (HSK-9 §3 method 7/15 + archive cpptlm-dgpu-d1-cdna-isa-sm-rewrite Task 3.5 P0 prevention)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::set_active_mask),           bool (IComputeDevice::*)(uint32_t, uint32_t, uint64_t)>,     "IComputeDevice::set_active_mask signature (HSK-9 §3 method 8/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::set_next_pc),               bool (IComputeDevice::*)(uint32_t, uint32_t, uint32_t, uint32_t)>, "IComputeDevice::set_next_pc signature (HSK-9 §3 method 9/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::get_warp_status),           WarpStatus (IComputeDevice::*)(uint32_t, uint32_t)>,         "IComputeDevice::get_warp_status signature (HSK-9 §3 method 10/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::is_finished),               bool (IComputeDevice::*)()>,                                  "IComputeDevice::is_finished signature (HSK-9 §3 method 11/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::set_instr_descriptor_buf),  void (IComputeDevice::*)(const InstrDescriptor*, uint32_t)>,  "IComputeDevice::set_instr_descriptor_buf signature (HSK-9 §3 method 12/15, const InstrDescriptor* per i_compute_device.hh:84)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::get_register_value),         bool (IComputeDevice::*)(uint32_t, uint32_t, uint32_t, uint64_t*, uint32_t)>, "IComputeDevice::get_register_value signature (HSK-9 §3 method 13/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::is_instruction_completed),  bool (IComputeDevice::*)(uint64_t)>,                         "IComputeDevice::is_instruction_completed signature (HSK-9 §3 method 14/15)");
+static_assert(std::is_same_v<decltype(&IComputeDevice::reset),                      void (IComputeDevice::*)()>,                                  "IComputeDevice::reset signature (HSK-9 §3 method 15/15)");
+
+// Task 1.4 额外明示: get_thread_state 必须返回 ThreadState 而非 int
+// (防 archive cpptlm-dgpu-d1-cdna-isa-sm-rewrite Task 3.5 P0 重现; Oracle Round 4 Fix 1)
+static_assert(std::is_same_v<decltype(std::declval<IComputeDevice>().get_thread_state(0, 0, 0)), cpptlm::gpu::ThreadState>, "get_thread_state must return ThreadState, not int (HSK-9 §3 + archive P0)");
 
 }  // namespace gpu
 }  // namespace cpptlm

@@ -1,11 +1,13 @@
 ## 1. CppTLM 端 ICOMPUTE_API_VERSION 钉死
 
-- [ ] 1.1 在 `include/tlm/gpu/i_compute_device.hh` 顶部加 `#define ICOMPUTE_API_VERSION 1` 全局宏（镜像 PTXEMU_API_VERSION 位置/风格）
-- [ ] 1.2 在 `include/tlm/gpu/i_compute_device.hh` 加 `static_assert(ICOMPUTE_API_VERSION == 1, "IComputeDevice contract version mismatch")` 紧跟宏定义
-- [ ] 1.3 替换 `include/tlm/gpu/i_compute_device.hh` L97 占位 `static_assert(sizeof(void (IComputeDevice::*)()) > 0, ...)` 为 15 条逐方法签名 `static_assert`（每 HSK-9 §3 列举的方法一条，含 `get_thread_state` 返回 `ThreadState` 非 `int` 的逐项断言）
-- [ ] 1.4 在 `include/tlm/gpu/i_compute_device.hh` 加 `static_assert(std::is_same_v<decltype(std::declval<IComputeDevice>().get_thread_state(0,0,0)), cpptlm::gpu::ThreadState>, "get_thread_state must return ThreadState, not int (HSK-9 §3 + archive P0)")`（防 archive Task 3.5 P0 重现）
-- [ ] 1.5 在 `test/test_i_compute_device_interface.cc` 加 Catch2 `TEST_CASE("IComputeDevice ICOMPUTE_API_VERSION is 1")` runtime 验证常量值
-- [ ] 1.6 验证 build：`cmake --build build -j4` → exit 0；`./build/bin/cpptlm_tests "[icompute]"` → 全部绿（不动其他 tag 数量）
+- [x] 1.1 在 `include/tlm/gpu/i_compute_device.hh` 顶部加 `#define ICOMPUTE_API_VERSION 1` 全局宏（镜像 PTXEMU_API_VERSION 位置/风格）
+- [x] 1.2 在 `include/tlm/gpu/i_compute_device.hh` 加 `static_assert(ICOMPUTE_API_VERSION == 1, "IComputeDevice contract version mismatch")` 紧跟宏定义
+- [x] 1.3 替换 `include/tlm/gpu/i_compute_device.hh` L97 占位 `static_assert(sizeof(void (IComputeDevice::*)()) > 0, ...)` 为 15 条逐方法签名 `static_assert`（每 HSK-9 §3 列举的方法一条，含 `get_thread_state` 返回 `ThreadState` 非 `int` 的逐项断言）
+- [x] 1.4 在 `include/tlm/gpu/i_compute_device.hh` 加 `static_assert(std::is_same_v<decltype(std::declval<IComputeDevice>().get_thread_state(0,0,0)), cpptlm::gpu::ThreadState>, "get_thread_state must return ThreadState, not int (HSK-9 §3 + archive P0)")`（防 archive Task 3.5 P0 重现）
+- [x] 1.5 在 `test/test_i_compute_device_interface.cc` 加 Catch2 `TEST_CASE("IComputeDevice ICOMPUTE_API_VERSION is 1")` runtime 验证常量值
+- [x] 1.6 验证 build：`cmake --build build -j4` → exit 0；`./build/bin/cpptlm_tests "[icompute]"` → 全部绿（不动其他 tag 数量）
+
+> **Phase 1 完成**：build OK, [icompute] tag 8/8 全绿, 全部 tests 44785/44785 (baseline 44783 + 新加 1 TEST_CASE 2 assertions). Phase 1 commit on /tmp/hsk9-followup branch `feat/hsk9-iccompute-api-v1-consumer-pinning`.
 
 ## 2. PTX-EMU 端 consumer 改造 (patch 模式，不直接 bump CppTLM 子模块)
 

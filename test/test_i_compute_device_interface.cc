@@ -88,3 +88,10 @@ TEST_CASE("StreamingMultiprocessorTLM tick() stub no-op", "[icompute][sm-microar
     sm.tick();  // 不应抛异常
     REQUIRE(true);
 }
+
+// HSK-9 OpenSpec change hsk9-icompute-api-v1-consumer-pinning Task 1.5:
+// 编译期 + 运行期验证 ICOMPUTE_API_VERSION 常量值
+TEST_CASE("IComputeDevice ICOMPUTE_API_VERSION is 1", "[icompute][hsk9][sm-microarch]") {
+    STATIC_REQUIRE(ICOMPUTE_API_VERSION == 1);
+    REQUIRE(ICOMPUTE_API_VERSION == 1);
+}
