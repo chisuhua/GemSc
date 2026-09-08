@@ -362,3 +362,15 @@ Per Oracle 复审子波 1 (session ses_f8753c360ffepoeFV044s4tkSs):
 | `python3 examples/demo_e2e_soc.py` | **PASS** | 顶层 SoC E2E demo, single_cluster_soc.json 完整链路 |
 | `python3 -m pytest test/python/` | **232 passed** | Python 工具测试全绿 |
 | **Subwave 3 P2-1/P2-2 边界测试** | **✅ PASS** | ring buffer 满覆盖 (5 用例 / 11 断言) + is_instruction_completed 负测试 (4 用例 / 22 断言) |
+
+## Subwave 4 (HSK-9 consumer pinning)
+
+| 检查项 | 结果 | 备注 |
+|--------|------|------|
+| **OpenSpec change** | `hsk9-icompute-api-v1-consumer-pinning` | 3 specs + 4 phases (Tasks 1.1-1.6 / 2.0-2.9 / 3.1-3.6 / 4.1-4.4) |
+| **Phase 1: CppTLM contract pinning** | ✅ DONE | commit `463f69ef` on `/tmp/hsk9-followup` (feat/hsk9-iccompute-api-v1-consumer-pinning); ICOMPUTE_API_VERSION=1 + 15 static_asserts + 1 TEST_CASE; 44785/44785 assertions pass |
+| **Phase 2: PTX-EMU consumer patch** | ✅ DONE (PTX-EMU 仓) | commit `c1fd5ed5` on `/tmp/ptxemu-phase2` (feat/hsk9-consumer-patch); set_instr_descriptor_buf + attach_timing [[deprecated]] stub + 2 测试重定位; `ctest -R attach_timing_legacy` 100% (2/2 pass). 待 PTX-EMU owner review + merge |
+| **Phase 2.4-2.6: step_b 重构** | ⏸ DEFERRED (subwave-2.5) | OpenSpec task 字面 vs cb2df752 实际代码状态有 gap (vendor 字段在 sm_context.h 不在 sm_context_cpptlm_inject.h); step_b 函数签名重构会破坏 test_step_b_set_blocked_cycles + test_smcontext_injection 等多个测试, 超出 Phase 2 PR 范围 |
+| **Phase 3: docs/cross_repo mirror** | ✅ DONE (本 PR) | `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md` + AGENTS.md STRUCTURE 反引号引用 (让 `docs_sync_check.sh` 扫描捕获) |
+| **Phase 4: submodule re-bump** | ⏸ DEFERRED | 等 PTX-EMU owner 合并 Phase 2 patch + subwave-2.5 (vendor 字段清理) 完成后, 单独起 change `chore(submodule): bump external/PTX-EMU <old> → <new>` |
+| **C++17 ABI / [[deprecated]] warnings** | ✅ EXPECTED | `attach_timing` [[deprecated]] 触发 `[-Wdeprecated-declarations]` 警告 (attach_timing 调用点, 在 PTX-EMU 仓 standalone build 中验证) |
