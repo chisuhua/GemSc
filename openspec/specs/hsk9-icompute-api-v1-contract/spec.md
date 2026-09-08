@@ -1,5 +1,8 @@
-## ADDED Requirements
+# hsk9-icompute-api-v1-contract Specification
 
+## Purpose
+TBD - created by archiving change hsk9-icompute-api-v1-consumer-pinning. Update Purpose after archive.
+## Requirements
 ### Requirement: ICOMPUTE_API_VERSION=1 constant defined
 The system SHALL define the preprocessor macro `ICOMPUTE_API_VERSION` with the integer value `1` in the global namespace, visible to any translation unit that includes `include/tlm/gpu/i_compute_device.hh`.
 
@@ -41,3 +44,4 @@ The CppTLM test suite SHALL include a test case that validates the `ICOMPUTE_API
 - **WHEN** `test/test_i_compute_device_interface.cc` is compiled
 - **THEN** the test file SHALL include a `static_assert(ICOMPUTE_API_VERSION == 1, ...)`
 - **AND** the test SHALL have a Catch2 `TEST_CASE` named "IComputeDevice ICOMPUTE_API_VERSION is 1" that asserts the constant value at runtime
+

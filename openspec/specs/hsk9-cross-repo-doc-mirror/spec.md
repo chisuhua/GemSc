@@ -1,5 +1,8 @@
-## ADDED Requirements
+# hsk9-cross-repo-doc-mirror Specification
 
+## Purpose
+TBD - created by archiving change hsk9-icompute-api-v1-consumer-pinning. Update Purpose after archive.
+## Requirements
 ### Requirement: Cross-repo HSK-9 mirror document exists
 The CppTLM repository SHALL contain a cross-repo mirror document at `docs/cross_repo/HSK-9-2027-02-09-cpptlm-sm-rewrite.md` that links the HSK-9 authoritative spec to the CppTLM-side implementation track.
 
@@ -39,3 +42,4 @@ The `AGENTS.md` STRUCTURE path table SHALL contain a backtick-quoted reference t
 - **WHEN** the mirror file is deleted (simulating accidental removal)
 - **THEN** running `bash scripts/test/docs_sync_check.sh --strict` SHALL exit with non-zero status
 - **AND** the error message SHALL name the missing path (via the AGENTS.md reference, not via VIRTUAL_PATHS)
+

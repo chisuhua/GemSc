@@ -1,5 +1,8 @@
-## ADDED Requirements
+# hsk9-ptxemu-consumer-impl Specification
 
+## Purpose
+TBD - created by archiving change hsk9-icompute-api-v1-consumer-pinning. Update Purpose after archive.
+## Requirements
 ### Requirement: set_instr_descriptor_buf implemented
 The PTX-EMU `device_api_impl` class SHALL provide a public non-pure-virtual implementation of `set_instr_descriptor_buf(const InstrDescriptor* buf, uint32_t count)`, matching the HSK-9 spec interface added in `IComputeDevice` (not `IPtxEmuDevice`). The `const InstrDescriptor*` pointer signature is mandatory (matches `i_compute_device.hh:84` and HSK-9 §3 verbatim).
 
@@ -56,3 +59,4 @@ The PTX-EMU test suite SHALL move the `attach_timing`-related test files to `ext
 #### Scenario: Legacy tests still pass under rename
 - **WHEN** `ctest -R "attach_timing_legacy"` is run from `external/PTX-EMU/build-standalone`
 - **THEN** all relocated tests (renamed with `attach_timing_legacy_` prefix so the `-R` regex matches reliably) SHALL pass (backward-compatibility preserved)
+
