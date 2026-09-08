@@ -88,7 +88,9 @@ jobs:
     - name: Install CUDA toolkit
       uses: Jimver/cuda-toolkit@v0.2.20
       with:
-        cuda-version: '12.4.0'
+        # CUDA 12.8+ 支持 sm_100 (Blackwell), PTX-EMU 默认 gpu-architecture=compute_100
+        # (per external/PTX-EMU/CMakeLists.txt DEFAULT_CUDA_ARCH=100).
+        cuda-version: '12.8.0'
         cuda-components: 'cuda,cudart,cupti,nvtx,nvrtc'
 
     - name: Install build dependencies
@@ -128,7 +130,12 @@ jobs:
       # Pin to clang-format-22 (matches .clang-format "版本策略" 注释).
       # ubuntu-latest 默认 clang-format 版本会随镜像变化,
       # 导致本地与 CI 漂移, 引发大量假阳性.
+      # Ubuntu noble 默认仓库不提供 clang-format-22, 必须从 LLVM 官方仓库装.
       run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm.gpg
+        echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm.list
         sudo apt-get update
         sudo apt-get install -y clang-format-22
         sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100
