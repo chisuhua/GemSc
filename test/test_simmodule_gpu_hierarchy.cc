@@ -119,8 +119,8 @@ TEST_CASE("GpuCluster full APU-2GPC-2TPC-2CU runs E2E", "[simmodule][gpu][e2e]")
     // 验证 2 GPC × 2 TPC × 2 CU × 2 子 = 16 个 leaf module
     int total = 0;
     std::function<void(SimModule*)> count = [&](SimModule* m) {
-        for (auto& [n, obj] : m->getInternalFactory().getAllInstances()) {
-            if (auto* sub = dynamic_cast<SimModule*>(obj))
+        for (auto& [n, obj_ptr] : m->getInternalFactory().getAllInstances()) {
+            if (auto* sub = dynamic_cast<SimModule*>(obj_ptr.get()))
                 count(sub);
             else
                 ++total;

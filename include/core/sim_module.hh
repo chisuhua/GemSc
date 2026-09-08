@@ -152,7 +152,7 @@ public:
         if (it != internal_to_external_map.end()) return it->second;
         // 递归到子 SimModule (返回 "<子模块名>.<内部路径>")
         for (const auto& kv : internal_factory->getAllInstances()) {
-            if (auto* sub = dynamic_cast<SimModule*>(kv.second)) {
+            if (auto* sub = dynamic_cast<SimModule*>(kv.second.get())) {
                 std::string sub_path = sub->findInternalPath(external_label);
                 if (!sub_path.empty()) return kv.first + "." + sub_path;
             }
@@ -174,7 +174,7 @@ public:
     // 子模块可借此建立跨域 wiring (如 CPU cluster 连接 GPU 端 CoherentXBar)。
     virtual void incorporate_parent(SimModule* parent) {
         for (const auto& kv : internal_factory->getAllInstances()) {
-            if (auto* sub = dynamic_cast<SimModule*>(kv.second)) {
+            if (auto* sub = dynamic_cast<SimModule*>(kv.second.get())) {
                 sub->incorporate_parent(this);
             }
         }
@@ -183,9 +183,11 @@ public:
 #ifdef CPPTLM_TESTING
 public:
     // P1 测试辅助: 直接向 internal_factory 添加实例 (绕过 instantiateAll 的 8 步流程)
+    // 所有权转移: 包装 unique_ptr 后传给 factory, caller 不应再 delete obj。
     void addInternalInstance(SimObject* obj) {
         // 实际字段: instances (无下划线, 见 module_factory.hh:37)
-        internal_factory->addInstanceForTesting(obj->getName(), obj);
+        internal_factory->addInstanceForTesting(obj->getName(),
+                                               std::unique_ptr<SimObject>(obj));
     }
     // P1 测试辅助: 直接添加 outputs 暴露端口配置 (绕过 parsePortConfigs JSON 路径)
     void addOutputConfig(const std::string& internal, const std::string& external) {

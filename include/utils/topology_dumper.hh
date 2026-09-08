@@ -199,11 +199,13 @@ private:
         return "Module";
     }
 
-    static SimObject* findOwner(SlavePort* port, const std::unordered_map<std::string, SimObject*>& instances) {
-        for (const auto& [name, obj] : instances) {
-            const auto& pm = obj->getPortManager();
+    // RAII ownership: ModuleFactory::getAllInstances() 返回 unique_ptr map
+    // (P0-5b leak fix: instances 改为 unique_ptr<SimObject>), 与之签名对齐。
+    static SimObject* findOwner(SlavePort* port, const std::unordered_map<std::string, std::unique_ptr<SimObject>>& instances) {
+        for (const auto& [name, obj_ptr] : instances) {
+            const auto& pm = obj_ptr->getPortManager();
             for (auto* p : pm.getUpstreamPorts()) {
-                if (p == port) return obj;
+                if (p == port) return obj_ptr.get();
             }
         }
         return nullptr;
