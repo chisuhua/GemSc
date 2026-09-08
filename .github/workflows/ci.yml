@@ -71,6 +71,9 @@ jobs:
         ./test.sh --quick
 
   # PTX-EMU 集成验证：仅覆盖 PTXIR image H2D DMA；不执行 kernel/CuTe 程序。
+  # 必须装 CUDA toolkit: PTX-EMU 子模块 CMakeLists.txt 强制 enable_language(CUDA)
+  # + find_package(CUDAToolkit REQUIRED)。CI 不用 source external/PTX-EMU/env.sh
+  # (env.sh 是 dev 本地工具, 用 ${BASH_SOURCE[0]} 算路径, 跨 submodule 版本不稳)。
   ptx-emu-release:
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -82,7 +85,13 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install dependencies
+    - name: Install CUDA toolkit
+      uses: Jimver/cuda-toolkit@v0.2.20
+      with:
+        cuda-version: '12.4.0'
+        cuda-components: 'cuda,cudart,cupti,nvtx,nvrtc'
+
+    - name: Install build dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake build-essential ccache ninja-build
@@ -94,6 +103,9 @@ jobs:
         max-size: 500M
 
     - name: Build and run PTX-EMU H2D DMA tests
+      env:
+        CUDA_PATH: /usr/local/cuda
+        CUDA_HOME: /usr/local/cuda
       run: ./test.sh --mode ptx-emu
 
     - name: Upload test results
