@@ -2,16 +2,16 @@
 // 端到端仿真测试：覆盖所有已注册模块类型的JSON配置加载、实例化和仿真运行验证
 // 标签体系：[e2e][module-type][topology][sim]
 
+#include <filesystem>
+#include <fstream>
+#include "chstream_register.hh"
 #include "bundles/cache_bundles_tlm.hh"
 #include "bundles/noc_bundles_tlm.hh"
-#include "chstream_register.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "framework/chstream_adapter_factory.hh"
 #include "modules.hh"
 #include <catch2/catch_all.hpp>
-#include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

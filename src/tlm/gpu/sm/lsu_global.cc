@@ -16,35 +16,40 @@
 #include "tlm/gpu/streaming_multiprocessor_tlm.hh"
 
 namespace cpptlm {
-namespace gpu {
+    namespace gpu {
 
-uint32_t LsuGlobal::execute(InstrDescriptor& desc) {
-    if (!parent_) return 0;
-    if (desc.pipe != PipeClass::kLsuGlobal) return 0;
-    if (!desc.is_memory) return 0;
-    if (desc.num_dst < 1) return 0;
+        uint32_t LsuGlobal::execute(InstrDescriptor& desc) {
+            if (!parent_)
+                return 0;
+            if (desc.pipe != PipeClass::kLsuGlobal)
+                return 0;
+            if (!desc.is_memory)
+                return 0;
+            if (desc.num_dst < 1)
+                return 0;
 
-    // enqueue 快照 (per Oracle Q4 硬性要求: 回调阶段不再读 fu()->fetched())
-    PendingRequest req;
-    req.instr_id = desc.instr_id;
-    req.dst_reg = desc.dst_regs[0];
-    req.data = desc.memory_data;
-    req.target_vaddr = desc.target_vaddr;
-    req.cycles_remaining = latency_cycles_;
-    pending_.push_back(req);
-    return latency_cycles_;
-}
+            // enqueue 快照 (per Oracle Q4 硬性要求: 回调阶段不再读 fu()->fetched())
+            PendingRequest req;
+            req.instr_id = desc.instr_id;
+            req.dst_reg = desc.dst_regs[0];
+            req.data = desc.memory_data;
+            req.target_vaddr = desc.target_vaddr;
+            req.cycles_remaining = latency_cycles_;
+            pending_.push_back(req);
+            return latency_cycles_;
+        }
 
-void LsuGlobal::tick() {
-    if (pending_.empty()) return;
-    auto& front = pending_.front();
-    if (--front.cycles_remaining == 0) {
-        // 归零回调: 写 scalar_regs_ + mark_completed (per Oracle Q4)
-        parent_->set_scalar_reg(front.dst_reg, front.data);
-        parent_->mark_completed(front.instr_id);
-        pending_.pop_front();
-    }
-}
+        void LsuGlobal::tick() {
+            if (pending_.empty())
+                return;
+            auto& front = pending_.front();
+            if (--front.cycles_remaining == 0) {
+                // 归零回调: 写 scalar_regs_ + mark_completed (per Oracle Q4)
+                parent_->set_scalar_reg(front.dst_reg, front.data);
+                parent_->mark_completed(front.instr_id);
+                pending_.pop_front();
+            }
+        }
 
-} // namespace gpu
+    } // namespace gpu
 } // namespace cpptlm

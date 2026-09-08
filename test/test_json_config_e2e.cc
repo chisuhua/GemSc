@@ -5,12 +5,12 @@
 // 1. 从 configs/ 目录加载 JSON 配置文件
 // 2. 通过 ModuleFactory 实例化模块
 // 3. 运行仿真并验证 cycle counter 推进
-#include "catch_amalgamated.hpp"
-#include "chstream_register.hh"
-#include "core/event_queue.hh"
-#include "core/module_factory.hh"
 #include <filesystem>
 #include <fstream>
+#include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
+#include "core/event_queue.hh"
+#include "core/module_factory.hh"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

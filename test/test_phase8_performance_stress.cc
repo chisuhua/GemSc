@@ -1,13 +1,13 @@
 // test/test_phase8_performance_stress.cc
 // P2: 压力、性能与内存测试 (T10)
 
+#include <vector>
 #include "core/packet_pool.hh"
 #include "core/tlm_module.hh"
 #include "ext/transaction_context_ext.hh"
 #include "framework/debug_tracker.hh"
 #include "framework/transaction_tracker.hh"
 #include <catch2/catch_all.hpp>
-#include <vector>
 
 #include "tlm/tlm_stub.hh"
 

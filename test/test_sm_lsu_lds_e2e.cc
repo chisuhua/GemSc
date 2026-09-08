@@ -11,7 +11,8 @@
 //   - lsu_lds_ 必须 make_unique (新, cpptlm::gpu::LsuLDS 真值类, 镜像 LsuGlobal 模式)
 //   - lsu_lds_tlm.stub 需补 parent_/set_parent 声明 (P1 修复, 镜像 lsu_global_tlm stub)
 //   - SM.exe_once() 加 ll_->tick() 在 lg_->tick() 之后 (per Oracle Q4 A 推荐)
-//   - 同步语义 (per Oracle Q2 A): execute 立即 set_scalar_reg + mark_completed → return 1 (对照 LsuGlobal 异步)
+//   - 同步语义 (per Oracle Q2 A): execute 立即 set_scalar_reg + mark_completed → return 1 (对照
+//   LsuGlobal 异步)
 //   - bank conflict 真值推迟 Task 4.6 (bank_conflict_count() 恒 0)
 //
 // 作者 CppTLM Team / 2027-02-10 (Task 18b P1-10 实施, per Oracle 预审 Task 2.10)
@@ -33,7 +34,7 @@ TEST_CASE("LsuLDS 模块身份 (per plan line 791 '共享内存 bank conflict �
     REQUIRE(sm.ll() != nullptr);
     REQUIRE(sm.ll()->get_module_type() == "LsuLDS");
     REQUIRE(sm.lsu_lds() != nullptr);
-    REQUIRE(sm.lsu_lds()->bank_conflict_count() == 0);  // stub (Task 4.6 填充)
+    REQUIRE(sm.lsu_lds()->bank_conflict_count() == 0); // stub (Task 4.6 填充)
 }
 
 TEST_CASE("LsuLDS 同步 load 真值: 立即回写 + mark_completed (对照 LsuGlobal 异步)",
@@ -48,13 +49,13 @@ TEST_CASE("LsuLDS 同步 load 真值: 立即回写 + mark_completed (对照 LsuG
     InstrDescriptor desc{};
     desc.instr_id = 900;
     desc.pipe = PipeClass::kLsuLDS;
-    desc.latency_class = LatencyClass::kFixed1Cycle;  // LDS 低延迟 (1 cycle, 非 kMemory)
+    desc.latency_class = LatencyClass::kFixed1Cycle; // LDS 低延迟 (1 cycle, 非 kMemory)
     desc.is_memory = true;
     desc.memory_data = 0xCAFEBABE12345678ULL;
     desc.memory_data_valid = 1;
     desc.dst_regs[0] = 11;
     desc.num_dst = 1;
-    desc.target_vaddr = 0x2000;  // LDS 共享内存地址 (stub 暂不寻址)
+    desc.target_vaddr = 0x2000; // LDS 共享内存地址 (stub 暂不寻址)
     desc.num_src = 0;
     sm.set_instr_descriptor_buf(&desc, 1);
 
@@ -71,8 +72,7 @@ TEST_CASE("LsuLDS 同步 load 真值: 立即回写 + mark_completed (对照 LsuG
     REQUIRE(val == 0xCAFEBABE12345678ULL);
 }
 
-TEST_CASE("LsuLDS pipe 互斥 (非 kLsuLDS 不触发)",
-          "[sm][lds][sm-microarch][task18]") {
+TEST_CASE("LsuLDS pipe 互斥 (非 kLsuLDS 不触发)", "[sm][lds][sm-microarch][task18]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -82,7 +82,7 @@ TEST_CASE("LsuLDS pipe 互斥 (非 kLsuLDS 不触发)",
     // 注入 kVectorALU desc (非 kLsuLDS, ll_ tick 静默)
     InstrDescriptor desc{};
     desc.instr_id = 1000;
-    desc.pipe = PipeClass::kVectorALU;  // 非 kLsuLDS
+    desc.pipe = PipeClass::kVectorALU; // 非 kLsuLDS
     desc.latency_class = LatencyClass::kFixed1Cycle;
     desc.dst_regs[0] = 12;
     desc.src_regs[0] = 1;

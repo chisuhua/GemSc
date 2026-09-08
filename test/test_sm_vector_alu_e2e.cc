@@ -36,16 +36,16 @@ TEST_CASE("VectorALU VIADD.U8x4: 4-lane packed u8 ADD via IComputeDevice",
     // Lane packing: lane0=最低 8 bit, lane1=bit 8-15, lane2=bit 16-23, lane3=bit 24-31
     // src0 = [10,20,30,40]: lane0=0x0a, lane1=0x14, lane2=0x1e, lane3=0x28 → packed 0x281e140a
     // src1 = [1,2,3,4]:   lane0=0x01, lane1=0x02, lane2=0x03, lane3=0x04 → packed 0x04030201
-    sm.set_scalar_reg(1, 0x281e140aULL);  // src_regs[0]
-    sm.set_scalar_reg(2, 0x04030201ULL);  // src_regs[1]
+    sm.set_scalar_reg(1, 0x281e140aULL); // src_regs[0]
+    sm.set_scalar_reg(2, 0x04030201ULL); // src_regs[1]
 
     InstrDescriptor desc{};
     desc.instr_id = 100;
     desc.pipe = PipeClass::kVectorALU;
     desc.latency_class = LatencyClass::kFixed1Cycle;
-    desc.dst_regs[0] = 20;    // dst reg 20
-    desc.src_regs[0] = 1;     // src0 reg 1
-    desc.src_regs[1] = 2;     // src1 reg 2
+    desc.dst_regs[0] = 20; // dst reg 20
+    desc.src_regs[0] = 1;  // src0 reg 1
+    desc.src_regs[1] = 2;  // src1 reg 2
     desc.num_src = 2;
     desc.num_dst = 1;
     sm.set_instr_descriptor_buf(&desc, 1);
@@ -77,9 +77,9 @@ TEST_CASE("VectorALU pipe 互斥: kScalarALU 指令 VectorALU 不误写",
     // 注入 kScalarALU 指令 (走 sa_ dispatch, 不走 va_)
     InstrDescriptor desc{};
     desc.instr_id = 200;
-    desc.pipe = PipeClass::kScalarALU;       // 非 kVectorALU
+    desc.pipe = PipeClass::kScalarALU; // 非 kVectorALU
     desc.latency_class = LatencyClass::kFixed1Cycle;
-    desc.dst_regs[0] = 5;                    // sa_ 写 reg 5
+    desc.dst_regs[0] = 5; // sa_ 写 reg 5
     desc.src_regs[0] = 1;
     desc.src_regs[1] = 2;
     desc.num_src = 2;
@@ -101,5 +101,5 @@ TEST_CASE("VectorALU pipe 互斥: kScalarALU 指令 VectorALU 不误写",
     //     reg 30 保持预写值 0xDEADBEEFULL
     uint64_t val30 = 0;
     REQUIRE(sm.get_register_value(0, 0, 30, &val30));
-    REQUIRE(val30 == 0xDEADBEEFULL);  // 不被 VectorALU 误改
+    REQUIRE(val30 == 0xDEADBEEFULL); // 不被 VectorALU 误改
 }

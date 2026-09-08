@@ -17,11 +17,11 @@
  * @date 2026-04-15
  */
 
-#include "catch_amalgamated.hpp"
 #include <chrono>
 #include <sstream>
 #include <thread>
 #include <vector>
+#include "catch_amalgamated.hpp"
 
 #include "metrics/stats.hh"
 

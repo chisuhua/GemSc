@@ -61,11 +61,14 @@ namespace tlm::gpu {
                             device_info_.bar_sizes[i] = bars[i].get<uint64_t>();
                         }
                     }
-                    device_info_.visible_vram_size = pcie_params.value("visible_vram_size", 256ULL * 1024 * 1024);
-                    device_info_.invisible_vram_size = pcie_params.value("invisible_vram_size", 15ULL * 1024 * 1024 * 1024);
+                    device_info_.visible_vram_size =
+                        pcie_params.value("visible_vram_size", 256ULL * 1024 * 1024);
+                    device_info_.invisible_vram_size =
+                        pcie_params.value("invisible_vram_size", 15ULL * 1024 * 1024 * 1024);
                     device_info_.va_region_size = pcie_params.value("va_region_size", 1ULL << 48);
                     device_info_.gpu_id = pcie_params.value("gpu_id", 0U);
-                    device_info_.gfx_version = pcie_params.value("gfx_version", static_cast<uint16_t>(1100));
+                    device_info_.gfx_version =
+                        pcie_params.value("gfx_version", static_cast<uint16_t>(1100));
                     device_info_.bdf = pcie_params.value("bdf", static_cast<uint16_t>(0x0008));
                     break;
                 }

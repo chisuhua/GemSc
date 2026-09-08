@@ -15,24 +15,26 @@
 
 namespace tlm::sm {
 
-FetchUnitTLM::FetchUnitTLM(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
+    FetchUnitTLM::FetchUnitTLM(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
+    }
     // parent_ 由 SM 构造函数 make_unique 后调 set_parent(this) 注入
     // (per Oracle 预审 Task 2.2 F-2 P0 + module_factory 2 参数 lambda 兼容)
 
-void FetchUnitTLM::tick() {
-    if (!parent_) {
-        fetched_valid_ = false;
-        return;
+    void FetchUnitTLM::tick() {
+        if (!parent_) {
+            fetched_valid_ = false;
+            return;
+        }
+        // 从 SM 顶层 ring buffer 取下一条 (封装 access, instr_ring_ 保持 private)
+        cpptlm::gpu::InstrDescriptor d{};
+        fetched_valid_ = parent_->fetch_next_instr(d);
+        if (fetched_valid_) {
+            fetched_.instr_desc = d;
+            fetched_.warp_id =
+                d.warpid; // InstrDescriptor.warpid (u8) → FetchToIssueBundle.warp_id (u32)
+            fetched_.pc = d.pc;
+        }
     }
-    // 从 SM 顶层 ring buffer 取下一条 (封装 access, instr_ring_ 保持 private)
-    cpptlm::gpu::InstrDescriptor d{};
-    fetched_valid_ = parent_->fetch_next_instr(d);
-    if (fetched_valid_) {
-        fetched_.instr_desc = d;
-        fetched_.warp_id = d.warpid;  // InstrDescriptor.warpid (u8) → FetchToIssueBundle.warp_id (u32)
-        fetched_.pc = d.pc;
-    }
-}
 
 } // namespace tlm::sm

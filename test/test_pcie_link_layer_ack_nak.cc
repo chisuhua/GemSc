@@ -23,17 +23,16 @@ static void tx_and_drain(PcieLinkLayer& ll, int n) {
     }
     PcieTlpBundle out;
     for (int i = 0; i < n; ++i) {
-        REQUIRE(ll.try_pop_tx_tlp(out) == true);  // host 消费
+        REQUIRE(ll.try_pop_tx_tlp(out) == true); // host 消费
     }
     REQUIRE(ll.try_pop_tx_tlp(out) == false);
 }
 
-TEST_CASE("AckNak: ACK cumulatively clears retry buffer up to ack seq",
-          "[pcie][ll][ack-nak]") {
+TEST_CASE("AckNak: ACK cumulatively clears retry buffer up to ack seq", "[pcie][ll][ack-nak]") {
     EventQueue eq;
     PcieLinkLayer ll(&eq);
 
-    tx_and_drain(ll, 3);  // seq 0,1,2
+    tx_and_drain(ll, 3); // seq 0,1,2
     REQUIRE(ll.retry_buffer_size() == 3u);
 
     // ACK seq=1 → 累积清空 seq ≤ 1（非全清：seq2 保留）
@@ -51,7 +50,7 @@ TEST_CASE("AckNak: NAK retransmits all TLPs with seq >= nak seq", "[pcie][ll][ac
     EventQueue eq;
     PcieLinkLayer ll(&eq);
 
-    tx_and_drain(ll, 4);  // seq 0,1,2,3
+    tx_and_drain(ll, 4); // seq 0,1,2,3
     REQUIRE(ll.retry_buffer_size() == 4u);
 
     // NAK seq=2 → 重发 seq 2,3
@@ -78,7 +77,7 @@ TEST_CASE("AckNak: NAK seq=0 retransmits everything", "[pcie][ll][ack-nak]") {
 TEST_CASE("AckNak: 12-bit seq wrap at 4095→0", "[pcie][ll][ack-nak][wrap]") {
     EventQueue eq;
     PcieLinkLayerConfig cfg;
-    cfg.fc_capacity = 8192;   // 足够大量发送不触发 FC 反压
+    cfg.fc_capacity = 8192; // 足够大量发送不触发 FC 反压
     cfg.fc_init_p = 8192;
     PcieLinkLayer ll(&eq, cfg);
 
@@ -93,25 +92,25 @@ TEST_CASE("AckNak: 12-bit seq wrap at 4095→0", "[pcie][ll][ack-nak][wrap]") {
     for (int i = 0; i < 2048; ++i) {
         REQUIRE(ll.try_pop_tx_tlp(out) == true);
     }
-    ll.rx_dllp(ll.make_ack(2047));   // 累积确认第一波
+    ll.rx_dllp(ll.make_ack(2047)); // 累积确认第一波
     REQUIRE(ll.retry_buffer_size() == 0u);
 
     // 第二波 2048 个 TLP：seq 2048...4095（到达空间顶端）
     for (int i = 0; i < 2048; ++i) {
         REQUIRE(ll.tx_tlp(t) == true);
     }
-    REQUIRE(ll.next_tx_seq() == 0u);  // 即将 wrap: 4095 → 0
+    REQUIRE(ll.next_tx_seq() == 0u); // 即将 wrap: 4095 → 0
     for (int i = 0; i < 2048; ++i) {
         REQUIRE(ll.try_pop_tx_tlp(out) == true);
     }
-    ll.rx_dllp(ll.make_ack(4095));   // 累积确认到 4095 → 清空
+    ll.rx_dllp(ll.make_ack(4095)); // 累积确认到 4095 → 清空
     REQUIRE(ll.retry_buffer_size() == 0u);
     REQUIRE(ll.last_acked_seq() == 4095u);
 
     // wrap 后继续发送：seq 重新从 0 分配
-    REQUIRE(ll.tx_tlp(t) == true);  // seq 0
-    REQUIRE(ll.tx_tlp(t) == true);  // seq 1
-    REQUIRE(ll.tx_tlp(t) == true);  // seq 2
+    REQUIRE(ll.tx_tlp(t) == true); // seq 0
+    REQUIRE(ll.tx_tlp(t) == true); // seq 1
+    REQUIRE(ll.tx_tlp(t) == true); // seq 2
     REQUIRE(ll.next_tx_seq() == 3u);
     REQUIRE(ll.retry_buffer_size() == 3u);
 
@@ -124,8 +123,7 @@ TEST_CASE("AckNak: 12-bit seq wrap at 4095→0", "[pcie][ll][ack-nak][wrap]") {
     REQUIRE(ll.last_acked_seq() == 2u);
 }
 
-TEST_CASE("AckNak: error injector TLP loss + NAK recovery end-to-end",
-          "[pcie][ll][ack-nak][e2e]") {
+TEST_CASE("AckNak: error injector TLP loss + NAK recovery end-to-end", "[pcie][ll][ack-nak][e2e]") {
     EventQueue eq;
     PcieLinkLayerConfig cfg;
     cfg.link_error_injection_enabled = true;
@@ -133,15 +131,15 @@ TEST_CASE("AckNak: error injector TLP loss + NAK recovery end-to-end",
 
     // 发送 3 个 TLP, 注入 seq=1 丢包
     PcieTlpBundle t(PcieTlpBundle::MMIO_WRITE, 0, 0x1000, 4, 1, 0x0100, 1);
-    REQUIRE(ll.tx_tlp(t) == true);  // seq0
-    REQUIRE(ll.tx_tlp(t) == true);  // seq1
-    REQUIRE(ll.tx_tlp(t) == true);  // seq2
+    REQUIRE(ll.tx_tlp(t) == true); // seq0
+    REQUIRE(ll.tx_tlp(t) == true); // seq1
+    REQUIRE(ll.tx_tlp(t) == true); // seq2
     ll.error_injector().inject_tlp_loss(1);
 
     // host 收侧: 收到 0, 丢 1, 收 2
     PcieTlpBundle out;
-    REQUIRE(ll.try_pop_tx_tlp(out) == true);   // seq0
-    REQUIRE(ll.try_pop_tx_tlp(out) == true);   // seq1 被丢 → 返回 seq2
+    REQUIRE(ll.try_pop_tx_tlp(out) == true); // seq0
+    REQUIRE(ll.try_pop_tx_tlp(out) == true); // seq1 被丢 → 返回 seq2
     REQUIRE(ll.tlp_drop_count() == 1u);
     REQUIRE(ll.try_pop_tx_tlp(out) == false);
 

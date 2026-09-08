@@ -14,6 +14,11 @@
 //   MasterPort*。
 //
 // 作者: CppTLM Team / 日期: 2026-06-19
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 #include "chstream_register.hh"
 #include "core/event_queue.hh"
 #include "core/master_port.hh"
@@ -27,12 +32,7 @@
 #include "tlm/cluster/cpu_cluster.hh"
 #include "tlm/coherent_xbar_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <memory>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
-#include <string>
-#include <utility>
-#include <vector>
 
 using json = nlohmann::json;
 using cpptlm::tlm::CoherentXBarTLM;

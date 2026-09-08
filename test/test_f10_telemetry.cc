@@ -8,8 +8,9 @@
 // 无 req_out 转发能力 — 架构约束)。
 //
 // 作者: Sisyphus / 日期: 2026-06-23
-#include "bundles/cache_bundles_tlm.hh"
+#include <sstream>
 #include "chstream_register.hh"
+#include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "metrics/metrics_reporter.hh"
@@ -20,7 +21,6 @@
 #include "tlm/memory_tlm.hh"
 #include <catch2/catch_all.hpp>
 #include <nlohmann/json.hpp>
-#include <sstream>
 
 using json = nlohmann::json;
 

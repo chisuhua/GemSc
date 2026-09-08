@@ -44,8 +44,7 @@ TEST_CASE("RegFileUnit truth class write/read round-trip (A1)",
     REQUIRE(val8 == 0xBABE);
 }
 
-TEST_CASE("RegFileUnit per-warp isolation (A2)",
-          "[sm-regfile][sm-microarch][task18-p1-11]") {
+TEST_CASE("RegFileUnit per-warp isolation (A2)", "[sm-regfile][sm-microarch][task18-p1-11]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -70,7 +69,7 @@ TEST_CASE("RegFileUnit per-warp isolation (A2)",
     // 读 warp 2 reg 9 (未写入): false + 不修改 v
     uint64_t v2 = 0xDEADBEEF;
     REQUIRE_FALSE(sm.get_register_value(0, 2, 9, &v2));
-    REQUIRE(v2 == 0xDEADBEEF);  // unset 语义: 不写入 out_value
+    REQUIRE(v2 == 0xDEADBEEF); // unset 语义: 不写入 out_value
 }
 
 TEST_CASE("exe_once returns 1 regardless of ScalarALU::execute cycle count (P2-4 lock, A3)",

@@ -1,9 +1,9 @@
 // src/tlm/cluster/compute_cluster.cc
 // ComputeCluster 实现 - JSON 蓝图模板 + N 份实例化
 #include "tlm/cluster/compute_cluster.hh"
+#include <stdexcept>
 #include "core/module_factory.hh"
 #include "utils/json_includer.hh"
-#include <stdexcept>
 
 namespace cpptlm::tlm {
 

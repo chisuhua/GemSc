@@ -1,8 +1,8 @@
 // test/test_nic_port_groups.cc
 // Phase 3.2 T3.2-08: NICTLM port_groups integration tests
 
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/module_factory.hh"
 #include "core/port_types.hh"
 #include "modules.hh"

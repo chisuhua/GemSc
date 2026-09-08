@@ -1,8 +1,8 @@
 // test/test_phase3_2_port_management.cc
 // Phase 3.2: Port Management Integration Tests
 
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/module_factory.hh"
 #include "core/port_compatibility.hh"
 #include "core/port_types.hh"

@@ -10,8 +10,8 @@
 #include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "framework/axi4_stream_adapter.hh"
-#include "tlm/pcie/pcie_endpoint_ip.hh"
 #include "tlm/pcie/host_bypass_tlm.hh"
+#include "tlm/pcie/pcie_endpoint_ip.hh"
 
 #include <cstdint>
 #include <memory>
@@ -40,7 +40,8 @@ TEST_CASE("HostBypassTLM: create and attach to endpoint", "[pcie][host-bypass][b
     REQUIRE(hb.is_attached() == true);
 }
 
-TEST_CASE("HostBypassTLM: master write through AXI bridge reaches EP", "[pcie][host-bypass][basic][master]") {
+TEST_CASE("HostBypassTLM: master write through AXI bridge reaches EP",
+          "[pcie][host-bypass][basic][master]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_hb_master", &eq);
     ep.init();
@@ -87,7 +88,8 @@ TEST_CASE("HostBypassTLM: master write through AXI bridge reaches EP", "[pcie][h
     REQUIRE(hb.axi_outstanding_wr() == 0);
 }
 
-TEST_CASE("HostBypassTLM: master read through AXI bridge returns rdata", "[pcie][host-bypass][basic][master]") {
+TEST_CASE("HostBypassTLM: master read through AXI bridge returns rdata",
+          "[pcie][host-bypass][basic][master]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_hb_master_rd", &eq);
     ep.init();
@@ -129,7 +131,8 @@ TEST_CASE("HostBypassTLM: master read through AXI bridge returns rdata", "[pcie]
     REQUIRE(hb.axi_outstanding_rd() == 0);
 }
 
-TEST_CASE("HostBypassTLM: slave_in accepts SoC request and EP responds", "[pcie][host-bypass][basic][slave]") {
+TEST_CASE("HostBypassTLM: slave_in accepts SoC request and EP responds",
+          "[pcie][host-bypass][basic][slave]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_hb_slave", &eq);
     ep.init();
@@ -168,7 +171,8 @@ TEST_CASE("HostBypassTLM: slave_in accepts SoC request and EP responds", "[pcie]
     hb.axi_slave_resp_consume();
 }
 
-TEST_CASE("HostBypassTLM: cfg_slave_in AXI4-Lite config access", "[pcie][host-bypass][basic][cfg]") {
+TEST_CASE("HostBypassTLM: cfg_slave_in AXI4-Lite config access",
+          "[pcie][host-bypass][basic][cfg]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_hb_cfg", &eq);
     ep.init();
@@ -225,7 +229,8 @@ TEST_CASE("HostBypassTLM: cfg_slave_in AXI4-Lite config access", "[pcie][host-by
     hb.axi_cfg_resp_consume();
 }
 
-TEST_CASE("HostBypassTLM: detach cleans up endpoint reference", "[pcie][host-bypass][basic][detach]") {
+TEST_CASE("HostBypassTLM: detach cleans up endpoint reference",
+          "[pcie][host-bypass][basic][detach]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_hb_detach", &eq);
     ep.init();

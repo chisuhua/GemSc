@@ -30,23 +30,49 @@ namespace {
     // Minimal stub: IComputeDevice 15 methods (Task 18 替换为 SM 顶层)
     class StubComputeDevice : public IComputeDevice {
     public:
-        bool initialize(const DeviceConfig&) override { return true; }
-        void shutdown() override {}
-        int  exe_once() override { return 0; }
-        int  sm_exe_once(uint32_t) override { return 0; }
-        int  warp_exe_once(uint32_t, uint32_t) override { return 0; }
-        bool set_scoreboard(uint32_t, uint32_t, uint64_t) override { return true; }
-        ThreadState get_thread_state(uint32_t, uint32_t, uint32_t) override { return ThreadState::kIdle; }
-        bool set_active_mask(uint32_t, uint32_t, uint64_t) override { return true; }
-        bool set_next_pc(uint32_t, uint32_t, uint32_t, uint32_t) override { return true; }
-        WarpStatus get_warp_status(uint32_t, uint32_t) override { return {}; }
-        bool is_finished() override { return false; }
-        void set_instr_descriptor_buf(const InstrDescriptor*, uint32_t) override {}
-        bool get_register_value(uint32_t, uint32_t, uint32_t, uint64_t* out, uint32_t) override {
-            *out = 0; return true;
+        bool initialize(const DeviceConfig&) override {
+            return true;
         }
-        bool is_instruction_completed(uint64_t) override { return false; }
-        void reset() override {}
+        void shutdown() override {
+        }
+        int exe_once() override {
+            return 0;
+        }
+        int sm_exe_once(uint32_t) override {
+            return 0;
+        }
+        int warp_exe_once(uint32_t, uint32_t) override {
+            return 0;
+        }
+        bool set_scoreboard(uint32_t, uint32_t, uint64_t) override {
+            return true;
+        }
+        ThreadState get_thread_state(uint32_t, uint32_t, uint32_t) override {
+            return ThreadState::kIdle;
+        }
+        bool set_active_mask(uint32_t, uint32_t, uint64_t) override {
+            return true;
+        }
+        bool set_next_pc(uint32_t, uint32_t, uint32_t, uint32_t) override {
+            return true;
+        }
+        WarpStatus get_warp_status(uint32_t, uint32_t) override {
+            return {};
+        }
+        bool is_finished() override {
+            return false;
+        }
+        void set_instr_descriptor_buf(const InstrDescriptor*, uint32_t) override {
+        }
+        bool get_register_value(uint32_t, uint32_t, uint32_t, uint64_t* out, uint32_t) override {
+            *out = 0;
+            return true;
+        }
+        bool is_instruction_completed(uint64_t) override {
+            return false;
+        }
+        void reset() override {
+        }
     };
 } // namespace
 

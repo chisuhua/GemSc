@@ -1,7 +1,7 @@
 // src/utils/dynamic_loader.cc
 #include "utils/dynamic_loader.hh"
-#include "core/sim_core.hh"
 #include <dlfcn.h>
+#include "core/sim_core.hh"
 
 // 在这里定义静态成员变量
 std::vector<void*> DynamicLoader::loaded_handles;

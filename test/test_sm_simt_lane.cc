@@ -32,7 +32,7 @@ TEST_CASE("SIMTLane 模块身份 + 真值 (per plan line 789 'EXEC mask 64-bit +
     // A1: 模块身份 (per Oracle Q8 A1)
     REQUIRE(sm.sl() != nullptr);
     REQUIRE(sm.sl()->get_module_type() == "SIMTLane");
-    REQUIRE(sm.simt_lane() != nullptr);  // cpptlm::gpu::SIMTLane 真值类
+    REQUIRE(sm.simt_lane() != nullptr); // cpptlm::gpu::SIMTLane 真值类
 }
 
 TEST_CASE("SIMTLane EXEC mask 64-bit round-trip via execute dispatch",
@@ -49,9 +49,9 @@ TEST_CASE("SIMTLane EXEC mask 64-bit round-trip via execute dispatch",
     desc.instr_id = 500;
     desc.pipe = PipeClass::kSIMTLane;
     desc.latency_class = LatencyClass::kFixed1Cycle;
-    desc.exec_mask = 0xA5A5A5A5A5A5A5A5ULL;  // 交替位 0xA5 = 1010 0101
-    desc.dst_regs[0] = 0;  // SIMTLane 无 dst
-    desc.src_regs[0] = 0;  // SIMTLane 无 src
+    desc.exec_mask = 0xA5A5A5A5A5A5A5A5ULL; // 交替位 0xA5 = 1010 0101
+    desc.dst_regs[0] = 0;                   // SIMTLane 无 dst
+    desc.src_regs[0] = 0;                   // SIMTLane 无 src
     desc.num_src = 0;
     desc.num_dst = 0;
     sm.set_instr_descriptor_buf(&desc, 1);

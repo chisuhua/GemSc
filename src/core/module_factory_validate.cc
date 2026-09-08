@@ -30,6 +30,9 @@
  * @see utils/config_utils.hh
  */
 
+#include <algorithm>
+#include <fstream>
+#include <set>
 #include "bundles/cache_bundles_tlm.hh"
 #include "bundles/noc_bundles_tlm.hh"
 #include "core/chstream_module.hh"
@@ -56,9 +59,6 @@
 #include "utils/regex_matcher.hh"
 #include "utils/var_resolver.hh"
 #include "utils/wildcard.hh"
-#include <algorithm>
-#include <fstream>
-#include <set>
 
 using json = nlohmann::json;
 

@@ -2,14 +2,14 @@
 // 端到端测试：从 configs/ 加载 hierarchy tree 配置并验证解析
 // 补充 test/test_tgms_v4_hierarchy_integration.cc 的 inline JSON 路径
 // 标签：[e2e][hierarchy][from-config][tgms-v4]
-#include "catch_amalgamated.hpp"
+#include <filesystem>
+#include <fstream>
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "core/topology_node.hh"
 #include "core/topology_parser.hh"
-#include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

@@ -2,13 +2,13 @@
 // 端到端测试：加载 configs/ 下 7 个新增配置文件并验证可实例化
 // 覆盖新模块类型/新特性的真实文件测试（之前只用 inline JSON 测试）
 // 标签：[e2e][config][new-configs]
-#include "catch_amalgamated.hpp"
+#include <filesystem>
+#include <fstream>
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "core/topology_parser.hh"
-#include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

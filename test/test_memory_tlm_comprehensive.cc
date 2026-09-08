@@ -1,9 +1,9 @@
+#include <cstdint>
+#include <cstring>
 #include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "tlm/memory_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <cstdint>
-#include <cstring>
 
 static void inject_req(MemoryTLM* mem, uint64_t tid, uint64_t addr, bool wr, uint64_t data = 0) {
     bundles::CacheReqBundle req;

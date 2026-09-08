@@ -2,8 +2,8 @@
 // TGMS v4.0 Phase 4.1: Hierarchy Tree Parser 集成测试
 // 功能描述：验证 hierarchy 解析与 ModuleFactory 的端到端集成
 
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "core/topology_node.hh"

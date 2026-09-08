@@ -27,37 +27,37 @@ using json = nlohmann::json;
 
 namespace {
 
-// 建立 HostBypassTLM ↔ PcieEndpointIP 真实 AXI 数据路径闭环。
-// 关键：把 hb 的 AXI master 通道（hb.axi()）与 ep 的 PcieAxiAdapter 的
-// AXI slave 通道（ep_axi.axi()）对接——请求经 hb.master_req() 注入，
-// 由 ep 侧 slave 消费并产生真实响应回传 hb。
-// Phase 8 M1 修复：PcieEndpointIP::tick() 驱动 PcieAxiAdapter 处理 slave 请求。
-struct FullE2EFixture {
-    EventQueue eq;
-    PcieEndpointIP ep;
-    HostBypassTLM hb;
+    // 建立 HostBypassTLM ↔ PcieEndpointIP 真实 AXI 数据路径闭环。
+    // 关键：把 hb 的 AXI master 通道（hb.axi()）与 ep 的 PcieAxiAdapter 的
+    // AXI slave 通道（ep_axi.axi()）对接——请求经 hb.master_req() 注入，
+    // 由 ep 侧 slave 消费并产生真实响应回传 hb。
+    // Phase 8 M1 修复：PcieEndpointIP::tick() 驱动 PcieAxiAdapter 处理 slave 请求。
+    struct FullE2EFixture {
+        EventQueue eq;
+        PcieEndpointIP ep;
+        HostBypassTLM hb;
 
-    FullE2EFixture()
-        : ep("pcie_ep_full_e2e", &eq), hb("host_bypass_full_e2e", &eq) {
-        ep.init();
+        FullE2EFixture() : ep("pcie_ep_full_e2e", &eq), hb("host_bypass_full_e2e", &eq) {
+            ep.init();
 
-        // 启用 EP 的 AXI Adapter（含 AXI4Mapper 注入）
-        json cfg;
-        cfg["axi_adapter"] = json::object();
-        cfg["axi_adapter"]["axi4_mapper_inject"] = true;
-        cfg["link_layer"]["enabled"] = true;
-        cfg["link_layer"]["bypass_mode"] = "Bypass";
-        ep.set_config(cfg);
-        ep.on_config_loaded();
+            // 启用 EP 的 AXI Adapter（含 AXI4Mapper 注入）
+            json cfg;
+            cfg["axi_adapter"] = json::object();
+            cfg["axi_adapter"]["axi4_mapper_inject"] = true;
+            cfg["link_layer"]["enabled"] = true;
+            cfg["link_layer"]["bypass_mode"] = "Bypass";
+            ep.set_config(cfg);
+            ep.on_config_loaded();
 
-        hb.init();
-        hb.attach_to_endpoint(&ep);
-    }
-};
+            hb.init();
+            hb.attach_to_endpoint(&ep);
+        }
+    };
 
 } // namespace
 
-TEST_CASE("Phase8 E2E: EP 真实消费 HostBypass 配置空间写 (M1 closed)", "[pcie][axi][e2e][phase8][config]") {
+TEST_CASE("Phase8 E2E: EP 真实消费 HostBypass 配置空间写 (M1 closed)",
+          "[pcie][axi][e2e][phase8][config]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_e2e_cfg", &eq);
     ep.init();
@@ -80,9 +80,9 @@ TEST_CASE("Phase8 E2E: EP 真实消费 HostBypass 配置空间写 (M1 closed)", 
     // 构造一个 CFG 写请求经 AXI 通道（awaddr 编码配置偏移 0x04, stream 0）
     Axi4Bundle wreq;
     wreq.awid.write(0x10);
-    wreq.awaddr.write(0x04);  // 配置偏移
+    wreq.awaddr.write(0x04); // 配置偏移
     wreq.awlen.write(0);
-    wreq.awsize.write(2);     // 4 字节
+    wreq.awsize.write(2); // 4 字节
     wreq.awburst.write(1);
     wreq.wdata.write(0x0007);
     wreq.wstrb.write(0xF);
@@ -126,7 +126,8 @@ TEST_CASE("Phase8 E2E: EP 真实消费 HostBypass 配置空间写 (M1 closed)", 
     hb.axi_master_resp_consume();
 }
 
-TEST_CASE("Phase8 E2E: BAR 写经 AXI 到达 EP 内部处理后返回真实响应 (M1 closed)", "[pcie][axi][e2e][phase8][bar]") {
+TEST_CASE("Phase8 E2E: BAR 写经 AXI 到达 EP 内部处理后返回真实响应 (M1 closed)",
+          "[pcie][axi][e2e][phase8][bar]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_e2e_bar", &eq);
     ep.init();
@@ -144,7 +145,7 @@ TEST_CASE("Phase8 E2E: BAR 写经 AXI 到达 EP 内部处理后返回真实响�
     // 经真实 AXI 配置写路径写入 BAR0 基址 0x10000000
     Axi4Bundle wcfg;
     wcfg.awid.write(0x30);
-    wcfg.awaddr.write(0x10);  // BAR0 配置偏移
+    wcfg.awaddr.write(0x10); // BAR0 配置偏移
     wcfg.awlen.write(0);
     wcfg.awsize.write(2);
     wcfg.awburst.write(1);
@@ -166,9 +167,9 @@ TEST_CASE("Phase8 E2E: BAR 写经 AXI 到达 EP 内部处理后返回真实响�
     // （真实数据路径：请求经 hb.master_req → EP AXI slave 消费 → EP bar 内部处理）
     Axi4Bundle bw;
     bw.awid.write(0x31);
-    bw.awaddr.write(0x10000000);  // BAR0 空间
+    bw.awaddr.write(0x10000000); // BAR0 空间
     bw.awlen.write(0);
-    bw.awsize.write(3);           // 8 字节
+    bw.awsize.write(3); // 8 字节
     bw.awburst.write(1);
     bw.wdata.write(0xDEADBEEFDEADBEEF);
     bw.wstrb.write(0xFF);
@@ -205,7 +206,8 @@ TEST_CASE("Phase8 E2E: BAR 写经 AXI 到达 EP 内部处理后返回真实响�
     hb.axi_master_resp_consume();
 }
 
-TEST_CASE("Phase8 E2E: PcieRootComplexTLM 枚举 PF0-only 后经 AXI 访问 EP (M2 doc'd)", "[pcie][axi][e2e][phase8][rc]") {
+TEST_CASE("Phase8 E2E: PcieRootComplexTLM 枚举 PF0-only 后经 AXI 访问 EP (M2 doc'd)",
+          "[pcie][axi][e2e][phase8][rc]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_e2e_rc", &eq);
     ep.init();
@@ -221,13 +223,13 @@ TEST_CASE("Phase8 E2E: PcieRootComplexTLM 枚举 PF0-only 后经 AXI 访问 EP (
 
     // 枚举：RC 发现 PF0-only (Phase 7 Oracle M2 已知边界)
     REQUIRE(rc.enumerate() == true);
-    REQUIRE(rc.discovered_devices().size() == 1u);  // PF0-only
+    REQUIRE(rc.discovered_devices().size() == 1u); // PF0-only
     REQUIRE(rc.discovered_devices()[0].vendor_id == 0x10DE);
 
     // RC 经 AXI master 通道发起写请求 → EP AXI slave 消费 → EP 真实处理
     Axi4Bundle wreq;
     wreq.awid.write(0x50);
-    wreq.awaddr.write(0x04);  // Command Register
+    wreq.awaddr.write(0x04); // Command Register
     wreq.awlen.write(0);
     wreq.awsize.write(2);
     wreq.awburst.write(1);

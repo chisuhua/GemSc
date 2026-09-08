@@ -446,7 +446,7 @@ namespace {
     std::mutex handle_mu_;
     std::unordered_map<cpptlm_emulator_handle_t, cpptlm_emulator_t*> handle_map_;
     std::atomic<cpptlm_emulator_handle_t> next_handle_{1000};
-}
+} // namespace
 
 CPPTLM_EMULATOR_EXPORT
 int cpptlm_emulator_open(uint32_t dev_id, cpptlm_emulator_handle_t* out_handle) {
@@ -489,7 +489,8 @@ int cpptlm_emulator_close(cpptlm_emulator_handle_t handle) {
 }
 
 CPPTLM_EMULATOR_EXPORT
-int cpptlm_emulator_get_adapter_info(cpptlm_emulator_handle_t handle, cpptlm_device_info_t* out_info) {
+int cpptlm_emulator_get_adapter_info(cpptlm_emulator_handle_t handle,
+                                     cpptlm_device_info_t* out_info) {
     if (handle == 0 || !out_info) {
         return -EINVAL;
     }

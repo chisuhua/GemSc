@@ -29,20 +29,20 @@ TEST_CASE("Axi4StreamAdapter: master req held when downstream ready=0, no loss",
     // 下游 ready=0：数据不丢失，valid 保持
     a.set_master_ready(false);
     a.tick();
-    REQUIRE(a.master_req_valid() == true);      // valid 保持
-    REQUIRE(a.master_req_data().awaddr.read() == 0x1000);  // 数据未丢
+    REQUIRE(a.master_req_valid() == true);                // valid 保持
+    REQUIRE(a.master_req_data().awaddr.read() == 0x1000); // 数据未丢
     REQUIRE(a.master_req_data().wdata.read() == 0xDEAD);
 
     // 再次 tick（仍 ready=0）：依旧保持
     a.tick();
     REQUIRE(a.master_req_valid() == true);
-    REQUIRE(a.outstanding_wr() == 1);           // 请求仍在途
+    REQUIRE(a.outstanding_wr() == 1); // 请求仍在途
 
     // ready=1：事务转移
     a.set_master_ready(true);
     a.tick();
-    REQUIRE(a.master_req_valid() == false);     // 已转移
-    REQUIRE(a.master_req_data().awaddr.read() == 0x1000);  // 数据完整
+    REQUIRE(a.master_req_valid() == false);               // 已转移
+    REQUIRE(a.master_req_data().awaddr.read() == 0x1000); // 数据完整
 }
 
 TEST_CASE("Axi4StreamAdapter: slave req held when EP not ready, no loss",
@@ -68,7 +68,7 @@ TEST_CASE("Axi4StreamAdapter: slave req held when EP not ready, no loss",
     // EP ready=1 后 EP 读取 + consume
     a.set_slave_ready(true);
     a.tick();
-    REQUIRE(a.slave_req_valid() == true);       // EP 侧仍可见
+    REQUIRE(a.slave_req_valid() == true); // EP 侧仍可见
     a.slave_req_consume();
     REQUIRE(a.slave_req_valid() == false);
 }
@@ -112,11 +112,11 @@ TEST_CASE("Axi4StreamAdapter: full transaction completes through backpressure cy
         // 交替 ready=0/1 制造 backpressure
         a.set_master_ready(false);
         a.tick();
-        REQUIRE(a.master_req_valid() == true);   // 反压保持
+        REQUIRE(a.master_req_valid() == true); // 反压保持
 
         a.set_master_ready(true);
         a.tick();
-        REQUIRE(a.master_req_valid() == false);  // 转移完成
+        REQUIRE(a.master_req_valid() == false); // 转移完成
     }
 
     // 4 拍全部完成（burst 单事务 1 个 outstanding）

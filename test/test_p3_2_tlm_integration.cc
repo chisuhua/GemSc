@@ -7,6 +7,7 @@
 //   - T12.5/T12.6:     保留 TestTLM (TLMModule 派生类) 作为 P3.2 钩子测试模板 (Path B)
 //   - T12.7:           TransactionAction 枚举测试，与具体模块无关，保留
 
+#include <cstring>
 #include "bundles/bundle_serialization.hh"
 #include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
@@ -16,7 +17,6 @@
 #include "tlm/cache_tlm.hh"
 #include "tlm/crossbar_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <cstring>
 
 using tlm::tlm_generic_payload;
 

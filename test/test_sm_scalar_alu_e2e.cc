@@ -68,7 +68,7 @@ TEST_CASE("ScalarALU IMAD: reg 7 × reg 11 → reg 20 (round-trip via IComputeDe
     desc.pipe = PipeClass::kScalarALU;
     desc.latency_class = LatencyClass::kFixed4Cycle;
     desc.dst_regs[0] = 20;
-    desc.src_regs[0] = 7;  // 寄存器号 (语义统一 per Oracle P0-4)
+    desc.src_regs[0] = 7; // 寄存器号 (语义统一 per Oracle P0-4)
     desc.src_regs[1] = 11;
     desc.num_src = 2;
     desc.num_dst = 1;
@@ -95,8 +95,7 @@ TEST_CASE("ScalarALU IMAD: reg 7 × reg 11 → reg 20 (round-trip via IComputeDe
 //   - sm.sa()->get_module_type() == "ScalarALU" (A1b 模块身份)
 //   - SM.exe_once() → sa_->tick() 即时 dispatch (单次 ADD 即时可见, A2 接线真实生效)
 //   - 测试不修改 test_sm_scalar_alu_e2e.cc 既有 TEST_CASE (e2e 回归)
-TEST_CASE("Task 2.5: sa_ 端口接线 (pipeline node dispatch)",
-          "[sm-alu][sm-microarch][task18]") {
+TEST_CASE("Task 2.5: sa_ 端口接线 (pipeline node dispatch)", "[sm-alu][sm-microarch][task18]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
 
@@ -126,6 +125,6 @@ TEST_CASE("Task 2.5: sa_ 端口接线 (pipeline node dispatch)",
 
     uint64_t val = 0;
     REQUIRE(sm.get_register_value(0, 0, 5, &val));
-    REQUIRE(val == 300);  // 100 + 200 (sa_ 内部 dispatch 到 cpptlm::gpu::ScalarALU 真值)
+    REQUIRE(val == 300); // 100 + 200 (sa_ 内部 dispatch 到 cpptlm::gpu::ScalarALU 真值)
     REQUIRE(sm.is_instruction_completed(7));
 }

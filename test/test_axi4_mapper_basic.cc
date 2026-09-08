@@ -4,10 +4,10 @@
 // 作者 CppTLM Team / 日期 2026-12-22
 // 参考: openspec/changes/2026-12-22-cpptlm-dgpu-axi4-mapper/tasks.md T-P6-1
 
-#include "catch_amalgamated.hpp"
 #include "bundles/axi4_bundles_tlm.hh"
-#include "framework/axi4_signal_to_bundle.hh"
+#include "catch_amalgamated.hpp"
 #include "framework/axi4_bundle_to_signal.hh"
+#include "framework/axi4_signal_to_bundle.hh"
 
 #include <cstdint>
 
@@ -16,12 +16,12 @@ using namespace cpptlm;
 
 TEST_CASE("AXI4Mapper: bundle_to_signal all fields written", "[axi][mapper][basic]") {
     Axi4Bundle bundle;
-    
+
     // Initialize all fields
     bundle.awaddr.write(0x123456789ABCDEFFULL);
-    bundle.awlen.write(7);       // 8 beats
-    bundle.awsize.write(6);      // 64 bytes
-    bundle.awburst.write(1);     // INCR
+    bundle.awlen.write(7);   // 8 beats
+    bundle.awsize.write(6);  // 64 bytes
+    bundle.awburst.write(1); // INCR
     bundle.awid.write(0xABCD);
     bundle.wdata.write(0x0102030405060708ULL);
     bundle.wstrb.write(0xFFFFFFFFFFFFFFFFULL);
@@ -29,21 +29,21 @@ TEST_CASE("AXI4Mapper: bundle_to_signal all fields written", "[axi][mapper][basi
     bundle.bid.write(0xABCD);
     bundle.bresp.write(0);
     bundle.araddr.write(0xFEDCBA9876543210ULL);
-    bundle.arlen.write(3);       // 4 beats
-    bundle.arsize.write(5);      // 32 bytes
-    bundle.arburst.write(1);     // INCR
+    bundle.arlen.write(3);   // 4 beats
+    bundle.arsize.write(5);  // 32 bytes
+    bundle.arburst.write(1); // INCR
     bundle.arid.write(0xDCBA);
     bundle.rid.write(0xDCBA);
     bundle.rdata.write(0x1122334455667788ULL);
     bundle.rresp.write(0);
     bundle.rlast.write(1);
-    
+
     // AXI signal struct (plain C struct for signal interface)
     AXI4Signals signals{};
-    
+
     // Convert bundle to signal
     bundle_to_signal(bundle, signals);
-    
+
     // Verify all fields written to signals
     REQUIRE(signals.awaddr == 0x123456789ABCDEFFULL);
     REQUIRE(signals.awlen == 7);
@@ -72,26 +72,26 @@ TEST_CASE("AXI4Mapper: signal_to_bundle reverse restores all fields", "[axi][map
     signals.awaddr = 0x1122334455667788ULL;
     signals.awlen = 15;
     signals.awsize = 6;
-    signals.awburst = 2;  // WRAP
+    signals.awburst = 2; // WRAP
     signals.awid = 0xDEAD;
     signals.wdata = 0xAABBCCDDEEFF0011ULL;
     signals.wstrb = 0xFFFFFFFFFFFFFFFFULL;
     signals.wlast = 1;
     signals.bid = 0xDEAD;
-    signals.bresp = 1;    // EXOKAY
+    signals.bresp = 1; // EXOKAY
     signals.araddr = 0x8877665544332211ULL;
     signals.arlen = 7;
     signals.arsize = 4;
-    signals.arburst = 1;  // INCR
+    signals.arburst = 1; // INCR
     signals.arid = 0xBEEF;
     signals.rid = 0xBEEF;
     signals.rdata = 0x1100FFEEDDCCBBAAULL;
     signals.rresp = 0;
     signals.rlast = 1;
-    
+
     Axi4Bundle bundle;
     signal_to_bundle(signals, bundle);
-    
+
     // Verify all fields restored
     REQUIRE(bundle.awaddr.read() == 0x1122334455667788ULL);
     REQUIRE(bundle.awlen.read() == 15);
@@ -116,7 +116,7 @@ TEST_CASE("AXI4Mapper: signal_to_bundle reverse restores all fields", "[axi][map
 
 TEST_CASE("AXI4Mapper: round-trip bundle -> signal -> bundle", "[axi][mapper][roundtrip]") {
     Axi4Bundle original;
-    
+
     original.awaddr.write(0x123456789ABCDEFFULL);
     original.awlen.write(7);
     original.awsize.write(6);
@@ -136,13 +136,13 @@ TEST_CASE("AXI4Mapper: round-trip bundle -> signal -> bundle", "[axi][mapper][ro
     original.rdata.write(0x1122334455667788ULL);
     original.rresp.write(0);
     original.rlast.write(1);
-    
+
     AXI4Signals signals{};
     bundle_to_signal(original, signals);
-    
+
     Axi4Bundle restored;
     signal_to_bundle(signals, restored);
-    
+
     // Verify all fields match
     REQUIRE(restored.awaddr.read() == original.awaddr.read());
     REQUIRE(restored.awlen.read() == original.awlen.read());
@@ -166,15 +166,15 @@ TEST_CASE("AXI4Mapper: round-trip bundle -> signal -> bundle", "[axi][mapper][ro
 }
 
 TEST_CASE("AXI4Mapper: empty bundle conversion does not crash", "[axi][mapper][edge]") {
-    Axi4Bundle bundle;  // all zeros
+    Axi4Bundle bundle; // all zeros
     AXI4Signals signals{};
-    
+
     // Should not crash
     bundle_to_signal(bundle, signals);
-    
+
     Axi4Bundle restored;
     signal_to_bundle(signals, restored);
-    
+
     // All zeros should remain zeros
     REQUIRE(restored.awaddr.read() == 0);
     REQUIRE(restored.awlen.read() == 0);

@@ -3,9 +3,9 @@
 // 作者 CppTLM Team / 日期 2026-10-13
 // 参考: openspec/changes/2026-10-13-cpptlm-dgpu-pcie-sriov-vf-pool/proposal.md T-P4-7
 
+#include "chstream_register.hh" // 必须: 提供 cpptlm/tlm::pcie 命名空间 + ModuleFactory::registerObject
 #include "bundles/pcie_bundles_tlm.hh"
 #include "catch_amalgamated.hpp"
-#include "chstream_register.hh"  // 必须: 提供 cpptlm/tlm::pcie 命名空间 + ModuleFactory::registerObject
 #include "core/event_queue.hh"
 #include "core/master_port.hh"
 #include "core/module_factory.hh"
@@ -28,8 +28,8 @@ static const int s_pcie_endpoint_ip_test_registered = []() {
     // ModuleFactory/StreamAdapterBase 在全局命名空间（不在 cpptlm:: 下）
     ModuleFactory::registerObject<PcieIP_t>("PcieEndpointIP");
     // PcieEndpointIP 是 17 端口模块，须用 MultiPort 重载并显式传 N=17
-    ChStreamAdapterFactory::get().registerMultiPortAdapter<PcieIP_t,
-        ReqB_t, RespB_t, 17>("PcieEndpointIP");
+    ChStreamAdapterFactory::get().registerMultiPortAdapter<PcieIP_t, ReqB_t, RespB_t, 17>(
+        "PcieEndpointIP");
     return 0;
 }();
 

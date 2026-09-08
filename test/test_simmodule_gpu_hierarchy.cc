@@ -3,6 +3,7 @@
 // 验证 ComputeCluster / TpcCluster / GpcCluster / GpuCluster
 // 参考: docs/superpowers/specs/2026-06-19-simmodule-complex-hierarchies-design.md §7.2
 // 作者: Sisyphus / 日期: 2026-06-19
+#include <string>
 #include "chstream_register.hh"
 #include "core/module_factory.hh"
 #include "core/sim_module.hh"
@@ -15,7 +16,6 @@
 #include "utils/json_includer.hh"
 #include <catch2/catch_all.hpp>
 #include <nlohmann/json.hpp>
-#include <string>
 
 using json = nlohmann::json;
 

@@ -11,14 +11,15 @@
 
 namespace tlm::sm {
 
-HazardTracker::HazardTracker(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
-
-void HazardTracker::tick() {
-    if (!parent_ || !parent_->hazard_tracker()) {
-        return;
+    HazardTracker::HazardTracker(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
     }
-    parent_->hazard_tracker()->tick();
-}
+
+    void HazardTracker::tick() {
+        if (!parent_ || !parent_->hazard_tracker()) {
+            return;
+        }
+        parent_->hazard_tracker()->tick();
+    }
 
 } // namespace tlm::sm

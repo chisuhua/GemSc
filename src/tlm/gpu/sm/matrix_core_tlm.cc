@@ -15,23 +15,26 @@
 
 namespace tlm::sm {
 
-MatrixCore::MatrixCore(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
+    MatrixCore::MatrixCore(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
+    }
     // parent_ 由 SM 构造函数 make_unique 后调 set_parent(this) 注入
 
-void MatrixCore::tick() {
-    // 安全检查: parent + fu + fu->has_fetched (镜像 Fetch/Decode/Issue/ScalarALU/VectorALU 模式)
-    if (!parent_ || !parent_->fu() || !parent_->fu()->has_fetched()) {
-        return;
+    void MatrixCore::tick() {
+        // 安全检查: parent + fu + fu->has_fetched (镜像 Fetch/Decode/Issue/ScalarALU/VectorALU
+        // 模式)
+        if (!parent_ || !parent_->fu() || !parent_->fu()->has_fetched()) {
+            return;
+        }
+        // 指令源: 与 sa_/va_ tick 完全一致 (parent_->fu()->fetched().instr_desc, 零行为变化)
+        auto d = parent_->fu()->fetched().instr_desc;
+        // pipe 判断只驻留 mc_ tick() (Oracle Q3 禁令: exe_once 不得保留避免双 dispatch)
+        if (d.pipe == cpptlm::gpu::PipeClass::kMatrixCore) {
+            // 调 cpptlm::gpu::MatrixCore stub (Task 4.6 MFMA 真值替换实现)
+            parent_->matrix_alu()->execute(d);
+            // **不调 mark_completed** (per Oracle Q2 A: stub 阶段避免假完成, mark_completed 推迟
+            // Task 4.6)
+        }
     }
-    // 指令源: 与 sa_/va_ tick 完全一致 (parent_->fu()->fetched().instr_desc, 零行为变化)
-    auto d = parent_->fu()->fetched().instr_desc;
-    // pipe 判断只驻留 mc_ tick() (Oracle Q3 禁令: exe_once 不得保留避免双 dispatch)
-    if (d.pipe == cpptlm::gpu::PipeClass::kMatrixCore) {
-        // 调 cpptlm::gpu::MatrixCore stub (Task 4.6 MFMA 真值替换实现)
-        parent_->matrix_alu()->execute(d);
-        // **不调 mark_completed** (per Oracle Q2 A: stub 阶段避免假完成, mark_completed 推迟 Task 4.6)
-    }
-}
 
 } // namespace tlm::sm

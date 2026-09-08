@@ -4,6 +4,7 @@
 // 修复后：递归到子 SimModule
 // 作者: Sisyphus / 日期: 2026-06-19
 // 参考: docs/superpowers/specs/2026-06-19-simmodule-complex-hierarchies-design.md §4.1
+#include <string>
 #include "chstream_register.hh"
 #include "core/module_factory.hh"
 #include "core/sim_module.hh"
@@ -11,7 +12,6 @@
 #include "tlm/cluster/cpu_cluster.hh"
 #include "utils/json_includer.hh"
 #include <catch2/catch_all.hpp>
-#include <string>
 
 // 注册所有需要的模块类型 (CpuCluster + CPUTLM/CacheTLM/MemoryTLM 等)
 static void registerSimModuleTypes() {

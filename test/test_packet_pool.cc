@@ -2,13 +2,13 @@
 // 注意: PacketPool 单例测试在真实 SystemC TLM 环境下可能失败
 // 原因: tlm_generic_payload 生命周期管理与 Pool 复用模式存在冲突
 // 标记: Phase 7.3 延期项
+#include <iostream>
 #include "catch_amalgamated.hpp"
 #include "core/cmd.hh" // 为了创建payload
 #include "core/event_queue.hh"
 #include "core/packet.hh"
 #include "ext/mem_exts.hh" // 添加对mem_exts.hh的引用
 #include "ext/packet_pool.hh"
-#include <iostream>
 
 // 辅助函数：为 Packet 创建一个简单的 payload
 tlm::tlm_generic_payload* createSimplePayload() {

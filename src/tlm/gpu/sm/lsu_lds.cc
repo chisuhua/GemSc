@@ -11,19 +11,23 @@
 #include "tlm/gpu/streaming_multiprocessor_tlm.hh"
 
 namespace cpptlm {
-namespace gpu {
+    namespace gpu {
 
-uint32_t LsuLDS::execute(InstrDescriptor& desc) {
-    if (!parent_) return 0;
-    if (desc.pipe != PipeClass::kLsuLDS) return 0;
-    if (!desc.is_memory) return 0;
-    if (desc.num_dst < 1) return 0;
+        uint32_t LsuLDS::execute(InstrDescriptor& desc) {
+            if (!parent_)
+                return 0;
+            if (desc.pipe != PipeClass::kLsuLDS)
+                return 0;
+            if (!desc.is_memory)
+                return 0;
+            if (desc.num_dst < 1)
+                return 0;
 
-    // 同步完成: 立即回写 + mark_completed (对照 LsuGlobal 异步 10 cycle)
-    parent_->set_scalar_reg(desc.dst_regs[0], desc.memory_data);
-    parent_->mark_completed(desc.instr_id);
-    return 1;
-}
+            // 同步完成: 立即回写 + mark_completed (对照 LsuGlobal 异步 10 cycle)
+            parent_->set_scalar_reg(desc.dst_regs[0], desc.memory_data);
+            parent_->mark_completed(desc.instr_id);
+            return 1;
+        }
 
-} // namespace gpu
+    } // namespace gpu
 } // namespace cpptlm

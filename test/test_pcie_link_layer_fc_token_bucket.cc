@@ -18,8 +18,7 @@ TEST_CASE("FcTokenBucket: can_send true with default capacity", "[pcie][fc][toke
     REQUIRE(bucket.can_send(FcTokenBucket::Type::Completion) == true);
 }
 
-TEST_CASE("FcTokenBucket: consume deducts tokens when sufficient",
-          "[pcie][fc][token]") {
+TEST_CASE("FcTokenBucket: consume deducts tokens when sufficient", "[pcie][fc][token]") {
     FcTokenBucket bucket;
     // 默认 capacity=256 → 初始 token = capacity
     const bool ok = bucket.consume(FcTokenBucket::Type::Posted);
@@ -30,8 +29,7 @@ TEST_CASE("FcTokenBucket: consume deducts tokens when sufficient",
     REQUIRE(bucket.consume(FcTokenBucket::Type::Completion) == true);
 }
 
-TEST_CASE("FcTokenBucket: over-consume returns false and does not deduct",
-          "[pcie][fc][token]") {
+TEST_CASE("FcTokenBucket: over-consume returns false and does not deduct", "[pcie][fc][token]") {
     // 构造低容量桶验证 over-consume 行为
     FcTokenBucket low_bucket(/*capacity=*/2);
     REQUIRE(low_bucket.can_send(FcTokenBucket::Type::Posted) == true);
@@ -46,10 +44,10 @@ TEST_CASE("FcTokenBucket: update() only increases credits (monotonic, per Q2)",
           "[pcie][fc][token]") {
     // weight=1, capacity=8
     FcTokenBucket bucket(/*capacity=*/8);
-    REQUIRE(bucket.consume(FcTokenBucket::Type::Posted) == true);  // 7 剩余
-    REQUIRE(bucket.consume(FcTokenBucket::Type::Posted) == true);  // 6 剩余
+    REQUIRE(bucket.consume(FcTokenBucket::Type::Posted) == true); // 7 剩余
+    REQUIRE(bucket.consume(FcTokenBucket::Type::Posted) == true); // 6 剩余
 
-    bucket.update(FcTokenBucket::Type::Posted, 3);  // 6+3=9 → cap at 8
+    bucket.update(FcTokenBucket::Type::Posted, 3); // 6+3=9 → cap at 8
     REQUIRE(bucket.can_send(FcTokenBucket::Type::Posted) == true);
     // 单调非减: update 不减少 token
     const auto before = bucket.token_count(FcTokenBucket::Type::Posted);
@@ -60,8 +58,7 @@ TEST_CASE("FcTokenBucket: update() only increases credits (monotonic, per Q2)",
     REQUIRE(bucket.token_count(FcTokenBucket::Type::Posted) == 8u);
 }
 
-TEST_CASE("FcTokenBucket: no auto-refill — update only path (per Q2)",
-          "[pcie][fc][token]") {
+TEST_CASE("FcTokenBucket: no auto-refill — update only path (per Q2)", "[pcie][fc][token]") {
     FcTokenBucket bucket(/*capacity=*/2);
     bucket.consume(FcTokenBucket::Type::Completion);
     bucket.consume(FcTokenBucket::Type::Completion);
@@ -116,12 +113,12 @@ TEST_CASE("FcEngine: per-VF bucket isolation", "[pcie][fc][token][vf]") {
     auto& vf0b = engine.bucket(0);
     REQUIRE(vf0b.can_send(FcTokenBucket::Type::Posted) == true);
     REQUIRE(vf0b.consume(FcTokenBucket::Type::Posted) == true);
-    REQUIRE(vf0b.can_send(FcTokenBucket::Type::Posted) == false);  // 已耗尽
+    REQUIRE(vf0b.can_send(FcTokenBucket::Type::Posted) == false); // 已耗尽
 
     auto& vf1b = engine.bucket(1);
-    REQUIRE(vf1b.can_send(FcTokenBucket::Type::Posted) == true);   // 不受影响
+    REQUIRE(vf1b.can_send(FcTokenBucket::Type::Posted) == true); // 不受影响
     REQUIRE(vf1b.consume(FcTokenBucket::Type::Posted) == true);
-    REQUIRE(vf1b.can_send(FcTokenBucket::Type::Posted) == true);   // 默认大容量
+    REQUIRE(vf1b.can_send(FcTokenBucket::Type::Posted) == true); // 默认大容量
 }
 
 TEST_CASE("FcEngine: convenience consume/update/can_send delegate per-VF",

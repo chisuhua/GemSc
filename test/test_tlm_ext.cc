@@ -1,8 +1,8 @@
 // test_tlm_exts.cpp
+#include <sstream>
 #include "catch_amalgamated.hpp"
 #include "ext/mem_exts.hh"
 #include "tlm/tlm_stub.hh"
-#include <sstream>
 
 // 辅助函数：捕获 print() 输出
 template <typename ExtType> std::string capture_print(const ExtType& ext) {

@@ -1,13 +1,13 @@
 // test/test_config_inheritance.cc
 // Phase 3.1: Config Inheritance Tests (extends field)
 
-#include "catch_amalgamated.hpp"
-#include "chstream_register.hh"
-#include "core/module_factory.hh"
-#include "mock_modules.hh"
+#include <unistd.h>
 #include <cstdio>
 #include <fstream>
-#include <unistd.h>
+#include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
+#include "core/module_factory.hh"
+#include "mock_modules.hh"
 
 using json = nlohmann::json;
 

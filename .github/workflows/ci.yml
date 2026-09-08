@@ -113,7 +113,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Install clang-format
-      run: sudo apt-get install -y clang-format
+      # Pin to clang-format-22 (matches .clang-format "版本策略" 注释).
+      # ubuntu-latest 默认 clang-format 版本会随镜像变化,
+      # 导致本地与 CI 漂移, 引发大量假阳性.
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format-22
+        sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100
+        clang-format --version
     - name: Check format
       run: |
         chmod +x ./scripts/build/format.sh

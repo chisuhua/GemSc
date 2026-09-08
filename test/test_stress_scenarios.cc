@@ -13,8 +13,8 @@
  * @date 2026-04-18
  */
 
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "metrics/metrics_reporter.hh"
@@ -22,8 +22,8 @@
 
 #include <filesystem>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <sstream>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 

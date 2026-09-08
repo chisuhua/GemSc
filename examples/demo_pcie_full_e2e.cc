@@ -9,12 +9,12 @@
 
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
-#include "tlm/pcie/pcie_endpoint_ip.hh"
 #include "tlm/pcie/host_bypass_tlm.hh"
+#include "tlm/pcie/pcie_endpoint_ip.hh"
 #include "tlm/pcie/pcie_root_complex_tlm.hh"
 
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <nlohmann/json.hpp>
 
@@ -22,14 +22,14 @@ using json = nlohmann::json;
 using namespace tlm::pcie;
 
 // 统一检查宏：失败时打印并退出非零（demo 验证失败即终止）
-#define REQUIRE_HOST(cond, msg) \
-    do { \
-        if (cond) { \
-            print_ok(msg); \
-        } else { \
-            print_fail(msg); \
-            return 1; \
-        } \
+#define REQUIRE_HOST(cond, msg)                                                                    \
+    do {                                                                                           \
+        if (cond) {                                                                                \
+            print_ok(msg);                                                                         \
+        } else {                                                                                   \
+            print_fail(msg);                                                                       \
+            return 1;                                                                              \
+        }                                                                                          \
     } while (0)
 
 static void print_header(const char* title) {

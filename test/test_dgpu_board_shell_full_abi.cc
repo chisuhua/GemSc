@@ -4,8 +4,8 @@
 // lifecycle/enumeration paths testable without SOC.
 // dev_id 0 has a profile path; higher dev_ids need a matching profile JSON
 // or board methods return -EINVAL. Use dev_id 0 for forwarding tests.
-#include "abi/cpptlm_emulator.h"
 #include <catch_amalgamated.hpp>
+#include "abi/cpptlm_emulator.h"
 
 TEST_CASE("Full ABI: multi-card lifecycle (4 distinct dev_ids ≥10 → destroy → restored)",
           "[dgpu][shell][full_abi][lifecycle]") {

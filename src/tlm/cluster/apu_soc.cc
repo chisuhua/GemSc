@@ -4,11 +4,11 @@
 // 参考: docs/superpowers/specs/2026-06-19-simmodule-complex-hierarchies-design.md §4.5.1
 // 作者: Sisyphus / 日期: 2026-06-19
 #include "tlm/cluster/apu_soc.hh"
+#include <string>
 #include "core/module_factory.hh"
 #include "tlm/cache_tlm.hh"         // P1: collectAndRegisterPeerCaches needs CacheTLM
 #include "tlm/coherent_xbar_tlm.hh" // P1: incorporate_parent wiring needs CoherentXBarTLM
 #include "utils/json_includer.hh"
-#include <string>
 
 namespace cpptlm::tlm {
 

@@ -8,8 +8,8 @@
 // 重点测试：wide fan-out、hierarchical cache、bidirectional traffic、
 //         high latency、heterogeneous downstream、sustained stress
 
-#include "bundles/cache_bundles_tlm.hh"
 #include "chstream_register.hh"
+#include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "modules.hh"

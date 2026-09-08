@@ -10,8 +10,8 @@
 #include "bundles/axi4_bundles_tlm.hh"
 #include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
-#include "tlm/pcie/pcie_endpoint_ip.hh"
 #include "tlm/pcie/host_bypass_tlm.hh"
+#include "tlm/pcie/pcie_endpoint_ip.hh"
 
 #include <cstdint>
 #include <memory>
@@ -21,7 +21,8 @@ using namespace bundles;
 using namespace tlm::pcie;
 using json = nlohmann::json;
 
-TEST_CASE("HostBypassTLM: config space write then read back real EP value", "[pcie][host-bypass][software][config]") {
+TEST_CASE("HostBypassTLM: config space write then read back real EP value",
+          "[pcie][host-bypass][software][config]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_sw_bringup", &eq);
     ep.init();
@@ -46,7 +47,8 @@ TEST_CASE("HostBypassTLM: config space write then read back real EP value", "[pc
     REQUIRE(ep.vf_pool().config_of(0).read(0x04) == 0x0007u);
 }
 
-TEST_CASE("HostBypassTLM: config space write does not touch other offsets", "[pcie][host-bypass][software][config]") {
+TEST_CASE("HostBypassTLM: config space write does not touch other offsets",
+          "[pcie][host-bypass][software][config]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_sw_cfg_isolation", &eq);
     ep.init();
@@ -63,10 +65,11 @@ TEST_CASE("HostBypassTLM: config space write does not touch other offsets", "[pc
     // 写 0x18 (BAR3) 不应影响 0x04 (Command)
     REQUIRE(hb.config_write(0x18, 0xDEAD0001) == true);
     REQUIRE(hb.config_read(0x18) == 0xDEAD0001u);
-    REQUIRE(hb.config_read(0x04) == 0x10u);  // Capabilities bit（未动）
+    REQUIRE(hb.config_read(0x04) == 0x10u); // Capabilities bit（未动）
 }
 
-TEST_CASE("HostBypassTLM: config access routes to per-VF config space", "[pcie][host-bypass][software][config][vf]") {
+TEST_CASE("HostBypassTLM: config access routes to per-VF config space",
+          "[pcie][host-bypass][software][config][vf]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_sw_cfg_vf", &eq);
     ep.init();
@@ -83,10 +86,11 @@ TEST_CASE("HostBypassTLM: config access routes to per-VF config space", "[pcie][
     // VF0 (stream_id=1) 与 PF (stream_id=0) 配置空间独立
     REQUIRE(hb.config_write(0x04, 0x1111, /*stream_id=*/1) == true);
     REQUIRE(hb.config_read(0x04, /*stream_id=*/1) == 0x1111u);
-    REQUIRE(hb.config_read(0x04, /*stream_id=*/0) == 0x10u);  // PF 未受影响
+    REQUIRE(hb.config_read(0x04, /*stream_id=*/0) == 0x10u); // PF 未受影响
 }
 
-TEST_CASE("HostBypassTLM: BAR write routed via AXI master channel", "[pcie][host-bypass][software][bar]") {
+TEST_CASE("HostBypassTLM: BAR write routed via AXI master channel",
+          "[pcie][host-bypass][software][bar]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_bar_access", &eq);
     ep.init();
@@ -125,7 +129,8 @@ TEST_CASE("HostBypassTLM: BAR write routed via AXI master channel", "[pcie][host
     REQUIRE(hb.axi_outstanding_wr() == 0);
 }
 
-TEST_CASE("HostBypassTLM: BAR read routed via AXI master channel returns data", "[pcie][host-bypass][software][bar][read]") {
+TEST_CASE("HostBypassTLM: BAR read routed via AXI master channel returns data",
+          "[pcie][host-bypass][software][bar][read]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_bar_mem", &eq);
     ep.init();
@@ -164,7 +169,8 @@ TEST_CASE("HostBypassTLM: BAR read routed via AXI master channel returns data", 
     REQUIRE(hb.axi_outstanding_rd() == 0);
 }
 
-TEST_CASE("HostBypassTLM: software bring-up full sequence (config + BAR)", "[pcie][host-bypass][software][e2e]") {
+TEST_CASE("HostBypassTLM: software bring-up full sequence (config + BAR)",
+          "[pcie][host-bypass][software][e2e]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_sw_full", &eq);
     ep.init();
@@ -215,7 +221,8 @@ TEST_CASE("HostBypassTLM: software bring-up full sequence (config + BAR)", "[pci
     REQUIRE(hb.axi_outstanding_rd() == 0);
 }
 
-TEST_CASE("HostBypassTLM: config access returns failure when not attached", "[pcie][host-bypass][software][detach]") {
+TEST_CASE("HostBypassTLM: config access returns failure when not attached",
+          "[pcie][host-bypass][software][detach]") {
     EventQueue eq;
     HostBypassTLM hb("host_bypass_no_ep", &eq);
     hb.init();

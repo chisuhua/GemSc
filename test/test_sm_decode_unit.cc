@@ -22,8 +22,7 @@
 using namespace tlm;
 using namespace cpptlm::gpu;
 
-TEST_CASE("DecodeUnitTLM 提取 pipe/latency_class (真值, ≥2 断言)",
-          "[sm-unit][sm-decode][task18]") {
+TEST_CASE("DecodeUnitTLM 提取 pipe/latency_class (真值, ≥2 断言)", "[sm-unit][sm-decode][task18]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -64,6 +63,6 @@ TEST_CASE("DecodeUnitTLM 提取 pipe/latency_class (真值, ≥2 断言)",
     // 断言 4: 空 fetched tick 安全 (per Oracle Q11)
     StreamingMultiprocessorTLM sm2("sm1", &eq);
     REQUIRE(sm2.initialize(cfg));
-    sm2.du()->tick();  // 无 fetch → has_decoded false
+    sm2.du()->tick(); // 无 fetch → has_decoded false
     REQUIRE(!sm2.du()->has_decoded());
 }

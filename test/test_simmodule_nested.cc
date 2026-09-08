@@ -13,6 +13,9 @@
 //     6. CpuCluster set_config - num_cpus/cluster_id 透传
 //
 // 作者 CppTLM Team / 日期 2026-06-18
+#include <future>
+#include <string>
+#include <thread>
 #include "chstream_register.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
@@ -23,10 +26,7 @@
 #include "tlm/cpu_tlm.hh"
 #include "tlm/memory_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <future>
 #include <nlohmann/json.hpp>
-#include <string>
-#include <thread>
 
 using json = nlohmann::json;
 

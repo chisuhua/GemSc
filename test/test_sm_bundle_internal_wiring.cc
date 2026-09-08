@@ -8,7 +8,8 @@
 // 验证的 3 段连接 (≥2 断言/连接 per v2 acceptance):
 //   A1: FetchUnit → DecodeUnit (via fetched() accessor, decoded().pipe/latency_class)
 //   A2: DecodeUnit → IssueUnit (via decoded() accessor, issued().pipe + warp_id round-robin)
-//   A3: IssueUnit → ScalarALU (via issued() accessor, scalar_alu execute → mark_completed + reg write)
+//   A3: IssueUnit → ScalarALU (via issued() accessor, scalar_alu execute → mark_completed + reg
+//   write)
 //
 // 关键路径:
 //   - 注入 kScalarALU desc, exe_once 推进 1 cycle 触发全链 dispatch
@@ -77,7 +78,7 @@ TEST_CASE("Bundle DecodeUnit → IssueUnit (round-robin warp 调度, A2)",
     auto issued = sm.iu()->issued();
     REQUIRE(issued.instr_desc.instr_id == 1002);
     REQUIRE(issued.instr_desc.pipe == PipeClass::kScalarALU);
-    REQUIRE(issued.warp_id == 1);  // round-robin 起点 warp 1 (per Task 2.4 实现)
+    REQUIRE(issued.warp_id == 1); // round-robin 起点 warp 1 (per Task 2.4 实现)
 }
 
 TEST_CASE("Bundle IssueUnit → ScalarALU (执行真值 + 完成, A3)",
@@ -107,5 +108,5 @@ TEST_CASE("Bundle IssueUnit → ScalarALU (执行真值 + 完成, A3)",
     REQUIRE(sm.is_instruction_completed(1003));
     uint64_t v3 = 0;
     REQUIRE(sm.get_register_value(0, 0, 3, &v3));
-    REQUIRE(v3 == 30);  // ADD: 10 + 20
+    REQUIRE(v3 == 30); // ADD: 10 + 20
 }

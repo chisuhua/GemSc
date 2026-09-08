@@ -111,7 +111,8 @@ int cpptlm_emulator_register_dma_translate_cb(cpptlm_emulator_t* emu, void* cb);
 
 int cpptlm_emulator_open(uint32_t dev_id, cpptlm_emulator_handle_t* out_handle);
 int cpptlm_emulator_close(cpptlm_emulator_handle_t handle);
-int cpptlm_emulator_get_adapter_info(cpptlm_emulator_handle_t handle, cpptlm_device_info_t* out_info);
+int cpptlm_emulator_get_adapter_info(cpptlm_emulator_handle_t handle,
+                                     cpptlm_device_info_t* out_info);
 
 #if defined(__cplusplus)
 } // extern "C"

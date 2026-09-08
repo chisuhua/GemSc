@@ -27,101 +27,105 @@ using json = nlohmann::json;
 
 namespace {
 
-// 用符合 PCIe 规范的 awaddr 编码方式,经 HostBypassTLM 发起 cfg 读写。
-// 语义:
-//   awaddr = dword_offset << 2
-//   例: Command Register 位于 dword offset 1 → awaddr = 0x04
-//       BAR0 位于 dword offset 4 → awaddr = 0x10
-//       状态寄存器 dword offset 6 → awaddr = 0x18
-struct CfgAddrFixture {
-    EventQueue eq;
-    PcieEndpointIP ep;
-    HostBypassTLM hb;
+    // 用符合 PCIe 规范的 awaddr 编码方式,经 HostBypassTLM 发起 cfg 读写。
+    // 语义:
+    //   awaddr = dword_offset << 2
+    //   例: Command Register 位于 dword offset 1 → awaddr = 0x04
+    //       BAR0 位于 dword offset 4 → awaddr = 0x10
+    //       状态寄存器 dword offset 6 → awaddr = 0x18
+    struct CfgAddrFixture {
+        EventQueue eq;
+        PcieEndpointIP ep;
+        HostBypassTLM hb;
 
-    CfgAddrFixture()
-        : ep("pcie_ep_cfg_addr", &eq), hb("hb_cfg_addr", &eq) {
-        ep.init();
-        json cfg;
-        cfg["axi_adapter"] = json::object();
-        ep.set_config(cfg);
-        ep.on_config_loaded();
+        CfgAddrFixture() : ep("pcie_ep_cfg_addr", &eq), hb("hb_cfg_addr", &eq) {
+            ep.init();
+            json cfg;
+            cfg["axi_adapter"] = json::object();
+            ep.set_config(cfg);
+            ep.on_config_loaded();
 
-        hb.init();
-        hb.attach_to_endpoint(&ep);
-    }
-
-    // 写入并驱动直到响应到达 (4-byte 全选, wstrb=0xF)
-    bool axi_write(uint64_t awaddr, uint32_t wdata, uint16_t id) {
-        Axi4Bundle req;
-        req.awid.write(id);
-        req.awaddr.write(awaddr);
-        req.awlen.write(0);
-        req.awsize.write(2);     // 4 bytes
-        req.awburst.write(1);
-        req.wdata.write(wdata);
-        req.wstrb.write(0xF);
-        req.wlast.write(1);
-        if (!hb.axi_master_req(req)) return false;
-        hb.set_axi_master_ready(true);
-        for (int i = 0; i < 100 && (hb.axi_master_req_valid()
-                                    || hb.axi_outstanding_wr() > 0); ++i) {
-            ep.tick();
-            hb.tick();
+            hb.init();
+            hb.attach_to_endpoint(&ep);
         }
-        if (!hb.axi_master_resp_valid()) return false;
-        hb.axi_master_resp_consume();
-        return true;
-    }
 
-    // 写入 4B 完整 (alias for axi_write, 语义明确)
-    bool axi_write_full(uint64_t awaddr, uint32_t wdata, uint16_t id) {
-        return axi_write(awaddr, wdata, id);
-    }
-
-    // 写入 4B 部分 (wstrb 按字节 mask)
-    bool axi_write_partial(uint64_t awaddr, uint32_t wdata,
-                           uint8_t wstrb, uint16_t id) {
-        Axi4Bundle req;
-        req.awid.write(id);
-        req.awaddr.write(awaddr);
-        req.awlen.write(0);
-        req.awsize.write(2);
-        req.awburst.write(1);
-        req.wdata.write(wdata);
-        req.wstrb.write(static_cast<uint64_t>(wstrb));
-        req.wlast.write(1);
-        if (!hb.axi_master_req(req)) return false;
-        hb.set_axi_master_ready(true);
-        for (int i = 0; i < 100 && (hb.axi_master_req_valid()
-                                    || hb.axi_outstanding_wr() > 0); ++i) {
-            ep.tick();
-            hb.tick();
+        // 写入并驱动直到响应到达 (4-byte 全选, wstrb=0xF)
+        bool axi_write(uint64_t awaddr, uint32_t wdata, uint16_t id) {
+            Axi4Bundle req;
+            req.awid.write(id);
+            req.awaddr.write(awaddr);
+            req.awlen.write(0);
+            req.awsize.write(2); // 4 bytes
+            req.awburst.write(1);
+            req.wdata.write(wdata);
+            req.wstrb.write(0xF);
+            req.wlast.write(1);
+            if (!hb.axi_master_req(req))
+                return false;
+            hb.set_axi_master_ready(true);
+            for (int i = 0; i < 100 && (hb.axi_master_req_valid() || hb.axi_outstanding_wr() > 0);
+                 ++i) {
+                ep.tick();
+                hb.tick();
+            }
+            if (!hb.axi_master_resp_valid())
+                return false;
+            hb.axi_master_resp_consume();
+            return true;
         }
-        if (!hb.axi_master_resp_valid()) return false;
-        hb.axi_master_resp_consume();
-        return true;
-    }
 
-    bool axi_read(uint64_t araddr, uint64_t& rdata, uint16_t id) {
-        Axi4Bundle req;
-        req.arid.write(id);
-        req.araddr.write(araddr);
-        req.arlen.write(0);
-        req.arsize.write(2);
-        req.arburst.write(1);
-        if (!hb.axi_master_req(req)) return false;
-        hb.set_axi_master_ready(true);
-        for (int i = 0; i < 100 && (hb.axi_master_req_valid()
-                                    || hb.axi_outstanding_rd() > 0); ++i) {
-            ep.tick();
-            hb.tick();
+        // 写入 4B 完整 (alias for axi_write, 语义明确)
+        bool axi_write_full(uint64_t awaddr, uint32_t wdata, uint16_t id) {
+            return axi_write(awaddr, wdata, id);
         }
-        if (!hb.axi_master_resp_valid()) return false;
-        rdata = hb.axi_master_resp_data().rdata.read();
-        hb.axi_master_resp_consume();
-        return true;
-    }
-};
+
+        // 写入 4B 部分 (wstrb 按字节 mask)
+        bool axi_write_partial(uint64_t awaddr, uint32_t wdata, uint8_t wstrb, uint16_t id) {
+            Axi4Bundle req;
+            req.awid.write(id);
+            req.awaddr.write(awaddr);
+            req.awlen.write(0);
+            req.awsize.write(2);
+            req.awburst.write(1);
+            req.wdata.write(wdata);
+            req.wstrb.write(static_cast<uint64_t>(wstrb));
+            req.wlast.write(1);
+            if (!hb.axi_master_req(req))
+                return false;
+            hb.set_axi_master_ready(true);
+            for (int i = 0; i < 100 && (hb.axi_master_req_valid() || hb.axi_outstanding_wr() > 0);
+                 ++i) {
+                ep.tick();
+                hb.tick();
+            }
+            if (!hb.axi_master_resp_valid())
+                return false;
+            hb.axi_master_resp_consume();
+            return true;
+        }
+
+        bool axi_read(uint64_t araddr, uint64_t& rdata, uint16_t id) {
+            Axi4Bundle req;
+            req.arid.write(id);
+            req.araddr.write(araddr);
+            req.arlen.write(0);
+            req.arsize.write(2);
+            req.arburst.write(1);
+            if (!hb.axi_master_req(req))
+                return false;
+            hb.set_axi_master_ready(true);
+            for (int i = 0; i < 100 && (hb.axi_master_req_valid() || hb.axi_outstanding_rd() > 0);
+                 ++i) {
+                ep.tick();
+                hb.tick();
+            }
+            if (!hb.axi_master_resp_valid())
+                return false;
+            rdata = hb.axi_master_resp_data().rdata.read();
+            hb.axi_master_resp_consume();
+            return true;
+        }
+    };
 
 } // namespace
 
@@ -162,8 +166,7 @@ TEST_CASE("PCIe cfg: 不同 dword offset 写入不同寄存器 (awaddr=0x10 vs 0
     REQUIRE(f.ep.vf_pool().config_of(0).read(0x14) == 0x00000000u); // BAR1 写入
 }
 
-TEST_CASE("PCIe cfg: awaddr > config_size 不进入 cfg 路径 (走 BAR)",
-          "[pcie][axi][cfg-encoding]") {
+TEST_CASE("PCIe cfg: awaddr > config_size 不进入 cfg 路径 (走 BAR)", "[pcie][axi][cfg-encoding]") {
     CfgAddrFixture f;
 
     // config_size = 4096 字节 = 0x1000
@@ -234,7 +237,7 @@ TEST_CASE("PCIe AXI 健化: wstrb 部分写仅影响选中字节,未选字节保
 
     uint64_t rdata = 0;
     REQUIRE(f.axi_read(BAR_ADDR, rdata, 0x602) == true);
-    REQUIRE(rdata == 0xDEAD5678u);  // 高 2 字节保留 (0xDEAD), 低 2 字节更新 (0x5678)
+    REQUIRE(rdata == 0xDEAD5678u); // 高 2 字节保留 (0xDEAD), 低 2 字节更新 (0x5678)
 }
 
 TEST_CASE("PCIe AXI 健化: 写请求 (awid=0, awaddr=0, awlen=0) 不被启发式判别误读",
@@ -249,7 +252,7 @@ TEST_CASE("PCIe AXI 健化: 写请求 (awid=0, awaddr=0, awlen=0) 不被启发�
     // 实际 PCIe 请求 id 不应为 0,这是模型健化边界。
     Axi4Bundle wreq;
     wreq.awid.write(0);
-    wreq.awaddr.write(0x04);  // Command Register
+    wreq.awaddr.write(0x04); // Command Register
     wreq.awlen.write(0);
     wreq.awsize.write(2);
     wreq.awburst.write(1);
@@ -259,8 +262,8 @@ TEST_CASE("PCIe AXI 健化: 写请求 (awid=0, awaddr=0, awlen=0) 不被启发�
 
     REQUIRE(f.hb.axi_master_req(wreq) == true);
     f.hb.set_axi_master_ready(true);
-    for (int i = 0; i < 100 && (f.hb.axi_master_req_valid()
-                                || f.hb.axi_outstanding_wr() > 0); ++i) {
+    for (int i = 0; i < 100 && (f.hb.axi_master_req_valid() || f.hb.axi_outstanding_wr() > 0);
+         ++i) {
         f.ep.tick();
         f.hb.tick();
     }

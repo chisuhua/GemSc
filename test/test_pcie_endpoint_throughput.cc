@@ -22,26 +22,26 @@ using namespace bundles;
 
 namespace {
 
-constexpr double kModelCapGBs = 64.0;        // Gen5 x16 模型上限 (128B/2ns)
-constexpr double kRealTheoreticalGBs = 63.0; // Gen5 x16 真实理论 (含 130b 开销)
+    constexpr double kModelCapGBs = 64.0;        // Gen5 x16 模型上限 (128B/2ns)
+    constexpr double kRealTheoreticalGBs = 63.0; // Gen5 x16 真实理论 (含 130b 开销)
 
-// 构造纯 memcpy 流: 连续 MEM_WRITE 128B 块 (bulk, data=0 descriptor)
-PcieTlpBundle make_tlp(uint32_t tid) {
-    return PcieTlpBundle(/*kind=*/PcieTlpBundle::MEM_WRITE,
-                         /*bar=*/1, /*off=*/0x1000, /*size=*/128,
-                         /*data=*/0, /*rid=*/0x0100, /*tid=*/tid);
-}
+    // 构造纯 memcpy 流: 连续 MEM_WRITE 128B 块 (bulk, data=0 descriptor)
+    PcieTlpBundle make_tlp(uint32_t tid) {
+        return PcieTlpBundle(/*kind=*/PcieTlpBundle::MEM_WRITE,
+                             /*bar=*/1, /*off=*/0x1000, /*size=*/128,
+                             /*data=*/0, /*rid=*/0x0100, /*tid=*/tid);
+    }
 
-// credit 充足配置: 4096 容量 ≥ 发送量, 无拥塞
-PcieLinkLayerConfig make_abundant_config() {
-    PcieLinkLayerConfig cfg;
-    cfg.fc_capacity = 4096;
-    cfg.fc_init_p = 4096;
-    cfg.fc_init_np = 4096;
-    cfg.fc_init_cpl = 4096;
-    cfg.retry_buffer_size = 4096;
-    return cfg;
-}
+    // credit 充足配置: 4096 容量 ≥ 发送量, 无拥塞
+    PcieLinkLayerConfig make_abundant_config() {
+        PcieLinkLayerConfig cfg;
+        cfg.fc_capacity = 4096;
+        cfg.fc_init_p = 4096;
+        cfg.fc_init_np = 4096;
+        cfg.fc_init_cpl = 4096;
+        cfg.retry_buffer_size = 4096;
+        return cfg;
+    }
 
 } // namespace
 
@@ -66,21 +66,20 @@ TEST_CASE("PcieLinkLayer 吞吐: Gen5 x16 128B 块 >= 95% 理论带宽",
     PcieTlpBundle out;
     const uint64_t start_cycle = eq.getCurrentCycle();
     uint64_t guard = 0;
-    constexpr uint64_t kMaxNs = 10'000'000;  // 10ms 安全上限 (1024×2ns=2048ns 理论)
+    constexpr uint64_t kMaxNs = 10'000'000; // 10ms 安全上限 (1024×2ns=2048ns 理论)
     while (popped < kNumBlocks && guard++ < kMaxNs) {
         if (ll.try_pop_tx_tlp(out)) {
             ++popped;
             continue;
         }
-        eq.run(1);  // 推进 1 cycle = 1 ns
+        eq.run(1); // 推进 1 cycle = 1 ns
     }
     const uint64_t elapsed_ns = eq.getCurrentCycle() - start_cycle;
     REQUIRE(popped == kNumBlocks);
     REQUIRE(elapsed_ns > 0);
 
     // 吞吐 = N × 128B / elapsed_ns (B/ns = GB/s)
-    const double bw = static_cast<double>(kNumBlocks * 128u) /
-                      static_cast<double>(elapsed_ns);
+    const double bw = static_cast<double>(kNumBlocks * 128u) / static_cast<double>(elapsed_ns);
     // 下界: >= 95% 真实理论带宽 (63 GB/s)
     REQUIRE(bw >= 0.95 * kRealTheoreticalGBs);
     // 上界: 不超过模型上限 (64 GB/s) 的 5% — 无延迟注入时吞吐无限 → 此断言 FAIL
@@ -103,7 +102,7 @@ TEST_CASE("PcieLinkLayer 吞吐: Gen5 x1 128B 块吞吐约为 x16 的 1/16 (并�
     PcieTlpBundle out;
     const uint64_t start_cycle = eq.getCurrentCycle();
     uint64_t guard = 0;
-    constexpr uint64_t kMaxNs = 10'000'000;  // x1 理论 1024×32ns=32768ns
+    constexpr uint64_t kMaxNs = 10'000'000; // x1 理论 1024×32ns=32768ns
     while (popped < kNumBlocks && guard++ < kMaxNs) {
         if (ll.try_pop_tx_tlp(out)) {
             ++popped;
@@ -114,8 +113,7 @@ TEST_CASE("PcieLinkLayer 吞吐: Gen5 x1 128B 块吞吐约为 x16 的 1/16 (并�
     const uint64_t elapsed_ns = eq.getCurrentCycle() - start_cycle;
     REQUIRE(popped == kNumBlocks);
 
-    const double bw = static_cast<double>(kNumBlocks * 128u) /
-                      static_cast<double>(elapsed_ns);
+    const double bw = static_cast<double>(kNumBlocks * 128u) / static_cast<double>(elapsed_ns);
     // x1 = 4 GB/s 模型 (128B/32ns), 容忍 ±10%
     REQUIRE(bw >= 0.9 * 4.0);
     REQUIRE(bw <= 1.1 * 4.0);
@@ -133,7 +131,7 @@ TEST_CASE("PcieLinkLayer 吞吐: 未启用编码延迟时 wire 立即出队 (Pha
     PcieTlpBundle out;
     REQUIRE(ll.try_pop_tx_tlp(out) == true);
     REQUIRE(ll.try_pop_tx_tlp(out) == true);
-    REQUIRE(ll.try_pop_tx_tlp(out) == false);  // 队列已空
+    REQUIRE(ll.try_pop_tx_tlp(out) == false); // 队列已空
 }
 
 TEST_CASE("PcieLinkLayer 吞吐: 编码延迟下 wire 在块传输期间阻塞后续 TLP",

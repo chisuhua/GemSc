@@ -9,9 +9,9 @@
 #include "bundles/axi4_bundles_tlm.hh"
 #include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
+#include "framework/axi4_bundle_to_signal.hh"
 #include "framework/axi4_mapper.hh"
 #include "framework/axi4_signal_to_bundle.hh"
-#include "framework/axi4_bundle_to_signal.hh"
 #include "tlm/pcie/pcie_axi_adapter_tlm.hh"
 #include "tlm/pcie/pcie_endpoint_ip.hh"
 
@@ -23,21 +23,18 @@ using namespace cpptlm;
 using namespace tlm::pcie;
 
 static nlohmann::json mapper_inject_cfg(bool inject) {
-    return nlohmann::json{
-        {"axi_adapter", {
-            {"data_width", 512},
-            {"address_width", 64},
-            {"axi4_mapper_inject", inject},
-            {"ports", {
-                {"axi_master_out", {{"enabled", true}, {"type", "axi4"}}},
-                {"axi_slave_in", {{"enabled", true}, {"type", "axi4"}}},
-                {"cfg_slave_in", {{"enabled", true}, {"type", "axi4lite"}}}
-            }}
-        }}
-    };
+    return nlohmann::json{{"axi_adapter",
+                           {{"data_width", 512},
+                            {"address_width", 64},
+                            {"axi4_mapper_inject", inject},
+                            {"ports",
+                             {{"axi_master_out", {{"enabled", true}, {"type", "axi4"}}},
+                              {"axi_slave_in", {{"enabled", true}, {"type", "axi4"}}},
+                              {"cfg_slave_in", {{"enabled", true}, {"type", "axi4lite"}}}}}}}};
 }
 
-TEST_CASE("Axi4Mapper integration: axi4_mapper_inject=true injects into data path", "[axi][mapper][integration][pcie]") {
+TEST_CASE("Axi4Mapper integration: axi4_mapper_inject=true injects into data path",
+          "[axi][mapper][integration][pcie]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_axi4_mapper", &eq);
     ep.init();
@@ -63,7 +60,8 @@ TEST_CASE("Axi4Mapper integration: axi4_mapper_inject=true injects into data pat
     REQUIRE(mapper->outstanding_wr() == 0);
 }
 
-TEST_CASE("Axi4Mapper integration: read transaction through mapper", "[axi][mapper][integration][pcie]") {
+TEST_CASE("Axi4Mapper integration: read transaction through mapper",
+          "[axi][mapper][integration][pcie]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_axi4_mapper_rd", &eq);
     ep.init();
@@ -89,7 +87,8 @@ TEST_CASE("Axi4Mapper integration: read transaction through mapper", "[axi][mapp
     REQUIRE(mapper->read_data(0x2000) == 0xDEADBEEF);
 }
 
-TEST_CASE("Axi4Mapper integration: OOO completion through PcieAxiAdapter", "[axi][mapper][integration][pcie]") {
+TEST_CASE("Axi4Mapper integration: OOO completion through PcieAxiAdapter",
+          "[axi][mapper][integration][pcie]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_axi4_mapper_ooo", &eq);
     ep.init();
@@ -126,7 +125,8 @@ TEST_CASE("Axi4Mapper integration: OOO completion through PcieAxiAdapter", "[axi
     REQUIRE(mapper->outstanding_rd() == 0);
 }
 
-TEST_CASE("Axi4Mapper integration: bundle/signal round-trip in adapter context", "[axi][mapper][integration][signal]") {
+TEST_CASE("Axi4Mapper integration: bundle/signal round-trip in adapter context",
+          "[axi][mapper][integration][signal]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_axi4_mapper_sig", &eq);
     ep.init();
@@ -171,7 +171,8 @@ TEST_CASE("Axi4Mapper integration: bundle/signal round-trip in adapter context",
     REQUIRE(restored.bid.read() == bundle.bid.read());
 }
 
-TEST_CASE("Axi4Mapper integration: no injection when axi4_mapper_inject=false", "[axi][mapper][integration][no-inject]") {
+TEST_CASE("Axi4Mapper integration: no injection when axi4_mapper_inject=false",
+          "[axi][mapper][integration][no-inject]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_no_mapper", &eq);
     ep.init();
@@ -184,7 +185,8 @@ TEST_CASE("Axi4Mapper integration: no injection when axi4_mapper_inject=false", 
     REQUIRE(mapper == nullptr);
 }
 
-TEST_CASE("Axi4Mapper integration: no injection when axi_adapter absent", "[axi][mapper][integration][no-inject]") {
+TEST_CASE("Axi4Mapper integration: no injection when axi_adapter absent",
+          "[axi][mapper][integration][no-inject]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_no_adapter", &eq);
     ep.init();
@@ -195,7 +197,8 @@ TEST_CASE("Axi4Mapper integration: no injection when axi_adapter absent", "[axi]
     REQUIRE(adapter == nullptr);
 }
 
-TEST_CASE("Axi4Mapper integration: burst read with multiple beats", "[axi][mapper][integration][burst]") {
+TEST_CASE("Axi4Mapper integration: burst read with multiple beats",
+          "[axi][mapper][integration][burst]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_axi4_mapper_burst", &eq);
     ep.init();

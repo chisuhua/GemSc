@@ -3,6 +3,7 @@
 // 验证 ApuSoC 组合 CpuCluster + GpuCluster + MemoryCluster
 // 参考: docs/superpowers/specs/2026-06-19-simmodule-complex-hierarchies-design.md §7.5
 // 作者: Sisyphus / 日期: 2026-06-19
+#include <cstdio>
 #include "chstream_register.hh"
 #include "core/module_factory.hh"
 #include "core/sim_module.hh"
@@ -13,7 +14,6 @@
 #include "tlm/cluster/gpu_cluster.hh"
 #include "utils/json_includer.hh"
 #include <catch2/catch_all.hpp>
-#include <cstdio>
 
 #define CPPTLM_TESTING
 

@@ -3,11 +3,11 @@
 //
 // 作者: CppTLM Team / 日期: 2026-06-19
 #include "tlm/coherent_xbar_tlm.hh"
+#include <algorithm> // P1: registerPeerCache dedup needs std::find_if
+#include <stdexcept>
 #include "core/packet.hh"
 #include "core/packet_pool.hh" // PacketPool::acquire/release (Packet 不可拷贝)
 #include "core/sim_core.hh"    // DPRINTF
-#include <algorithm>           // P1: registerPeerCache dedup needs std::find_if
-#include <stdexcept>
 
 namespace cpptlm {
     namespace tlm {

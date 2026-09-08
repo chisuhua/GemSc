@@ -58,13 +58,14 @@ TEST_CASE("PcieRootComplexTLM: enumerate device and function", "[pcie][root-comp
     REQUIRE(devices.size() == 1);
     REQUIRE(devices[0].device_id == 0);
     REQUIRE(devices[0].function == 0);
-    REQUIRE(devices[0].vendor_id == 0x10DE);  // 默认 vendor_id
-    REQUIRE(devices[0].device_id_reg == 0x1234);  // 默认 device_id
+    REQUIRE(devices[0].vendor_id == 0x10DE);     // 默认 vendor_id
+    REQUIRE(devices[0].device_id_reg == 0x1234); // 默认 device_id
     REQUIRE(devices[0].class_code != 0);
     REQUIRE(devices[0].revision_id == 0x01);
 }
 
-TEST_CASE("PcieRootComplexTLM: read config space after enumeration", "[pcie][root-complex][enum][config]") {
+TEST_CASE("PcieRootComplexTLM: read config space after enumeration",
+          "[pcie][root-complex][enum][config]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_rc_cfg", &eq);
     ep.init();
@@ -81,18 +82,19 @@ TEST_CASE("PcieRootComplexTLM: read config space after enumeration", "[pcie][roo
     REQUIRE(rc.enumerate() == true);
 
     // 读取 PF0 的配置空间
-    uint32_t cmd_reg = rc.config_read(0, 0, 0x04);  // device=0, function=0, offset=0x04
-    REQUIRE(cmd_reg == 0x10u);  // Capabilities bit
+    uint32_t cmd_reg = rc.config_read(0, 0, 0x04); // device=0, function=0, offset=0x04
+    REQUIRE(cmd_reg == 0x10u);                     // Capabilities bit
 
     uint32_t vendor = rc.config_read(0, 0, 0x00);
     // 寄存器 0x00 存储：[31:16]=device_id, [15:0]=vendor_id
-    REQUIRE(vendor == 0x123410DEu);  // device_id=0x1234, vendor_id=0x10DE
+    REQUIRE(vendor == 0x123410DEu); // device_id=0x1234, vendor_id=0x10DE
 
     uint32_t revision = rc.config_read(0, 0, 0x08);
-    REQUIRE(revision == 0x01u);  // revision_id
+    REQUIRE(revision == 0x01u); // revision_id
 }
 
-TEST_CASE("PcieRootComplexTLM: write config space and verify", "[pcie][root-complex][enum][config][write]") {
+TEST_CASE("PcieRootComplexTLM: write config space and verify",
+          "[pcie][root-complex][enum][config][write]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_rc_cfg_wr", &eq);
     ep.init();
@@ -119,7 +121,8 @@ TEST_CASE("PcieRootComplexTLM: write config space and verify", "[pcie][root-comp
     REQUIRE(ep.vf_pool().config_of(0).read(0x04) == 0x0007u);
 }
 
-TEST_CASE("PcieRootComplexTLM: allocate BAR and route access to EP", "[pcie][root-complex][enum][bar]") {
+TEST_CASE("PcieRootComplexTLM: allocate BAR and route access to EP",
+          "[pcie][root-complex][enum][bar]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_rc_bar", &eq);
     ep.init();
@@ -136,7 +139,7 @@ TEST_CASE("PcieRootComplexTLM: allocate BAR and route access to EP", "[pcie][roo
     REQUIRE(rc.enumerate() == true);
 
     // 分配 BAR0：64-bit prefetchable，大小 256MB (0x10000000)
-    REQUIRE(rc.bar_allocate(0, 0, 0x10, 0x10000008) == true);  // device=0, func=0, BAR0_offset=0x10
+    REQUIRE(rc.bar_allocate(0, 0, 0x10, 0x10000008) == true); // device=0, func=0, BAR0_offset=0x10
 
     // 验证 BAR 写入 EP 配置空间
     uint32_t bar0 = rc.config_read(0, 0, 0x10);
@@ -167,7 +170,8 @@ TEST_CASE("PcieRootComplexTLM: allocate BAR and route access to EP", "[pcie][roo
     REQUIRE(rc.axi_outstanding_wr() == 0);
 }
 
-TEST_CASE("PcieRootComplexTLM: bar_read routes via AXI and returns EP data", "[pcie][root-complex][enum][bar][read]") {
+TEST_CASE("PcieRootComplexTLM: bar_read routes via AXI and returns EP data",
+          "[pcie][root-complex][enum][bar][read]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_rc_bar_rd", &eq);
     ep.init();
@@ -210,7 +214,8 @@ TEST_CASE("PcieRootComplexTLM: bar_read routes via AXI and returns EP data", "[p
     REQUIRE(rc.axi_outstanding_rd() == 0);
 }
 
-TEST_CASE("PcieRootComplexTLM: VF enumeration (per-VF config space)", "[pcie][root-complex][enum][vf]") {
+TEST_CASE("PcieRootComplexTLM: VF enumeration (per-VF config space)",
+          "[pcie][root-complex][enum][vf]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_rc_vf", &eq);
     ep.init();

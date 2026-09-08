@@ -1,9 +1,9 @@
 // test/test_simulation_communication.cc
 // 功能描述：仿真通信验证测试
 // 作者：CppTLM Team / 日期：2026-04-14
+#include "chstream_register.hh"
 #include "bundles/cache_bundles_tlm.hh"
 #include "catch_amalgamated.hpp"
-#include "chstream_register.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include <nlohmann/json.hpp>

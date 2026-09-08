@@ -30,8 +30,8 @@ TEST_CASE("PcieAxiAdapter: awlen=4 burst write sets wlast on last beat",
     req.awid.write(0x1);
     req.awaddr.write(0x1000);
     req.awlen.write(4);
-    req.awsize.write(6);   // 64 bytes per beat (512-bit)
-    req.awburst.write(1);  // INCR
+    req.awsize.write(6);  // 64 bytes per beat (512-bit)
+    req.awburst.write(1); // INCR
 
     REQUIRE(adapter.master_write_burst(req) == true);
     REQUIRE(adapter.awlen() == 4);
@@ -43,8 +43,8 @@ TEST_CASE("PcieAxiAdapter: awlen=4 burst write sets wlast on last beat",
     // 依次推 5 拍写数据：最后一拍 wlast=1
     for (int i = 0; i < 5; ++i) {
         const bool is_last = (i == 4);
-        REQUIRE(adapter.write_beat(static_cast<uint64_t>(0xAAAA0000u + i),
-                                   0xFFFFFFFFFFFFFFFFull) == true);
+        REQUIRE(adapter.write_beat(static_cast<uint64_t>(0xAAAA0000u + i), 0xFFFFFFFFFFFFFFFFull) ==
+                true);
         REQUIRE(adapter.current_beat_is_last() == is_last);
         // 每拍推送到下游 Axi4StreamAdapter
         REQUIRE(adapter.push_beat_to_downstream() == true);
@@ -74,7 +74,7 @@ TEST_CASE("PcieAxiAdapter: total bytes formula (len+1) x 2^awsize",
     req6.awburst.write(1);
     REQUIRE(adapter.master_write_burst(req6) == true);
     REQUIRE(adapter.total_bytes() == 320u);
-    adapter.reset_burst();  // 完成上一 burst，允许开启新 burst
+    adapter.reset_burst(); // 完成上一 burst，允许开启新 burst
 
     // awlen=0, awsize=6 → 1 × 64 = 64 bytes (单拍 64-byte burst)
     Axi4Bundle req0;
@@ -108,8 +108,8 @@ TEST_CASE("PcieAxiAdapter: burst write fully arrives downstream with bid respons
     Axi4Bundle req;
     req.awid.write(0x9);
     req.awaddr.write(0x5000);
-    req.awlen.write(1);   // 2 beats
-    req.awsize.write(6);  // 64B/beat → 128 bytes
+    req.awlen.write(1);  // 2 beats
+    req.awsize.write(6); // 64B/beat → 128 bytes
     req.awburst.write(1);
     REQUIRE(adapter.master_write_burst(req) == true);
     REQUIRE(adapter.total_bytes() == 128u);

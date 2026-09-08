@@ -90,6 +90,6 @@ TEST_CASE("kVirtualReg RAW hazard: duplicate allocate blocks (A3)",
     // per-warp 隔离: warp 0 allocate 不影响 warp 1
     ht->allocate(0, 10);
     REQUIRE_FALSE(ht->can_allocate(0, 10));
-    REQUIRE(ht->can_allocate(1, 10));  // warp 1 未占用
+    REQUIRE(ht->can_allocate(1, 10)); // warp 1 未占用
     ht->release(0, 10);
 }

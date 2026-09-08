@@ -6,8 +6,8 @@
 // 2. 模块必需字段检查（name, type）
 // 3. RouterTLM 参数检查（node_x, node_y, mesh_x, mesh_y）
 // 4. NICTLM 参数检查（node_id）
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include <nlohmann/json.hpp>

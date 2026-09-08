@@ -11,17 +11,18 @@
 
 namespace tlm::sm {
 
-LsuLDS::LsuLDS(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
+    LsuLDS::LsuLDS(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
+    }
 
-void LsuLDS::tick() {
-    if (!parent_ || !parent_->fu() || !parent_->fu()->has_fetched()) {
-        return;
+    void LsuLDS::tick() {
+        if (!parent_ || !parent_->fu() || !parent_->fu()->has_fetched()) {
+            return;
+        }
+        auto d = parent_->fu()->fetched().instr_desc;
+        if (d.pipe == cpptlm::gpu::PipeClass::kLsuLDS && d.is_memory) {
+            parent_->lsu_lds()->execute(d);
+        }
     }
-    auto d = parent_->fu()->fetched().instr_desc;
-    if (d.pipe == cpptlm::gpu::PipeClass::kLsuLDS && d.is_memory) {
-        parent_->lsu_lds()->execute(d);
-    }
-}
 
 } // namespace tlm::sm

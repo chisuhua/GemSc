@@ -5,8 +5,8 @@
 // 参考：docs/superpowers/specs/2026-06-11-phase7a-gpu-infra-design.md §4.3
 //      docs/superpowers/plans/2026-06-11-phase7a-gpu-infra.md Task 5
 
-#include "bundles/compute_bundles_tlm.hh"
 #include "chstream_register.hh"
+#include "bundles/compute_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "framework/chstream_adapter_factory.hh"

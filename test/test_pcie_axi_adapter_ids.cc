@@ -15,9 +15,9 @@
 using namespace bundles;
 
 namespace {
-bool contains(const std::deque<uint16_t>& ids, uint16_t id) {
-    return std::find(ids.begin(), ids.end(), id) != ids.end();
-}
+    bool contains(const std::deque<uint16_t>& ids, uint16_t id) {
+        return std::find(ids.begin(), ids.end(), id) != ids.end();
+    }
 } // namespace
 
 TEST_CASE("Axi4StreamAdapter: multiple outstanding write IDs, OOO bid matching",
@@ -210,7 +210,7 @@ TEST_CASE("Axi4StreamAdapter: multi-beat read burst keeps outstanding until RLAS
         beat.rresp.write(0);
         beat.rlast.write(0);
         REQUIRE(a.master_resp(beat) == true);
-        REQUIRE(a.outstanding_rd() == 1);  // 中途不清
+        REQUIRE(a.outstanding_rd() == 1); // 中途不清
         REQUIRE(contains(a.outstanding_rd_ids(), 7));
         a.master_resp_consume();
     }

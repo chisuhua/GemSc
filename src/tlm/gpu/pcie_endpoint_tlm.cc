@@ -4,14 +4,14 @@
 
 #include "tlm/gpu/pcie_endpoint_tlm.h"
 
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
 #include "bundles/pcie_bundles_tlm.hh"
 #include "tlm/pcie/pcie_axi_adapter_tlm.hh"
 #include "tlm/pcie/pcie_bypass_mux.hh"
 #include "tlm/pcie/pcie_link_layer_tlm.hh"
 #include "tlm/pcie/pcie_phy_digital_ctrl_tlm.hh"
-#include <algorithm>
-#include <stdexcept>
-#include <vector>
 
 namespace tlm::gpu {
 
@@ -58,8 +58,7 @@ namespace tlm::gpu {
         //   - Partial: 跳过 PHY 阶段但保留 LL FC/DLLP → 数据路径与 Full 一致 (LL 仍工作)
         // 无 mux (未配置 bypass_mode) 时回退：有 LL 则走 LL, 无 LL 直通。
         // 返回 false = 反压 (TLP 保持 pending 不消费)。
-        bool dispatch_tlp_entry(PcieEndpointTLM& ep,
-                                const bundles::PcieTlpBundle& req) {
+        bool dispatch_tlp_entry(PcieEndpointTLM& ep, const bundles::PcieTlpBundle& req) {
             auto* ll = tlm::pcie::PcieLinkLayer::for_endpoint(ep.getName());
             auto* mux = tlm::pcie::PcieBypassMux::for_endpoint(ep.getName());
             if (mux && mux->mode() == tlm::pcie::BypassMode::Bypass) {
@@ -155,17 +154,15 @@ namespace tlm::gpu {
         if (cfg.contains("link_layer")) {
             const auto ll_cfg = parse_link_layer_config(cfg["link_layer"]);
             if (ll_cfg.enabled) {
-                auto* ll = tlm::pcie::PcieLinkLayer::attach_to_endpoint(
-                    getName(), event_queue, ll_cfg);
-                const std::string bypass_mode = cfg["link_layer"].value(
-                    "bypass_mode", "Full");
-                auto* phy = tlm::pcie::PciePhyDigitalCtrl::attach_to_endpoint(
-                    getName(), event_queue);
-                auto* mux = tlm::pcie::PcieBypassMux::attach_to_endpoint(
-                    getName(), ll);
+                auto* ll =
+                    tlm::pcie::PcieLinkLayer::attach_to_endpoint(getName(), event_queue, ll_cfg);
+                const std::string bypass_mode = cfg["link_layer"].value("bypass_mode", "Full");
+                auto* phy =
+                    tlm::pcie::PciePhyDigitalCtrl::attach_to_endpoint(getName(), event_queue);
+                auto* mux = tlm::pcie::PcieBypassMux::attach_to_endpoint(getName(), ll);
                 if (phy && mux) {
                     phy->link_layer(ll);
-                    phy->mux(mux);   // C5: Surprise Removal 需要 mux 清理
+                    phy->mux(mux); // C5: Surprise Removal 需要 mux 清理
                     mux->set_phy_initialized(phy != nullptr);
                     phy->set_link_up(true);
                     if (bypass_mode == "Bypass") {

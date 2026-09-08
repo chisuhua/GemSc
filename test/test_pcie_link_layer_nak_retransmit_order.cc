@@ -20,7 +20,7 @@ using namespace bundles;
 static PcieTlpBundle make_tlp_with_seq(uint16_t seq) {
     PcieTlpBundle t;
     t.kind.write(PcieTlpBundle::MMIO_WRITE);
-    t.offset.write(seq);          // seq 编码到 offset
+    t.offset.write(seq); // seq 编码到 offset
     t.size.write(4);
     t.trans_id.write(1);
     return t;
@@ -31,16 +31,17 @@ TEST_CASE("NakOrder: NAK retransmit emits TLPs in ascending seq (wire order)",
     EventQueue eq;
     PcieLinkLayer ll(&eq);
 
-    REQUIRE(ll.tx_tlp(make_tlp_with_seq(0)) == true);  // seq 0
-    REQUIRE(ll.tx_tlp(make_tlp_with_seq(1)) == true);  // seq 1
-    REQUIRE(ll.tx_tlp(make_tlp_with_seq(2)) == true);  // seq 2
-    REQUIRE(ll.tx_tlp(make_tlp_with_seq(3)) == true);  // seq 3
-    REQUIRE(ll.tx_tlp(make_tlp_with_seq(4)) == true);  // seq 4
+    REQUIRE(ll.tx_tlp(make_tlp_with_seq(0)) == true); // seq 0
+    REQUIRE(ll.tx_tlp(make_tlp_with_seq(1)) == true); // seq 1
+    REQUIRE(ll.tx_tlp(make_tlp_with_seq(2)) == true); // seq 2
+    REQUIRE(ll.tx_tlp(make_tlp_with_seq(3)) == true); // seq 3
+    REQUIRE(ll.tx_tlp(make_tlp_with_seq(4)) == true); // seq 4
     REQUIRE(ll.retry_buffer_size() == 5u);
 
     // Drain wire queue so NAK retransmit populates a clean wire queue.
     PcieTlpBundle drain;
-    while (ll.try_pop_tx_tlp(drain)) { /* drain */ }
+    while (ll.try_pop_tx_tlp(drain)) { /* drain */
+    }
     REQUIRE(ll.tx_tlp_out_count() == 0u);
 
     // NAK(2) → 重发 seq 2,3,4 (升序弹出)
@@ -51,13 +52,13 @@ TEST_CASE("NakOrder: NAK retransmit emits TLPs in ascending seq (wire order)",
     // 当前 bug 行为:升序 push_front → 输出降序 → 第一次弹 seq 4
     PcieTlpBundle out0, out1, out2;
     REQUIRE(ll.try_pop_tx_tlp(out0) == true);
-    REQUIRE(out0.offset.read() == 2u);   // 必须先看到 seq=2
+    REQUIRE(out0.offset.read() == 2u); // 必须先看到 seq=2
 
     REQUIRE(ll.try_pop_tx_tlp(out1) == true);
-    REQUIRE(out1.offset.read() == 3u);   // 然后 seq=3
+    REQUIRE(out1.offset.read() == 3u); // 然后 seq=3
 
     REQUIRE(ll.try_pop_tx_tlp(out2) == true);
-    REQUIRE(out2.offset.read() == 4u);   // 最后 seq=4
+    REQUIRE(out2.offset.read() == 4u); // 最后 seq=4
 
     REQUIRE(ll.try_pop_tx_tlp(out0) == false);
 }
@@ -70,7 +71,8 @@ TEST_CASE("NakOrder: NAK(0) retransmits all in ascending seq", "[pcie][ll][nak-o
         REQUIRE(ll.tx_tlp(make_tlp_with_seq(seq)) == true);
     }
     PcieTlpBundle drain;
-    while (ll.try_pop_tx_tlp(drain)) { /* drain */ }
+    while (ll.try_pop_tx_tlp(drain)) { /* drain */
+    }
 
     ll.rx_dllp(ll.make_nak(0));
     REQUIRE(ll.tx_tlp_out_count() == 5u);

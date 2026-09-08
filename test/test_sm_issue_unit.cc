@@ -22,8 +22,7 @@
 using namespace tlm;
 using namespace cpptlm::gpu;
 
-TEST_CASE("IssueUnitTLM Round-robin warp 调度 (真值, ≥3 断言)",
-          "[sm-unit][sm-issue][task18]") {
+TEST_CASE("IssueUnitTLM Round-robin warp 调度 (真值, ≥3 断言)", "[sm-unit][sm-issue][task18]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -54,6 +53,6 @@ TEST_CASE("IssueUnitTLM Round-robin warp 调度 (真值, ≥3 断言)",
     // 断言 3: 空 decoded tick 安全 (per Oracle Q13)
     StreamingMultiprocessorTLM sm2("sm1", &eq);
     REQUIRE(sm2.initialize(cfg));
-    sm2.iu()->tick();  // 无 decoded → has_issued false
+    sm2.iu()->tick(); // 无 decoded → has_issued false
     REQUIRE(!sm2.iu()->has_issued());
 }

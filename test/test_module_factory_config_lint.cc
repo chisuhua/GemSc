@@ -20,16 +20,16 @@
  * @see src/core/module_factory_validate.cc:validateConfig()
  */
 
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "tlm/traffic_gen_tlm.hh"
 
 #include <filesystem>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <string>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 

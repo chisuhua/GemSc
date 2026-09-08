@@ -13,14 +13,13 @@ using namespace tlm::pcie;
 TEST_CASE("PcieConfigSpacePerVf: 17 slots (PF + 16 VF)", "[pcie][sriov][per-vf-config]") {
     PcieConfigSpacePerVf pool;
     REQUIRE(pool.num_slots() == 17u);
-    REQUIRE(pool.is_valid_vf_id(0) == true);    // PF
-    REQUIRE(pool.is_valid_vf_id(1) == true);    // VF0
-    REQUIRE(pool.is_valid_vf_id(16) == true);   // VF15
-    REQUIRE(pool.is_valid_vf_id(17) == false);  // 越界
+    REQUIRE(pool.is_valid_vf_id(0) == true);   // PF
+    REQUIRE(pool.is_valid_vf_id(1) == true);   // VF0
+    REQUIRE(pool.is_valid_vf_id(16) == true);  // VF15
+    REQUIRE(pool.is_valid_vf_id(17) == false); // 越界
 }
 
-TEST_CASE("PcieConfigSpacePerVf: per-slot objects are distinct",
-          "[pcie][sriov][per-vf-config]") {
+TEST_CASE("PcieConfigSpacePerVf: per-slot objects are distinct", "[pcie][sriov][per-vf-config]") {
     PcieConfigSpacePerVf pool;
     // 每个 slot 都是独立对象
     REQUIRE(&pool.config_of(0) != &pool.config_of(1));
@@ -38,11 +37,11 @@ TEST_CASE("PcieConfigSpacePerVf: VF0 write does not affect PF0/VF1",
     }
 
     // 记录写入前的 PF0/VF1 值
-    const uint32_t pf0_before = pool.config_of(0).read(0x04);  // Command/Status
+    const uint32_t pf0_before = pool.config_of(0).read(0x04); // Command/Status
     const uint32_t vf1_before = pool.config_of(1).read(0x04);
 
     // VF0 (slot 1) 写 Command register (offset 0x04)
-    pool.config_of(1).write(0x04, 0x00000006);  // Bus Master Enable + Memory Space
+    pool.config_of(1).write(0x04, 0x00000006); // Bus Master Enable + Memory Space
 
     // VF0 自身改变
     REQUIRE(pool.config_of(1).read(0x04) == 0x00000006u);
@@ -52,16 +51,15 @@ TEST_CASE("PcieConfigSpacePerVf: VF0 write does not affect PF0/VF1",
     REQUIRE(pool.config_of(1 + 1).read(0x04) == vf1_before);
 }
 
-TEST_CASE("PcieConfigSpacePerVf: independent BAR sizes per VF",
-          "[pcie][sriov][per-vf-config]") {
+TEST_CASE("PcieConfigSpacePerVf: independent BAR sizes per VF", "[pcie][sriov][per-vf-config]") {
     PcieConfigSpacePerVf pool;
     for (uint16_t i = 0; i < 17; ++i) {
         pool.config_of(i).init();
     }
 
     // PF0 (slot 0) BAR0 = 1MB, VF0 (slot 1) BAR0 = 256MB
-    pool.config_of(0).write(0x10, 0xFFF00000);  // BAR0 大小掩码写入
-    pool.config_of(1).write(0x10, 0x00000000);  // VF0 BAR0 不同值
+    pool.config_of(0).write(0x10, 0xFFF00000); // BAR0 大小掩码写入
+    pool.config_of(1).write(0x10, 0x00000000); // VF0 BAR0 不同值
 
     // 独立读写
     REQUIRE(pool.config_of(0).read(0x10) == 0xFFF00000u);

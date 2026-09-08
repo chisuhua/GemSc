@@ -2,6 +2,8 @@
 // Phase 7 性能基准测试：CacheTLM tick 延迟
 // 作者 CppTLM Team
 // 日期 2026-04-13
+#include <chrono>
+#include <cstdint>
 #include "bundles/cache_bundles_tlm.hh"
 #include "catch_amalgamated.hpp"
 #include "core/chstream_module.hh"
@@ -10,8 +12,6 @@
 #include "framework/chstream_adapter_factory.hh"
 #include "framework/stream_adapter.hh"
 #include "tlm/cache_tlm.hh"
-#include <chrono>
-#include <cstdint>
 
 namespace {
     auto _register_bench = []() {

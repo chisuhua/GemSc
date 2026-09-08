@@ -1,11 +1,11 @@
 // test/test_dgpu_board_shell_abi.cc
 // BS-G2: DGpuBoard shell 5 职责 + 多线程注入 + 异常传播测试
-#include "tlm/gpu/dgpu_board_shell.hh"
 #include <atomic>
-#include <catch_amalgamated.hpp>
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <catch_amalgamated.hpp>
+#include "tlm/gpu/dgpu_board_shell.hh"
 
 using namespace tlm::gpu;
 

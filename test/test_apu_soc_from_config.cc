@@ -2,13 +2,13 @@
 // 端到端测试：从 configs/ 加载 APU SoC 拓扑（Phase 7.A/7.B）并运行仿真
 // 对应 docs/soc_arch/specs/apu-soc-design.md §2.2 (最终态) 和 §2.3 (阶段递进)
 // 标签：[e2e][apu][from-config]
-#include "catch_amalgamated.hpp"
+#include <filesystem>
+#include <fstream>
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "core/topology_parser.hh"
-#include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

@@ -1,9 +1,9 @@
+#include <iostream>
 #include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/packet.hh"
 #include "ext/credit_stream.hh"
 #include "ext/packet_pool.hh"
-#include <iostream>
 
 TEST_CASE("Credit Stream Tests", "[credit][stream]") {
     EventQueue event_queue;               // 为 SimObject 提供事件队列
