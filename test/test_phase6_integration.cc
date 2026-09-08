@@ -2,8 +2,8 @@
 // Phase 6: End-to-end integration — Cache→Crossbar→Memory
 // 功能描述：验证 ChStream 模块端到端数据通路 + ModuleFactory 完整集成
 // 作者 CppTLM Team / 日期 2026-04-13
-#include "bundles/cache_bundles_tlm.hh"
 #include "chstream_register.hh"
+#include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "framework/chstream_adapter_factory.hh"

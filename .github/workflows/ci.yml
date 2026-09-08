@@ -71,6 +71,9 @@ jobs:
         ./test.sh --quick
 
   # PTX-EMU 集成验证：仅覆盖 PTXIR image H2D DMA；不执行 kernel/CuTe 程序。
+  # 必须装 CUDA toolkit: PTX-EMU 子模块 CMakeLists.txt 强制 enable_language(CUDA)
+  # + find_package(CUDAToolkit REQUIRED)。CI 不用 source external/PTX-EMU/env.sh
+  # (env.sh 是 dev 本地工具, 用 ${BASH_SOURCE[0]} 算路径, 跨 submodule 版本不稳)。
   ptx-emu-release:
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -82,7 +85,19 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install dependencies
+    - name: Install CUDA 12.8 (manual, Jimver action only ships 12.6.1)
+      # Jimver/cuda-toolkit@v0.2.20 hardcodes cuda 12.6.1, doesn't accept 12.8
+      # via cuda-version input (warning: 'Unexpected input cuda-version').
+      # CUDA 12.8+ required for sm_100 (PTX-EMU default DEFAULT_CUDA_ARCH=100).
+      # Use official NVIDIA cuda-keyring + apt-get cuda-toolkit-12-8.
+      run: |
+        wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i cuda-keyring_1.1-1_all.deb
+        sudo apt-get update
+        sudo apt-get install -y cuda-toolkit-12-8
+        rm cuda-keyring_1.1-1_all.deb
+
+    - name: Install build dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake build-essential ccache ninja-build
@@ -94,6 +109,9 @@ jobs:
         max-size: 500M
 
     - name: Build and run PTX-EMU H2D DMA tests
+      env:
+        CUDA_PATH: /usr/local/cuda
+        CUDA_HOME: /usr/local/cuda
       run: ./test.sh --mode ptx-emu
 
     - name: Upload test results
@@ -113,7 +131,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Install clang-format
-      run: sudo apt-get install -y clang-format
+      # Pin to clang-format-22 (matches .clang-format "版本策略" 注释).
+      # ubuntu-latest 默认 clang-format 版本会随镜像变化,
+      # 导致本地与 CI 漂移, 引发大量假阳性.
+      # Ubuntu noble 默认仓库不提供 clang-format-22, 必须从 LLVM 官方仓库装.
+      # 必须 --force 覆盖系统默认 clang-format-18 symlink, 否则 PATH 中 clang-format 仍指 18.
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm.gpg
+        echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+        sudo apt-get update
+        sudo apt-get install -y clang-format-22
+        sudo update-alternatives --force --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 200
+        sudo update-alternatives --set clang-format /usr/bin/clang-format-22
+        clang-format --version
     - name: Check format
       run: |
         chmod +x ./scripts/build/format.sh

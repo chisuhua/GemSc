@@ -16,12 +16,12 @@
 // HSK-8 Phase 2 Step 4: memory_bridge.hh + ptx_emu_driver.hh 已物理删除
 // (HSK-6 deprecate by 369cf71). PTX-EMU 集成走 IComputeDevice 接口 (per SM 重构).
 // Task 13: PipelineTLM/ScoreboardTLM/TensorCoreTLM + cudart 物理删除 (功能内化到 SM 子模块).
-#include "utils/json_includer.hh"
-#include "utils/topology_dumper.hh"
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include "utils/json_includer.hh"
+#include "utils/topology_dumper.hh"
 
 using namespace tlm;
 
@@ -111,7 +111,8 @@ int main(int argc, char* argv[]) {
     // 见 docs/soc_arch/architecture/11-cdna-real-isa-integration.md 阶段 B.)
     if (f12b_ld) {
         std::cerr << "[ERROR] --f12b-ld disabled (HSK-8 Phase 2 Step 4 removed "
-                     "MemoryBridge + g_ptx_emu_driver; PTX-EMU 集成走 IComputeDevice::set_instr_descriptor_buf per HSK-9)\n";
+                     "MemoryBridge + g_ptx_emu_driver; PTX-EMU 集成走 "
+                     "IComputeDevice::set_instr_descriptor_buf per HSK-9)\n";
         return 1;
     } else {
         std::cout << "[INFO] --f12b-ld: MemoryBridge disabled (zero regression)\n";

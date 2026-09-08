@@ -2,12 +2,12 @@
 // 基础交易追踪示例
 // 演示：TransactionContextExt + TransactionTracker
 
+#include <iostream>
 #include "core/packet.hh"
 #include "core/packet_pool.hh"
 #include "core/sim_object.hh"
 #include "ext/transaction_context_ext.hh"
 #include "framework/transaction_tracker.hh"
-#include <iostream>
 
 /**
  * 示例目标:

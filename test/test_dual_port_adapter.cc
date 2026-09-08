@@ -3,6 +3,7 @@
 // 功能描述：验证 DualPortStreamAdapter 的 PE 侧 / Network 侧独立通信
 // 作者 CppTLM Team
 // 日期 2026-04-14
+#include <memory>
 #include "bundles/cache_bundles_tlm.hh"
 #include "core/chstream_module.hh"
 #include "core/chstream_port.hh"
@@ -11,7 +12,6 @@
 #include "framework/chstream_adapter_factory.hh"
 #include "framework/dual_port_stream_adapter.hh"
 #include <catch2/catch_all.hpp>
-#include <memory>
 
 // ============================================================
 // Mock dual-port module for testing

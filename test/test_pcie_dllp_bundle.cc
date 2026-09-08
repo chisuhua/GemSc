@@ -47,7 +47,7 @@ TEST_CASE("PcieDllpBundle: fields serialize round-trip", "[pcie][dllp][bundle]")
     src.credit_P.write(0x1234);
     src.credit_NP.write(0x5678);
     src.credit_Cpl.write(0x9ABC);
-    src.seq_num.write(0x0FFF);   // 12-bit 最大值 (4095)
+    src.seq_num.write(0x0FFF); // 12-bit 最大值 (4095)
     src.seq_num_ack.write(0x00FF);
     src.trans_id.write(0xDEADBEEF);
 

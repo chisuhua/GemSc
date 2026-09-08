@@ -16,23 +16,25 @@
 
 namespace tlm::sm {
 
-LsuGlobal::LsuGlobal(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
+    LsuGlobal::LsuGlobal(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
+    }
     // parent_ 由 SM 构造函数 make_unique 后调 set_parent(this) 注入
 
-void LsuGlobal::tick() {
-    // 安全检查: parent + fu + fu->has_fetched (镜像 Fetch/Decode/Issue/... 模式)
-    if (!parent_ || !parent_->fu() || !parent_->fu()->has_fetched()) {
-        return;
+    void LsuGlobal::tick() {
+        // 安全检查: parent + fu + fu->has_fetched (镜像 Fetch/Decode/Issue/... 模式)
+        if (!parent_ || !parent_->fu() || !parent_->fu()->has_fetched()) {
+            return;
+        }
+        // 指令源: 与 sa_/va_/mc_/sl_ tick 完全一致 (parent_->fu()->fetched().instr_desc,
+        // 零行为变化)
+        auto d = parent_->fu()->fetched().instr_desc;
+        // pipe 判断只驻留 lg_ tick() (Oracle Q3 禁令: exe_once 不得保留避免双 dispatch)
+        if (d.pipe == cpptlm::gpu::PipeClass::kLsuGlobal && d.is_memory) {
+            // 调 cpptlm::gpu::LsuGlobal 真值类 (Task 2.9 异步骨架: enqueue, 异步完成在 tick 归零)
+            parent_->lsu_global()->execute(d);
+            // **不调 mark_completed** (异步完成在 lsu_global_ tick() 归零回调)
+        }
     }
-    // 指令源: 与 sa_/va_/mc_/sl_ tick 完全一致 (parent_->fu()->fetched().instr_desc, 零行为变化)
-    auto d = parent_->fu()->fetched().instr_desc;
-    // pipe 判断只驻留 lg_ tick() (Oracle Q3 禁令: exe_once 不得保留避免双 dispatch)
-    if (d.pipe == cpptlm::gpu::PipeClass::kLsuGlobal && d.is_memory) {
-        // 调 cpptlm::gpu::LsuGlobal 真值类 (Task 2.9 异步骨架: enqueue, 异步完成在 tick 归零)
-        parent_->lsu_global()->execute(d);
-        // **不调 mark_completed** (异步完成在 lsu_global_ tick() 归零回调)
-    }
-}
 
 } // namespace tlm::sm

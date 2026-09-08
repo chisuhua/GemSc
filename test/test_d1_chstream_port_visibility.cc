@@ -1,6 +1,7 @@
 // test/test_d1_chstream_port_visibility.cc
 // P0 D.1 修复验证: SimModule::getInternalOutputPort 对 ChStream 模块返回非空
 // 作者: CppTLM Team / 日期: 2026-06-19
+#include <memory>
 #include "chstream_register.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
@@ -11,7 +12,6 @@
 #include "tlm/crossbar_tlm.hh"
 #include "tlm/memory_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <memory>
 
 using json = nlohmann::json;
 

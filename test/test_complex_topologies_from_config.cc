@@ -2,12 +2,12 @@
 // 端到端测试：从 configs/ 加载复杂拓扑（mesh/ring/hierarchical）并运行仿真
 // 补充 test/test_complex_topologies_e2e.cc 的 inline JSON 路径
 // 标签：[e2e][complex-topology][from-config]
-#include "catch_amalgamated.hpp"
-#include "chstream_register.hh"
-#include "core/event_queue.hh"
-#include "core/module_factory.hh"
 #include <filesystem>
 #include <fstream>
+#include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
+#include "core/event_queue.hh"
+#include "core/module_factory.hh"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

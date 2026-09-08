@@ -31,7 +31,7 @@ TEST_CASE("DownstreamRx: rx TLP from host produces ACK DLLP to host", "[pcie][ll
     PcieDllpBundle ack;
     REQUIRE(ll.try_pop_tx_dllp(ack) == true);
     REQUIRE(ack.is_ack() == true);
-    REQUIRE(ack.seq_num_ack.read() == 0u);  // 第一个下行 seq == 0
+    REQUIRE(ack.seq_num_ack.read() == 0u); // 第一个下行 seq == 0
 
     // TLP 送事务层 sink
     REQUIRE(tls.size() == 1u);
@@ -100,11 +100,11 @@ TEST_CASE("DownstreamRx: FC backpressure blocks TLP forwarding", "[pcie][ll][dow
     ll.set_tlp_sink([&sink_count](const PcieTlpBundle&) { ++sink_count; });
 
     PcieTlpBundle w(PcieTlpBundle::MEM_WRITE, 1, 0x8000, 4, 0, 0x0100, 1);
-    REQUIRE(ll.rx_tlp_from_host(w) == true);   // P credit 2→1
-    REQUIRE(ll.rx_tlp_from_host(w) == true);   // P credit 1→0
-    REQUIRE(ll.rx_tlp_from_host(w) == false);  // 反压：不消费，不转发
+    REQUIRE(ll.rx_tlp_from_host(w) == true);  // P credit 2→1
+    REQUIRE(ll.rx_tlp_from_host(w) == true);  // P credit 1→0
+    REQUIRE(ll.rx_tlp_from_host(w) == false); // 反压：不消费，不转发
     REQUIRE(sink_count == 2);
-    REQUIRE(ll.tx_dllp_out_count() == 2u);     // 只有前 2 个生成 ACK
+    REQUIRE(ll.tx_dllp_out_count() == 2u); // 只有前 2 个生成 ACK
 
     // UpdateFC 恢复 → 可继续接收
     auto ufc = ll.make_update_fc(1, 0, 0);
@@ -113,7 +113,8 @@ TEST_CASE("DownstreamRx: FC backpressure blocks TLP forwarding", "[pcie][ll][dow
     REQUIRE(sink_count == 3);
 }
 
-TEST_CASE("DownstreamRx: downstream retry buffer independent of upstream", "[pcie][ll][downstream]") {
+TEST_CASE("DownstreamRx: downstream retry buffer independent of upstream",
+          "[pcie][ll][downstream]") {
     EventQueue eq;
     PcieLinkLayer ll(&eq);
 
@@ -129,7 +130,7 @@ TEST_CASE("DownstreamRx: downstream retry buffer independent of upstream", "[pci
 
     // 上行 retry buffer: 2 (tx), 下行不共享
     REQUIRE(ll.retry_buffer_size() == 2u);
-    REQUIRE(ll.next_tx_seq() == 2u);  // 上行 seq 0,1
+    REQUIRE(ll.next_tx_seq() == 2u); // 上行 seq 0,1
     // 下行 ACK seq 独立从 0 开始
     PcieDllpBundle ack;
     REQUIRE(ll.try_pop_tx_dllp(ack) == true);

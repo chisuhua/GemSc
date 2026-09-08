@@ -1,10 +1,10 @@
 // test/test_extension_prototype.cc
 // Phase 0: TransactionContextExt 原型验证测试
 
+#include <cstring>
 #include "ext/transaction_context_ext.hh"
 #include "tlm/tlm_stub.hh"
 #include <catch2/catch_all.hpp>
-#include <cstring>
 
 /**
  * Phase 0 测试目标：

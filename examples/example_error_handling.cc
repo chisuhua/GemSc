@@ -2,6 +2,7 @@
 // 错误处理示例
 // 演示：ErrorContextExt + DebugTracker
 
+#include <iostream>
 #include "core/error_category.hh"
 #include "core/ext/packet_pool.hh"
 #include "core/packet.hh"
@@ -9,7 +10,6 @@
 #include "ext/error_context_ext.hh"
 #include "ext/transaction_context_ext.hh"
 #include "framework/debug_tracker.hh"
-#include <iostream>
 
 /**
  * 示例目标:

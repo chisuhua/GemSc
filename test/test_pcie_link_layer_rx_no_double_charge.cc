@@ -19,19 +19,19 @@ using namespace bundles;
 
 namespace {
 
-// NonPosted credit 仅 1: 第 2 个 MMIO_READ 必然 FC reject
-PcieLinkLayerConfig single_np_config() {
-    PcieLinkLayerConfig c;
-    c.fc_capacity = 1;
-    c.fc_init_p = 1;
-    c.fc_init_np = 1;
-    c.fc_init_cpl = 1;
-    return c;
-}
+    // NonPosted credit 仅 1: 第 2 个 MMIO_READ 必然 FC reject
+    PcieLinkLayerConfig single_np_config() {
+        PcieLinkLayerConfig c;
+        c.fc_capacity = 1;
+        c.fc_init_p = 1;
+        c.fc_init_np = 1;
+        c.fc_init_cpl = 1;
+        return c;
+    }
 
-PcieTlpBundle make_mmio_read(uint32_t tid) {
-    return PcieTlpBundle(PcieTlpBundle::MMIO_READ, 0, 0x1000, 4, 0, 0x0100, tid);
-}
+    PcieTlpBundle make_mmio_read(uint32_t tid) {
+        return PcieTlpBundle(PcieTlpBundle::MMIO_READ, 0, 0x1000, 4, 0, 0x0100, tid);
+    }
 
 } // namespace
 
@@ -97,7 +97,7 @@ TEST_CASE("RxNoDoubleCharge: 修复后 FC 通过 + wire ready 都满足才接受
 
     // 推进 32ns 后 wire ready, 但 FC (NP=0) 仍不足 → false
     eq.run(32);
-    REQUIRE(ll.rx_tlp_from_host(make_mmio_read(3)) == false);  // FC reject
+    REQUIRE(ll.rx_tlp_from_host(make_mmio_read(3)) == false); // FC reject
 
     // UpdateFC + 推进: 通过
     ll.update_fc(FcTokenBucket::Type::NonPosted, 1);

@@ -1,10 +1,10 @@
+#include <cstdint>
+#include <cstring>
 #include "bundles/bundle_serialization.hh"
 #include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "tlm/cache_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <cstdint>
-#include <cstring>
 
 static auto make_req(uint64_t tid, uint64_t addr, bool wr, uint64_t data = 0, uint8_t size = 8) {
     bundles::CacheReqBundle req;

@@ -1,9 +1,9 @@
+#include <cstdint>
+#include <cstring>
 #include "bundles/cache_bundles_tlm.hh"
 #include "core/event_queue.hh"
 #include "tlm/crossbar_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <cstdint>
-#include <cstring>
 
 static void inject_req(CrossbarTLM* xbar, unsigned port, uint64_t tid, uint64_t addr,
                        uint64_t data = 0) {

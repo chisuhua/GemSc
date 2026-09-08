@@ -28,8 +28,7 @@ TEST_CASE("EQ: start_equalization 进入协商态", "[pcie][phy][eq][t-p3-3]") {
     REQUIRE(phy.eq_phase() == EqPhase::TS1_Seq);
 }
 
-TEST_CASE("EQ: 8 Preset 选择 (0..7) + 越界忽略",
-          "[pcie][phy][eq][t-p3-3]") {
+TEST_CASE("EQ: 8 Preset 选择 (0..7) + 越界忽略", "[pcie][phy][eq][t-p3-3]") {
     EventQueue eq;
     PciePhyDigitalCtrl phy(&eq);
     for (uint8_t p = 0; p <= 7; ++p) {
@@ -38,13 +37,12 @@ TEST_CASE("EQ: 8 Preset 选择 (0..7) + 越界忽略",
     }
     // 越界 (8/255) 忽略
     phy.set_eq_preset(8);
-    REQUIRE(phy.eq_preset() == 7);  // 保持上一次合法值
+    REQUIRE(phy.eq_preset() == 7); // 保持上一次合法值
     phy.set_eq_preset(255);
     REQUIRE(phy.eq_preset() == 7);
 }
 
-TEST_CASE("EQ: TS1/TS2 序列交互 — emit 驱动 phase 推进",
-          "[pcie][phy][eq][t-p3-3]") {
+TEST_CASE("EQ: TS1/TS2 序列交互 — emit 驱动 phase 推进", "[pcie][phy][eq][t-p3-3]") {
     EventQueue eq;
     PciePhyDigitalCtrl phy(&eq);
     phy.start_equalization();

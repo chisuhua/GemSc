@@ -12,11 +12,12 @@
 
 namespace tlm::sm {
 
-RegFileUnit::RegFileUnit(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
+    RegFileUnit::RegFileUnit(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
+    }
 
-void RegFileUnit::tick() {
-    // Task 2.11: no-op (parent_ 注入已就位, 真实 write-back 推迟 Task 2.12)
-}
+    void RegFileUnit::tick() {
+        // Task 2.11: no-op (parent_ 注入已就位, 真实 write-back 推迟 Task 2.12)
+    }
 
 } // namespace tlm::sm

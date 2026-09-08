@@ -1,8 +1,8 @@
 #include "core/connection_resolver.hh"
 
+#include <iostream>
 #include "core/sim_module.hh"
 #include "nlohmann/json.hpp"
-#include <iostream>
 
 std::pair<std::string, std::string>
 ConnectionResolver::parsePortSpec(const std::string& spec) const {

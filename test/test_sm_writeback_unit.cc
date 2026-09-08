@@ -61,7 +61,7 @@ TEST_CASE("WritebackUnit vector write back via result_num=4 (A2)",
     desc.instr_id = 2;
     desc.pipe = PipeClass::kVectorALU;
     desc.latency_class = LatencyClass::kFixed4Cycle;
-    desc.warpid = 1;  // per-warp: warp 1 (测试 per-warp 隔离)
+    desc.warpid = 1; // per-warp: warp 1 (测试 per-warp 隔离)
     desc.result_num = 4;
     desc.dst_regs[0] = 10;
     desc.dst_regs[1] = 11;
@@ -88,8 +88,7 @@ TEST_CASE("WritebackUnit vector write back via result_num=4 (A2)",
     REQUIRE(v == 0xDD);
 }
 
-TEST_CASE("WritebackUnit in-flight queue drain order (A3)",
-          "[sm-wb][sm-microarch][task18-p1-12]") {
+TEST_CASE("WritebackUnit in-flight queue drain order (A3)", "[sm-wb][sm-microarch][task18-p1-12]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -103,7 +102,7 @@ TEST_CASE("WritebackUnit in-flight queue drain order (A3)",
     d1.result_num = 1;
     d1.dst_regs[0] = 100;
     d1.result_value[0] = 0x1111;
-    sm.writeback()->enqueue(d1, 1);  // 第 1 周期完成
+    sm.writeback()->enqueue(d1, 1); // 第 1 周期完成
 
     InstrDescriptor d2{};
     d2.instr_id = 11;
@@ -112,7 +111,7 @@ TEST_CASE("WritebackUnit in-flight queue drain order (A3)",
     d2.result_num = 1;
     d2.dst_regs[0] = 200;
     d2.result_value[0] = 0x2222;
-    sm.writeback()->enqueue(d2, 2);  // 第 2 周期完成
+    sm.writeback()->enqueue(d2, 2); // 第 2 周期完成
 
     REQUIRE(sm.writeback()->pending_count() == 2);
 
@@ -123,7 +122,7 @@ TEST_CASE("WritebackUnit in-flight queue drain order (A3)",
     uint64_t v = 0;
     REQUIRE(sm.reg_file()->read(0, 100, &v));
     REQUIRE(v == 0x1111);
-    REQUIRE_FALSE(sm.reg_file()->read(0, 200, &v));  // 第 2 条尚未完成
+    REQUIRE_FALSE(sm.reg_file()->read(0, 200, &v)); // 第 2 条尚未完成
     REQUIRE(sm.writeback()->pending_count() == 1);
 
     // 推进 1 周期 + WB tick: drain 第 2 条

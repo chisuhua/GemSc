@@ -46,7 +46,7 @@ TEST_CASE("Axi4StreamAdapter: master write request reaches downstream with awid/
     // SoC 返回写响应 BID=5 (匹配 awid)
     Axi4Bundle resp;
     resp.bid.write(0x5);
-    resp.bresp.write(0);  // OKAY
+    resp.bresp.write(0); // OKAY
     REQUIRE(a.master_resp(resp) == true);
     REQUIRE(a.master_resp_valid() == true);
     REQUIRE(a.master_resp_data().bid.read() == 0x5);
@@ -121,8 +121,7 @@ TEST_CASE("Axi4StreamAdapter: slave_in accepts SoC request and returns response"
     a.slave_resp_consume();
 }
 
-TEST_CASE("Axi4StreamAdapter: cfg_slave_in AXI4-Lite config access",
-          "[axi][adapter][basic][cfg]") {
+TEST_CASE("Axi4StreamAdapter: cfg_slave_in AXI4-Lite config access", "[axi][adapter][basic][cfg]") {
     cpptlm::Axi4StreamAdapter a;
 
     // SoC 写配置寄存器
@@ -188,8 +187,8 @@ TEST_CASE("PcieEndpointTLM: axi_adapter config attaches PcieAxiAdapter",
     ep.init();
 
     json cfg;
-    cfg["axi_adapter"] = json::object();  // 启用 AXI Adapter 挂接
-    ep.set_config(cfg);  // → on_config_loaded → attach_to_endpoint
+    cfg["axi_adapter"] = json::object(); // 启用 AXI Adapter 挂接
+    ep.set_config(cfg);                  // → on_config_loaded → attach_to_endpoint
 
     REQUIRE(tlm::pcie::PcieAxiAdapter::for_endpoint("pcie_ep_axi_cfg") != nullptr);
     REQUIRE(tlm::pcie::PcieAxiAdapter::for_endpoint("pcie_ep_axi_cfg")->event_queue() == nullptr);
@@ -203,7 +202,7 @@ TEST_CASE("PcieEndpointTLM: without axi_adapter config no adapter attached",
           "[axi][adapter][basic][compose][regression]") {
     tlm::gpu::PcieEndpointTLM ep("pcie_ep_axi_plain", nullptr);
     ep.init();
-    ep.set_config(json::object());  // 无 axi_adapter
+    ep.set_config(json::object()); // 无 axi_adapter
 
     REQUIRE(tlm::pcie::PcieAxiAdapter::for_endpoint("pcie_ep_axi_plain") == nullptr);
 }
@@ -216,11 +215,11 @@ TEST_CASE("PcieEndpointIP: axi_adapter config binds real endpoint pointer (M3)",
 
     json cfg;
     cfg["axi_adapter"] = json::object();
-    ep.set_config(cfg);  // → on_config_loaded → attach_composition → attach + set_endpoint(this)
+    ep.set_config(cfg); // → on_config_loaded → attach_composition → attach + set_endpoint(this)
 
     auto* ax = tlm::pcie::PcieAxiAdapter::for_endpoint("pcie_ep_ip_axi_cfg");
     REQUIRE(ax != nullptr);
-    REQUIRE(ax->endpoint() == &ep);  // M3: composition 路径必须回填真实 EP 指针
+    REQUIRE(ax->endpoint() == &ep); // M3: composition 路径必须回填真实 EP 指针
     REQUIRE(ax->event_queue() == &eq);
 
     tlm::pcie::PcieAxiAdapter::detach_from_endpoint("pcie_ep_ip_axi_cfg");

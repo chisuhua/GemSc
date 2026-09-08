@@ -11,17 +11,19 @@
 #include "tlm/gpu/sm/simt_lane.hh"
 
 namespace cpptlm {
-namespace gpu {
+    namespace gpu {
 
-uint32_t SIMTLane::execute(InstrDescriptor& desc) {
-    // SIMTLane guard: pipe 匹配 + num_src/dst == 0 (无寄存器读写, 仅 mask 状态)
-    if (desc.pipe != PipeClass::kSIMTLane) return 0;
-    if (desc.num_src != 0 || desc.num_dst != 0) return 0;
+        uint32_t SIMTLane::execute(InstrDescriptor& desc) {
+            // SIMTLane guard: pipe 匹配 + num_src/dst == 0 (无寄存器读写, 仅 mask 状态)
+            if (desc.pipe != PipeClass::kSIMTLane)
+                return 0;
+            if (desc.num_src != 0 || desc.num_dst != 0)
+                return 0;
 
-    // EXEC mask 真值: 从 desc.exec_mask 写入内部 state
-    exec_mask_ = desc.exec_mask;
-    return 1;
-}
+            // EXEC mask 真值: 从 desc.exec_mask 写入内部 state
+            exec_mask_ = desc.exec_mask;
+            return 1;
+        }
 
-} // namespace gpu
+    } // namespace gpu
 } // namespace cpptlm

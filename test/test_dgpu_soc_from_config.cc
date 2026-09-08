@@ -2,8 +2,8 @@
 // BS-G1: SOC 完整实例化 + connections 解析 + outputs/inputs 暴露
 // Per board-soc-split design §3 Q1 陷阱: 断言内部 ChStream 组件 adapter 非空
 // 注意: 若 PcieEndpointTLM 等组件尚未注册 (T-bs-2 才提升), 测试可能 fail - 这是预期的
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "core/sim_module.hh"

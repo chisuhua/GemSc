@@ -4,12 +4,12 @@
 // 作者: CppTLM Team
 // 日期: 2026-06-19
 #include "tlm/crossbar_tlm.hh"
+#include <stdexcept>
 #include "core/chstream_module.hh"
 #include "core/master_port.hh"
 #include "core/port_manager.hh"
 #include "core/simple_port.hh"
 #include "core/slave_port.hh"
-#include <stdexcept>
 
 void CrossbarTLM::connectCPUSideBus(ChStreamModuleBase* bus) {
     if (!bus) {

@@ -16,8 +16,7 @@
 using namespace tlm::pcie;
 using json = nlohmann::json;
 
-TEST_CASE("PcieEndpointIP: create 17 ports, num_ports=17",
-          "[pcie][sriov][endpoint-ip][basic]") {
+TEST_CASE("PcieEndpointIP: create 17 ports, num_ports=17", "[pcie][sriov][endpoint-ip][basic]") {
     EventQueue eq;
     PcieEndpointIP ep("pcie_ep_ip", &eq);
     REQUIRE(ep.num_ports() == 17u);
@@ -29,13 +28,11 @@ TEST_CASE("PcieEndpointIP: set_stream_adapter accepts 17 adapters",
     PcieEndpointIP ep("pcie_ep_ip", &eq);
     ep.init();
 
-    using Adapter = cpptlm::MultiPortStreamAdapter<PcieEndpointIP,
-                                  bundles::PcieTlpBundle,
-                                  bundles::PcieTlpBundle,
-                                  17>;
+    using Adapter = cpptlm::MultiPortStreamAdapter<PcieEndpointIP, bundles::PcieTlpBundle,
+                                                   bundles::PcieTlpBundle, 17>;
     auto adapter = std::make_unique<Adapter>(&ep);
     cpptlm::StreamAdapterBase* adapters[17] = {nullptr};
-    adapters[0] = adapter.get();  // 第 0 个用作数组注入
+    adapters[0] = adapter.get(); // 第 0 个用作数组注入
     // set_stream_adapter(adapters) 应不崩溃
     ep.set_stream_adapter(adapters);
     // 单 adapter 注入也应工作
@@ -54,7 +51,7 @@ TEST_CASE("PcieEndpointIP: on_config_loaded attaches link layer + phy + mux",
     cfg["link_layer"]["fc_initial_credit_p"] = 16;
     cfg["link_layer"]["fc_initial_credit_np"] = 16;
     cfg["link_layer"]["fc_initial_credit_cpl"] = 16;
-    ep.set_config(cfg);  // → on_config_loaded
+    ep.set_config(cfg); // → on_config_loaded
 
     // PcieLinkLayer / Phy / Mux 应按 endpoint name 挂接
     REQUIRE(PcieLinkLayer::for_endpoint("pcie_ep_ip_ll") != nullptr);
@@ -72,12 +69,11 @@ TEST_CASE("PcieEndpointIP: per-VF Config Space accessible via vf_pool",
     ep.init();
 
     // VF0 (slot 1) 写 Config 0x04
-    bundles::PcieTlpBundle t(bundles::PcieTlpBundle::CFG_WRITE, 0,
-                             0x04, 4, 0xDEADu, 0x0000, 1);
+    bundles::PcieTlpBundle t(bundles::PcieTlpBundle::CFG_WRITE, 0, 0x04, 4, 0xDEADu, 0x0000, 1);
     REQUIRE(ep.vf_pool().dispatch_tlp(1, t) == true);
     REQUIRE(ep.vf_pool().config_of(1).read(0x04) == 0xDEADu);
     // PF (slot 0) 未受影响
-    REQUIRE(ep.vf_pool().config_of(0).read(0x04) == 0x10u);  // Capabilities bit
+    REQUIRE(ep.vf_pool().config_of(0).read(0x04) == 0x10u); // Capabilities bit
 }
 
 TEST_CASE("PcieEndpointIP: FLR PF resets all, FLR VF resets one",
@@ -87,10 +83,8 @@ TEST_CASE("PcieEndpointIP: FLR PF resets all, FLR VF resets one",
     ep.init();
 
     // VF0 + VF1 写不同值
-    bundles::PcieTlpBundle t1(bundles::PcieTlpBundle::CFG_WRITE, 0,
-                              0x04, 4, 0x1111u, 0x0000, 1);
-    bundles::PcieTlpBundle t2(bundles::PcieTlpBundle::CFG_WRITE, 0,
-                              0x04, 4, 0x2222u, 0x0000, 2);
+    bundles::PcieTlpBundle t1(bundles::PcieTlpBundle::CFG_WRITE, 0, 0x04, 4, 0x1111u, 0x0000, 1);
+    bundles::PcieTlpBundle t2(bundles::PcieTlpBundle::CFG_WRITE, 0, 0x04, 4, 0x2222u, 0x0000, 2);
     ep.vf_pool().dispatch_tlp(1, t1);
     ep.vf_pool().dispatch_tlp(2, t2);
     REQUIRE(ep.vf_pool().config_of(1).read(0x04) == 0x1111u);

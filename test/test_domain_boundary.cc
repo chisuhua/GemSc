@@ -1,8 +1,8 @@
+#include <memory>
 #include "core/coherence_domain.hh"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include <catch2/catch_all.hpp>
-#include <memory>
 
 TEST_CASE("validate_domain_boundary passes for same domain", "[domain][boundary]") {
     EventQueue eq;

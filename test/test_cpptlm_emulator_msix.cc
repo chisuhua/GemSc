@@ -1,8 +1,8 @@
 // test/test_cpptlm_emulator_msix.cc
 // T-W3-3 Phase 3: 4 ABI stub 替换验证 (msix_init/update_pending/clear_pending + lookup_register)
 // D15 fix (5425c45): SOC instantiated → wrappers forward (0); null/over-cap → -EINVAL (-22)
-#include "abi/cpptlm_emulator.h"
 #include <catch_amalgamated.hpp>
+#include "abi/cpptlm_emulator.h"
 
 TEST_CASE("cpptlm_emulator_msix_init forwards to wrapper (null emu → -EINVAL, valid emu → wrapper "
           "return)",

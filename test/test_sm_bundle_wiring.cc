@@ -1,8 +1,8 @@
 // test/test_sm_bundle_wiring.cc
 // Task 17 L2: SM 8 种 Bundle 字段 + 流向验证 (per architecture/15 §15.8.1 L2)
 // 作者 CppTLM Team / 日期 2027-02-09
-#include "catch_amalgamated.hpp"
 #include "bundles/sm_bundles_tlm.hh"
+#include "catch_amalgamated.hpp"
 #include "tlm/gpu/instruction_descriptor.hh"
 
 using namespace bundles::sm;
@@ -43,7 +43,8 @@ TEST_CASE("IssueToExecBundle: 继承链 + src_values 字段", "[sm-bundle][sm-l2
 TEST_CASE("ExecToWritebackBundle: 继承链 + result_value 字段", "[sm-bundle][sm-l2]") {
     ExecToWritebackBundle b{};
     b.pc = 0x4000;
-    for (int i = 0; i < 2; ++i) b.result_value[i] = i * 10;
+    for (int i = 0; i < 2; ++i)
+        b.result_value[i] = i * 10;
     b.result_num = 2;
     b.exec_cycles = 4;
     REQUIRE(b.pc == 0x4000);
@@ -104,16 +105,26 @@ TEST_CASE("ScoreboardQueryBundle: HazardTracker 查询字段", "[sm-bundle][sm-l
 }
 
 TEST_CASE("8 Bundle 流向正确性: Fetch→Decode→Issue→Exec→Writeback", "[sm-bundle][sm-l2]") {
-    FetchToIssueBundle f{}; f.pc = 100;
-    DecodeToIssueBundle d{}; d.pc = f.pc; REQUIRE(d.pc == f.pc);
-    IssueToExecBundle i{}; i.pc = d.pc; REQUIRE(i.pc == d.pc);
-    ExecToWritebackBundle e{}; e.pc = i.pc; REQUIRE(e.pc == i.pc);
-    WritebackToRegFileBundle w{}; w.warp_id = 0;
+    FetchToIssueBundle f{};
+    f.pc = 100;
+    DecodeToIssueBundle d{};
+    d.pc = f.pc;
+    REQUIRE(d.pc == f.pc);
+    IssueToExecBundle i{};
+    i.pc = d.pc;
+    REQUIRE(i.pc == d.pc);
+    ExecToWritebackBundle e{};
+    e.pc = i.pc;
+    REQUIRE(e.pc == i.pc);
+    WritebackToRegFileBundle w{};
+    w.warp_id = 0;
     REQUIRE(e.pc == 100);
 }
 
 TEST_CASE("MemoryReq/Resp 配对: 同 tag", "[sm-bundle][sm-l2]") {
-    MemoryReqBundle req{}; req.tag = 0xABCD;
-    MemoryRespBundle resp{}; resp.tag = req.tag;
+    MemoryReqBundle req{};
+    req.tag = 0xABCD;
+    MemoryRespBundle resp{};
+    resp.tag = req.tag;
     REQUIRE(req.tag == resp.tag);
 }

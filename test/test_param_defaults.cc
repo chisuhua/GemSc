@@ -1,6 +1,6 @@
 // test/test_param_defaults.cc
-#include "catch_amalgamated.hpp"
 #include "chstream_register.hh"
+#include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include <nlohmann/json.hpp>

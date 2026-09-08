@@ -4,9 +4,9 @@
 // 作者 CppTLM Team / 日期 2026-11-03
 // 参考: openspec/changes/2026-11-03-cpptlm-dgpu-axi-stream-adapter/tasks.md T-P5-1
 
-#include "catch_amalgamated.hpp"
 #include "bundles/axi4_bundles_tlm.hh"
 #include "bundles/bundle_serialization.hh"
+#include "catch_amalgamated.hpp"
 
 #include <array>
 #include <cstdint>
@@ -18,9 +18,9 @@ TEST_CASE("Axi4Bundle: all fields round-trip read/write", "[axi][bundle][basic]"
 
     // Write channel fields
     b.awaddr.write(0x123456789ABCDEFFULL);
-    b.awlen.write(7);      // 8 beats
-    b.awsize.write(6);     // 64 bytes (2^6)
-    b.awburst.write(1);    // INCR
+    b.awlen.write(7);   // 8 beats
+    b.awsize.write(6);  // 64 bytes (2^6)
+    b.awburst.write(1); // INCR
     b.awid.write(0xABCD);
     b.wdata.write(0x0102030405060708ULL); // 512-bit data (ch_uint<512> stored in uint64_t)
     b.wstrb.write(0xFFFFFFFFFFFFFFFFULL); // 64 bytes = 512 bits all strobes
@@ -28,15 +28,15 @@ TEST_CASE("Axi4Bundle: all fields round-trip read/write", "[axi][bundle][basic]"
 
     // Read channel fields
     b.araddr.write(0xFEDCBA9876543210ULL);
-    b.arlen.write(3);      // 4 beats
-    b.arsize.write(5);     // 32 bytes
-    b.arburst.write(1);    // INCR
+    b.arlen.write(3);   // 4 beats
+    b.arsize.write(5);  // 32 bytes
+    b.arburst.write(1); // INCR
     b.arid.write(0xDCBA);
 
     // Response fields
-    b.bid.write(0xABCD);   // Should match awid
-    b.bresp.write(0);      // OKAY
-    b.rid.write(0xDCBA);   // Should match arid
+    b.bid.write(0xABCD); // Should match awid
+    b.bresp.write(0);    // OKAY
+    b.rid.write(0xDCBA); // Should match arid
     b.rdata.write(0x1122334455667788ULL);
     b.rresp.write(0);
     b.rlast.write(1);
@@ -93,7 +93,8 @@ TEST_CASE("Axi4Bundle: awid->bid and arid->rid association", "[axi][bundle][id]"
     REQUIRE(b.awid.read() != b.arid.read()); // Read/write independent
 }
 
-TEST_CASE("Axi4Bundle: field widths match spec (awaddr 64b, awid 16b, wdata 512b)", "[axi][bundle][width]") {
+TEST_CASE("Axi4Bundle: field widths match spec (awaddr 64b, awid 16b, wdata 512b)",
+          "[axi][bundle][width]") {
     Axi4Bundle b;
 
     // awaddr: 64-bit
@@ -118,8 +119,8 @@ TEST_CASE("Axi4Bundle: field widths match spec (awaddr 64b, awid 16b, wdata 512b
 
     // wdata: 512-bit = 64 bytes (ch_uint<512> stored in 64-bit chunks)
     // Since we use ch_uint<512> which stores in uint64_t, test max 64-bit value
-    // The actual 512-bit is represented as array in ch_uint<512> but our ch_uint uses single uint64_t
-    // Per spec: wdata 512-bit -> ch_uint<512>
+    // The actual 512-bit is represented as array in ch_uint<512> but our ch_uint uses single
+    // uint64_t Per spec: wdata 512-bit -> ch_uint<512>
     b.wdata.write(0xFFFFFFFFFFFFFFFFULL);
     REQUIRE(b.wdata.read() == 0xFFFFFFFFFFFFFFFFULL);
 }

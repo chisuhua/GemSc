@@ -21,7 +21,7 @@ TEST_CASE("SeqWindow: tx backpressures at 2048 outstanding (no silent no-op)",
           "[pcie][ll][seq-window]") {
     EventQueue eq;
     PcieLinkLayerConfig cfg;
-    cfg.fc_capacity = 4096;   // FC 不成为瓶颈（只测 seq 窗口）
+    cfg.fc_capacity = 4096; // FC 不成为瓶颈（只测 seq 窗口）
     cfg.fc_init_p = 4096;
     cfg.fc_init_np = 4096;
     cfg.fc_init_cpl = 4096;
@@ -48,17 +48,19 @@ TEST_CASE("SeqWindow: stale ACK (delta > 2048) is ignored, buffer not wiped",
 
     PcieTlpBundle t(PcieTlpBundle::MMIO_WRITE, 0, 0x1000, 4, 1, 0x0100, 1);
     for (int i = 0; i < 4; ++i) {
-        REQUIRE(ll.tx_tlp(t) == true);   // seq 0..3
+        REQUIRE(ll.tx_tlp(t) == true); // seq 0..3
     }
     PcieTlpBundle drain;
-    while (ll.try_pop_tx_tlp(drain)) { /* drain */ }
-    ll.rx_dllp(ll.make_ack(3));          // 正常 ACK → last_acked=3
+    while (ll.try_pop_tx_tlp(drain)) { /* drain */
+    }
+    ll.rx_dllp(ll.make_ack(3)); // 正常 ACK → last_acked=3
     REQUIRE(ll.retry_buffer_size() == 0u);
 
     for (int i = 0; i < 4; ++i) {
-        REQUIRE(ll.tx_tlp(t) == true);   // seq 4..7
+        REQUIRE(ll.tx_tlp(t) == true); // seq 4..7
     }
-    while (ll.try_pop_tx_tlp(drain)) { /* drain */ }
+    while (ll.try_pop_tx_tlp(drain)) { /* drain */
+    }
     REQUIRE(ll.retry_buffer_size() == 4u);
 
     // stale ACK: ack_seq=2052 → delta=2049 (> 2048, 超出 half-window) → 忽略
@@ -81,12 +83,13 @@ TEST_CASE("SeqWindow: delta == 2048 full-window ACK remains valid (boundary)",
     // last_acked 初始 = SEQ_MASK(4095)；ACK(2047) → delta=2048（合法满窗确认）
     PcieTlpBundle t(PcieTlpBundle::MMIO_WRITE, 0, 0x1000, 4, 1, 0x0100, 1);
     for (int i = 0; i < 4; ++i) {
-        REQUIRE(ll.tx_tlp(t) == true);   // seq 0..3
+        REQUIRE(ll.tx_tlp(t) == true); // seq 0..3
     }
     PcieTlpBundle drain;
-    while (ll.try_pop_tx_tlp(drain)) { /* drain */ }
+    while (ll.try_pop_tx_tlp(drain)) { /* drain */
+    }
 
     ll.rx_dllp(ll.make_ack(2047));
-    REQUIRE(ll.retry_buffer_size() == 0u);  // 必须仍被确认（非 stale）
+    REQUIRE(ll.retry_buffer_size() == 0u); // 必须仍被确认（非 stale）
     REQUIRE(ll.last_acked_seq() == 2047u);
 }

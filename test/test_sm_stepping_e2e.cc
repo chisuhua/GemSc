@@ -33,32 +33,42 @@ TEST_CASE("IComputeDevice 完整 kernel stepping lifetime (A1)",
     InstrDescriptor d0{};
     d0.instr_id = 1;
     d0.pipe = PipeClass::kScalarALU;
-    d0.src_regs[0] = 1; d0.src_regs[1] = 2;
+    d0.src_regs[0] = 1;
+    d0.src_regs[1] = 2;
     d0.dst_regs[0] = 10;
-    d0.num_src = 2; d0.num_dst = 1;
-    sm.set_scalar_reg(1, 100); sm.set_scalar_reg(2, 200);
+    d0.num_src = 2;
+    d0.num_dst = 1;
+    sm.set_scalar_reg(1, 100);
+    sm.set_scalar_reg(2, 200);
 
     InstrDescriptor d1{};
     d1.instr_id = 2;
     d1.pipe = PipeClass::kScalarALU;
-    d1.src_regs[0] = 3; d1.src_regs[1] = 4;
+    d1.src_regs[0] = 3;
+    d1.src_regs[1] = 4;
     d1.dst_regs[0] = 11;
-    d1.num_src = 2; d1.num_dst = 1;
-    sm.set_scalar_reg(3, 50); sm.set_scalar_reg(4, 30);
+    d1.num_src = 2;
+    d1.num_dst = 1;
+    sm.set_scalar_reg(3, 50);
+    sm.set_scalar_reg(4, 30);
 
     InstrDescriptor d2{};
     d2.instr_id = 3;
     d2.pipe = PipeClass::kScalarALU;
-    d2.src_regs[0] = 5; d2.src_regs[1] = 6;
+    d2.src_regs[0] = 5;
+    d2.src_regs[1] = 6;
     d2.dst_regs[0] = 12;
-    d2.num_src = 2; d2.num_dst = 1;
-    sm.set_scalar_reg(5, 7); sm.set_scalar_reg(6, 13);
+    d2.num_src = 2;
+    d2.num_dst = 1;
+    sm.set_scalar_reg(5, 7);
+    sm.set_scalar_reg(6, 13);
 
     InstrDescriptor batch[3] = {d0, d1, d2};
     sm.set_instr_descriptor_buf(batch, 3);
 
     // 推进 5 cycle (覆盖 3 条 kFixed1Cycle ScalarALU + 余量)
-    for (int i = 0; i < 5; ++i) sm.exe_once();
+    for (int i = 0; i < 5; ++i)
+        sm.exe_once();
 
     // 全部 3 条指令已完成
     REQUIRE(sm.is_instruction_completed(1));
@@ -68,11 +78,11 @@ TEST_CASE("IComputeDevice 完整 kernel stepping lifetime (A1)",
     // 验证 ScalarALU 真值 ADD 结果
     uint64_t v10 = 0, v11 = 0, v12 = 0;
     REQUIRE(sm.get_register_value(0, 0, 10, &v10));
-    REQUIRE(v10 == 300);  // 100 + 200
+    REQUIRE(v10 == 300); // 100 + 200
     REQUIRE(sm.get_register_value(0, 0, 11, &v11));
-    REQUIRE(v11 == 80);   // 50 + 30
+    REQUIRE(v11 == 80); // 50 + 30
     REQUIRE(sm.get_register_value(0, 0, 12, &v12));
-    REQUIRE(v12 == 20);   // 7 + 13
+    REQUIRE(v12 == 20); // 7 + 13
 
     // shutdown 清理
     sm.shutdown();
@@ -89,10 +99,13 @@ TEST_CASE("IComputeDevice 末批 is_finished + get_register_value 轮询 (A2)",
     d.instr_id = 42;
     d.pipe = PipeClass::kScalarALU;
     d.latency_class = LatencyClass::kFixed1Cycle;
-    d.src_regs[0] = 1; d.src_regs[1] = 2;
+    d.src_regs[0] = 1;
+    d.src_regs[1] = 2;
     d.dst_regs[0] = 7;
-    d.num_src = 2; d.num_dst = 1;
-    sm.set_scalar_reg(1, 50); sm.set_scalar_reg(2, 49);
+    d.num_src = 2;
+    d.num_dst = 1;
+    sm.set_scalar_reg(1, 50);
+    sm.set_scalar_reg(2, 49);
     sm.set_instr_descriptor_buf(&d, 1);
 
     sm.exe_once();
@@ -116,7 +129,7 @@ TEST_CASE("IComputeDevice lane_id=0xFFFFFFFF 默认值语义 (A3)",
 
     // lane_id 默认 0xFFFFFFFF: 表示 warp 所有 lane 寄存器值相同, 返回 lane 0 的值
     uint64_t v_default = 0;
-    REQUIRE(sm.get_register_value(0, 0, 5, &v_default));  // 默认 lane_id=0xFFFFFFFF
+    REQUIRE(sm.get_register_value(0, 0, 5, &v_default)); // 默认 lane_id=0xFFFFFFFF
     REQUIRE(v_default == 0xCAFE);
 
     // lane_id 显式 0 也应该读到同样值 (per-warp 隔离, lane 0 是 warp 0 的代表)

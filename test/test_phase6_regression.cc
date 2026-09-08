@@ -2,6 +2,7 @@
 // Phase 6: 回归测试套件
 // 确保 Phase 0-5 功能正常工作
 
+#include <cstring>
 #include "bundles/cache_bundles_tlm.hh"
 #include "core/error_category.hh"
 #include "core/packet.hh"
@@ -15,7 +16,6 @@
 #include "tlm/memory_tlm.hh"
 #include "tlm/tlm_stub.hh"
 #include <catch2/catch_all.hpp>
-#include <cstring>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

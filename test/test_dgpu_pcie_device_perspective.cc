@@ -10,12 +10,12 @@
 // Author: CppTLM Team
 // Date: 2026-08-29 (T-bs-4 stage-1 adaptation)
 
-#include "catch_amalgamated.hpp"
-#include "core/event_queue.hh"
-#include "tlm/gpu/dgpu_board_shell.hh"
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include "catch_amalgamated.hpp"
+#include "core/event_queue.hh"
+#include "tlm/gpu/dgpu_board_shell.hh"
 #include <nlohmann/json.hpp>
 
 namespace {

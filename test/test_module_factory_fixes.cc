@@ -1,10 +1,10 @@
 // test/test_module_factory_fixes.cc
+#include <regex>
+#include <sstream>
 #include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/module_factory.hh"
 #include "mock_modules.hh"
-#include <regex>
-#include <sstream>
 
 namespace {
     auto _reg1 = []() {

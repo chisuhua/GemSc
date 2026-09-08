@@ -11,15 +11,16 @@
 
 namespace tlm::sm {
 
-WritebackUnit::WritebackUnit(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
-
-void WritebackUnit::tick() {
-    if (!parent_ || !parent_->writeback()) {
-        return;
+    WritebackUnit::WritebackUnit(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
     }
-    // 推进 WB 队列: finish_cycle ≤ current_cycle 的条目写回 RF
-    parent_->writeback()->tick(parent_->getCurrentCycle());
-}
+
+    void WritebackUnit::tick() {
+        if (!parent_ || !parent_->writeback()) {
+            return;
+        }
+        // 推进 WB 队列: finish_cycle ≤ current_cycle 的条目写回 RF
+        parent_->writeback()->tick(parent_->getCurrentCycle());
+    }
 
 } // namespace tlm::sm

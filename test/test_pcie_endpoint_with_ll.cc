@@ -22,23 +22,22 @@ using json = nlohmann::json;
 
 namespace {
 
-// 构造一个 bar0 MMIO_WRITE 寄存器（side_effect none）→ resp_out[1] 同步响应
-void add_bar0_reg(PcieEndpointTLM& ep, uint32_t off) {
-    ep.bar_router().add_register(off, "REG",
-                                 PcieBarRouter::Access::RW,
-                                 PcieBarRouter::SideEffect::NONE, 0);
-}
+    // 构造一个 bar0 MMIO_WRITE 寄存器（side_effect none）→ resp_out[1] 同步响应
+    void add_bar0_reg(PcieEndpointTLM& ep, uint32_t off) {
+        ep.bar_router().add_register(off, "REG", PcieBarRouter::Access::RW,
+                                     PcieBarRouter::SideEffect::NONE, 0);
+    }
 
-PcieTlpBundle make_mmio_write(uint32_t off, uint64_t data) {
-    PcieTlpBundle t;
-    t.kind.write(PcieTlpBundle::MMIO_WRITE);
-    t.offset.write(off);
-    t.size.write(4);
-    t.data.write(data);
-    t.requester_id.write(0x0100);
-    t.trans_id.write(1);
-    return t;
-}
+    PcieTlpBundle make_mmio_write(uint32_t off, uint64_t data) {
+        PcieTlpBundle t;
+        t.kind.write(PcieTlpBundle::MMIO_WRITE);
+        t.offset.write(off);
+        t.size.write(4);
+        t.data.write(data);
+        t.requester_id.write(0x0100);
+        t.trans_id.write(1);
+        return t;
+    }
 
 } // namespace
 
@@ -54,7 +53,7 @@ TEST_CASE("Endpoint+LL: enabled config attaches link layer to endpoint",
     cfg["link_layer"]["fc_initial_credit_p"] = 16;
     cfg["link_layer"]["fc_initial_credit_np"] = 16;
     cfg["link_layer"]["fc_initial_credit_cpl"] = 16;
-    ep.set_config(cfg);  // → on_config_loaded → attach
+    ep.set_config(cfg); // → on_config_loaded → attach
 
     REQUIRE(PcieLinkLayer::for_endpoint("pcie_ep_ll") != nullptr);
     // 类布局未变：num_ports 仍为 4（冻结）
@@ -73,8 +72,8 @@ TEST_CASE("Endpoint+LL: TLP processed through link layer generates ACK DLLP",
     cfg["link_layer"]["fc_initial_credit_p"] = 16;
     cfg["link_layer"]["fc_initial_credit_np"] = 16;
     cfg["link_layer"]["fc_initial_credit_cpl"] = 16;
-    ep.set_config(cfg);  // → on_config_loaded → bar_router init (regs 清空)
-    add_bar0_reg(ep, 0x1000);  // set_config 之后再注册
+    ep.set_config(cfg);       // → on_config_loaded → bar_router init (regs 清空)
+    add_bar0_reg(ep, 0x1000); // set_config 之后再注册
 
     // 注入 MMIO_WRITE
     ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].data() = make_mmio_write(0x1000, 0xAA);
@@ -97,20 +96,20 @@ TEST_CASE("Endpoint+LL: FC backpressure stalls TLP until UpdateFC (Q2)",
 
     json cfg;
     cfg["link_layer"]["enabled"] = true;
-    cfg["link_layer"]["fc_token_bucket_capacity"] = 2;   // P credit = 2
+    cfg["link_layer"]["fc_token_bucket_capacity"] = 2; // P credit = 2
     cfg["link_layer"]["fc_initial_credit_p"] = 2;
     cfg["link_layer"]["fc_initial_credit_np"] = 2;
     cfg["link_layer"]["fc_initial_credit_cpl"] = 2;
     ep.set_config(cfg);
     auto* ll = PcieLinkLayer::for_endpoint("pcie_ep_ll3");
     REQUIRE(ll != nullptr);
-    add_bar0_reg(ep, 0x2000);  // set_config 之后再注册（bar_router init 清空）
+    add_bar0_reg(ep, 0x2000); // set_config 之后再注册（bar_router init 清空）
 
     // 第 1 个 write → 通过（P 2→1）
     ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].data() = make_mmio_write(0x2000, 1);
     ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].set_valid(true);
     ep.tick();
-    REQUIRE(ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].valid() == false);  // 已消费
+    REQUIRE(ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].valid() == false); // 已消费
     REQUIRE(ep.bar_router().mmio_read(0x2000) == 1u);
     REQUIRE(ep.resp_out[PcieEndpointTLM::PORT_MMIO_OUT].valid() == true);
 
@@ -125,13 +124,14 @@ TEST_CASE("Endpoint+LL: FC backpressure stalls TLP until UpdateFC (Q2)",
     ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].data() = make_mmio_write(0x2000, 3);
     ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].set_valid(true);
     ep.tick();
-    REQUIRE(ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].valid() == true);   // 仍 pending
-    REQUIRE(ep.bar_router().mmio_read(0x2000) == 2u);                     // 未写入
+    REQUIRE(ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].valid() == true); // 仍 pending
+    REQUIRE(ep.bar_router().mmio_read(0x2000) == 2u);                   // 未写入
 
     // UpdateFC DLLP 到达（host 侧注入）→ P +2 → 反压解除
-    REQUIRE(ll->rx_dllp_from_host(ll->make_update_fc(2, 0, 0)) == PcieLinkLayer::Dispatch::UPDATE_FC);
+    REQUIRE(ll->rx_dllp_from_host(ll->make_update_fc(2, 0, 0)) ==
+            PcieLinkLayer::Dispatch::UPDATE_FC);
     ep.tick();
-    REQUIRE(ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].valid() == false);  // 已消费
+    REQUIRE(ep.req_in[PcieEndpointTLM::PORT_SLAVE_IN].valid() == false); // 已消费
     REQUIRE(ep.bar_router().mmio_read(0x2000) == 3u);
 }
 

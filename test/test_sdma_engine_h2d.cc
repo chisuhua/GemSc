@@ -248,10 +248,10 @@ TEST_CASE("SdmaEngine H2D: PTXIR-like 4 KiB image copies host→VRAM end-to-end"
     sdma.set_translate_cb(fake_translate_cb); // identity mapping (PA=IOVA)
 
     // backdoor：host (16 KiB) + VRAM (1 MiB)，容纳 4096B 负载 + 安全 margin
-    constexpr uint64_t kPayloadSize  = 4096;
-    constexpr uint64_t kVramOffset   = 0x10000;
-    constexpr uint64_t kHostIova     = 0;
-    constexpr uint32_t kTag          = 0xC0DE;
+    constexpr uint64_t kPayloadSize = 4096;
+    constexpr uint64_t kVramOffset = 0x10000;
+    constexpr uint64_t kHostIova = 0;
+    constexpr uint32_t kTag = 0xC0DE;
 
     std::vector<uint8_t> host_mem(static_cast<size_t>(kPayloadSize) * 4, 0);
     std::vector<uint8_t> vram_mem(0x100000, 0);
@@ -264,9 +264,14 @@ TEST_CASE("SdmaEngine H2D: PTXIR-like 4 KiB image copies host→VRAM end-to-end"
     // 构造确定性 PTXIR-like payload：magic + 长度头 + PRNG body
     //   头 8B: 'P','T','X','0' (magic) | version=u16 (LE) | reserved=u16 (LE)
     //   体 4088B: xorshift64 PRNG 派生 (seed=0x9E3779B97F4A7C15)
-    host_mem[0] = 'P'; host_mem[1] = 'T'; host_mem[2] = 'X'; host_mem[3] = '0';
-    host_mem[4] = 0x01; host_mem[5] = 0x00; // version=1 (LE)
-    host_mem[6] = 0x00; host_mem[7] = 0x00; // reserved
+    host_mem[0] = 'P';
+    host_mem[1] = 'T';
+    host_mem[2] = 'X';
+    host_mem[3] = '0';
+    host_mem[4] = 0x01;
+    host_mem[5] = 0x00; // version=1 (LE)
+    host_mem[6] = 0x00;
+    host_mem[7] = 0x00; // reserved
 
     uint64_t rng_state = 0x9E3779B97F4A7C15ull; // golden ratio 常量 seed
     for (size_t i = 8; i < kPayloadSize; ++i) {
@@ -289,8 +294,7 @@ TEST_CASE("SdmaEngine H2D: PTXIR-like 4 KiB image copies host→VRAM end-to-end"
                        /*vram_offset=*/kVramOffset,
                        /*size=*/static_cast<uint32_t>(kPayloadSize),
                        /*tag=*/kTag);
-    sdma.req_in[SdmaEngineTLM::PORT_DESC_IN].data() =
-        SdmaEngineTLM::to_pcie_tlp_descriptor(desc);
+    sdma.req_in[SdmaEngineTLM::PORT_DESC_IN].data() = SdmaEngineTLM::to_pcie_tlp_descriptor(desc);
     sdma.req_in[SdmaEngineTLM::PORT_DESC_IN].set_valid(true);
 
     // 执行 tick(): SdmaEngineTLM 应走 backdoor memcpy 路径搬运 host→VRAM
@@ -299,10 +303,10 @@ TEST_CASE("SdmaEngine H2D: PTXIR-like 4 KiB image copies host→VRAM end-to-end"
     // 1) 描述符完成元数据（per spec.md Scenario "Completion implies VRAM write visibility"）
     const auto& done_tlp = sdma.resp_out[SdmaEngineTLM::PORT_DONE_OUT].data();
     CompletionBundle done_cb = SdmaEngineTLM::from_pcie_tlp_completion(done_tlp);
-    REQUIRE(done_cb.is_ok() == true);                  // status=OK
-    REQUIRE(done_cb.tag.read() == kTag);               // tag 回传匹配
-    REQUIRE(sdma.completed_count() == 1u);             // 单次完成
-    REQUIRE(sdma.error_count() == 0u);                 // 零错误
+    REQUIRE(done_cb.is_ok() == true);      // status=OK
+    REQUIRE(done_cb.tag.read() == kTag);   // tag 回传匹配
+    REQUIRE(sdma.completed_count() == 1u); // 单次完成
+    REQUIRE(sdma.error_count() == 0u);     // 零错误
 
     // 2) host_out: MEM_READ TLP 指向 translate 后的 PA (= IOVA, identity mapping)
     const auto& host_tlp = sdma.resp_out[SdmaEngineTLM::PORT_HOST_OUT].data();
@@ -322,9 +326,9 @@ TEST_CASE("SdmaEngine H2D: PTXIR-like 4 KiB image copies host→VRAM end-to-end"
     REQUIRE(done_tlp.kind.read() == SdmaEngineTLM::KIND_DMA_DONE);
 
     // 5) 端到端：VRAM[kVramOffset..kVramOffset+kPayloadSize) 字节比对 host
-    //    (per spec.md R3-S1 "a subsequent VRAM read MUST return the data written by this descriptor")
-    REQUIRE(std::memcmp(&vram_mem[kVramOffset],
-                        &host_mem[kHostIova],
+    //    (per spec.md R3-S1 "a subsequent VRAM read MUST return the data written by this
+    //    descriptor")
+    REQUIRE(std::memcmp(&vram_mem[kVramOffset], &host_mem[kHostIova],
                         static_cast<size_t>(kPayloadSize)) == 0);
 
     // 6) 额外头 4B magic + body 首尾采样校验（避免 PRNG 巧合全 0/全 1 通过 memcmp）
@@ -333,8 +337,7 @@ TEST_CASE("SdmaEngine H2D: PTXIR-like 4 KiB image copies host→VRAM end-to-end"
     REQUIRE(vram_mem[kVramOffset + 2] == 'X');
     REQUIRE(vram_mem[kVramOffset + 3] == '0');
     REQUIRE(vram_mem[kVramOffset + 8] == host_mem[8]);
-    REQUIRE(vram_mem[kVramOffset + kPayloadSize - 1] ==
-            host_mem[kHostIova + kPayloadSize - 1]);
+    REQUIRE(vram_mem[kVramOffset + kPayloadSize - 1] == host_mem[kHostIova + kPayloadSize - 1]);
 }
 
 TEST_CASE("SdmaEngine H2D: backdoor memcpy out-of-range silently degrades to TLP-only",

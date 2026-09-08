@@ -9,6 +9,9 @@
 #ifndef CPPTLM_PCIE_ENDPOINT_TLM_H
 #define CPPTLM_PCIE_ENDPOINT_TLM_H
 
+#include <cstdint>
+#include <memory>
+#include <string>
 #include "bundles/pcie_bundles_tlm.hh"
 #include "core/chstream_module.hh"
 #include "core/sim_object.hh"
@@ -16,10 +19,7 @@
 #include "tlm/gpu/msix_table_mvp.hh"
 #include "tlm/gpu/pcie_bar_router_mvp.hh"
 #include "tlm/gpu/pcie_config_space_mvp.hh"
-#include <cstdint>
-#include <memory>
 #include <nlohmann/json.hpp>
-#include <string>
 
 namespace tlm::gpu {
 
@@ -54,8 +54,8 @@ namespace tlm::gpu {
      *   250-700ns 区间延迟的 mmio_out 门铃事务（沿用 s2 Doorbell 强序）。
      *   **禁止** C++ `if (offset == 0x0014)` 硬编码路径。
      */
-    [[deprecated("use PcieEndpointIP instead; Phase 8 整合迁移")]]
-    class PcieEndpointTLM : public ChStreamModuleBase {
+    [[deprecated("use PcieEndpointIP instead; Phase 8 整合迁移")]] class PcieEndpointTLM
+        : public ChStreamModuleBase {
     public:
         static constexpr unsigned NUM_PORTS = 4;
 

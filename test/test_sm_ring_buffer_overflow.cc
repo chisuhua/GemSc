@@ -20,8 +20,7 @@
 using namespace tlm;
 using namespace cpptlm::gpu;
 
-TEST_CASE("SM ring buffer: 注入 64 条填满, 不覆盖 (A1)",
-          "[sm-ring][sm-microarch][task18-p2-1]") {
+TEST_CASE("SM ring buffer: 注入 64 条填满, 不覆盖 (A1)", "[sm-ring][sm-microarch][task18-p2-1]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -34,7 +33,8 @@ TEST_CASE("SM ring buffer: 注入 64 条填满, 不覆盖 (A1)",
         batch[i].pipe = PipeClass::kScalarALU;
         batch[i].latency_class = LatencyClass::kFixed1Cycle;
         batch[i].src_regs[0] = 0;
-        batch[i].num_src = 1; batch[i].num_dst = 1;
+        batch[i].num_src = 1;
+        batch[i].num_dst = 1;
     }
     sm.set_instr_descriptor_buf(batch.data(), 64);
 
@@ -55,13 +55,13 @@ TEST_CASE("SM ring buffer: 注入 70 条覆盖最旧 6 条 (A2-A3)",
         batch[i].pipe = PipeClass::kScalarALU;
         batch[i].latency_class = LatencyClass::kFixed1Cycle;
         batch[i].src_regs[0] = 0;
-        batch[i].num_src = 1; batch[i].num_dst = 1;
+        batch[i].num_src = 1;
+        batch[i].num_dst = 1;
     }
     sm.set_instr_descriptor_buf(batch.data(), 70);
 }
 
-TEST_CASE("SM ring buffer: consume 顺序反映覆盖 (A4-A5)",
-          "[sm-ring][sm-microarch][task18-p2-1]") {
+TEST_CASE("SM ring buffer: consume 顺序反映覆盖 (A4-A5)", "[sm-ring][sm-microarch][task18-p2-1]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
     DeviceConfig cfg{};
@@ -73,7 +73,8 @@ TEST_CASE("SM ring buffer: consume 顺序反映覆盖 (A4-A5)",
         batch[i].pipe = PipeClass::kScalarALU;
         batch[i].latency_class = LatencyClass::kFixed1Cycle;
         batch[i].src_regs[0] = 0;
-        batch[i].num_src = 1; batch[i].num_dst = 1;
+        batch[i].num_src = 1;
+        batch[i].num_dst = 1;
     }
     sm.set_instr_descriptor_buf(batch.data(), 70);
 

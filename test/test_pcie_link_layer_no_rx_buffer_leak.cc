@@ -20,7 +20,7 @@ TEST_CASE("NoRxLeak: 1000 downstream TLPs leave no internal rx buffer accumulati
           "[pcie][ll][no-rx-leak]") {
     EventQueue eq;
     PcieLinkLayerConfig cfg;
-    cfg.fc_capacity = 2000;   // 足够容纳 1000 MEM_WRITE（Posted）不触发反压
+    cfg.fc_capacity = 2000; // 足够容纳 1000 MEM_WRITE（Posted）不触发反压
     cfg.fc_init_p = 2000;
     PcieLinkLayer ll(&eq, cfg);
 

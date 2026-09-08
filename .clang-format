@@ -1,6 +1,16 @@
 # CppTLM 代码格式配置
+#
+# 基线: LLVM
+# 项目: CppTLM (TLM 2.0 周期精确 NoC 仿真框架, C++17)
+# 维护: 由 CI 强制检查 (./scripts/build/format.sh --check)
+#
+# 版本策略 (clang-format 版本漂移防护):
+#   - CI 必须 pin 到具体版本 (见 .github/workflows/ci.yml, 推荐 clang-format-22)
+#   - 本地推荐: clang-format 22.x (apt install clang-format-22)
+#   - 升级 clang-format 后, 先在分支跑 ./scripts/build/format.sh --check 看漂移
 ---
 Language: Cpp
+Standard: c++17
 BasedOnStyle: LLVM
 
 # 缩进
@@ -15,25 +25,77 @@ ColumnLimit: 100
 # 指针和引用对齐
 PointerAlignment: Left
 ReferenceAlignment: Left
+DerivePointerAlignment: false
 
 # 大括号
 BreakBeforeBraces: Attach
-AllowShortFunctionsOnASingleLine: false
-AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+
+# C++11/14/17 风格
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
 
 # 命名空间
+NamespaceIndentation: All
+CompactNamespaces: false
 
 # 访问修饰符缩进
 AccessModifierOffset: -4
 
-# 其他
+# Include 排序与分组
 SortIncludes: true
-CompactNamespaces: false
-NamespaceIndentation: All
+IncludeBlocks: Preserve
+IncludeCategories:
+  # C 标准库
+  - Regex:           '^<[a-z][a-z0-9_]*\.h>'
+    Priority:        1
+  # C++ 标准库
+  - Regex:           '^<[a-z][a-z0-9_]*>'
+    Priority:        2
+  # 项目绝对路径
+  - Regex:           '^"(cpptlm|chstream)'
+    Priority:        3
+  # 其他第三方
+  - Regex:           '^<[^/]+>'
+    Priority:        4
+  # 项目相对路径
+  - Regex:           '^"'
+    Priority:        5
+
+# 空行控制
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+
+# 对齐
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+
+# 函数调用/声明
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# 操作符位置
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+
+# 模板
+AlwaysBreakTemplateDeclarations: MultiLine
 
 # 宏和注释
 CommentPragmas: '^ IWYU pragma:'
-KeepEmptyLinesAtTheStartOfBlocks: false
+ForEachMacros:
+  - foreach
+  - Q_FOREACH
+  - BOOST_FOREACH
+
+# 杂项
+ReflowComments: true
+IndentCaseLabels: false
 
 ...

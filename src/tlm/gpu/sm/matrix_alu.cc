@@ -12,14 +12,16 @@
 #include "tlm/gpu/streaming_multiprocessor_tlm.hh"
 
 namespace cpptlm {
-namespace gpu {
+    namespace gpu {
 
-uint32_t MatrixCore::execute(InstrDescriptor& desc) {
-    // Task 2.7 stub: 判 pipe == kMatrixCore → return 0 (Task 4.6 MFMA 真值替换)
-    if (!parent_) return 0;
-    if (desc.pipe != PipeClass::kMatrixCore) return 0;
-    return 0;
-}
+        uint32_t MatrixCore::execute(InstrDescriptor& desc) {
+            // Task 2.7 stub: 判 pipe == kMatrixCore → return 0 (Task 4.6 MFMA 真值替换)
+            if (!parent_)
+                return 0;
+            if (desc.pipe != PipeClass::kMatrixCore)
+                return 0;
+            return 0;
+        }
 
-} // namespace gpu
+    } // namespace gpu
 } // namespace cpptlm

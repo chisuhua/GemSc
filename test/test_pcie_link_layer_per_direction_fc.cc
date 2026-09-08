@@ -18,25 +18,25 @@ using namespace bundles;
 
 namespace {
 
-// 上行 TLP (EP→host, MMIO_WRITE → Posted)
-PcieTlpBundle make_tx_tlp() {
-    PcieTlpBundle t;
-    t.kind.write(PcieTlpBundle::MMIO_WRITE);
-    t.offset.write(0x1000);
-    t.size.write(4);
-    t.trans_id.write(1);
-    return t;
-}
+    // 上行 TLP (EP→host, MMIO_WRITE → Posted)
+    PcieTlpBundle make_tx_tlp() {
+        PcieTlpBundle t;
+        t.kind.write(PcieTlpBundle::MMIO_WRITE);
+        t.offset.write(0x1000);
+        t.size.write(4);
+        t.trans_id.write(1);
+        return t;
+    }
 
-// 下行 TLP (host→EP, MEM_WRITE → Posted)
-PcieTlpBundle make_rx_tlp() {
-    PcieTlpBundle t;
-    t.kind.write(PcieTlpBundle::MEM_WRITE);
-    t.offset.write(0x8000);
-    t.size.write(4);
-    t.trans_id.write(2);
-    return t;
-}
+    // 下行 TLP (host→EP, MEM_WRITE → Posted)
+    PcieTlpBundle make_rx_tlp() {
+        PcieTlpBundle t;
+        t.kind.write(PcieTlpBundle::MEM_WRITE);
+        t.offset.write(0x8000);
+        t.size.write(4);
+        t.trans_id.write(2);
+        return t;
+    }
 
 } // namespace
 
@@ -54,7 +54,7 @@ TEST_CASE("PerDirFC: upstream rx exhaustion does not block downstream tx",
     PcieTlpBundle rx = make_rx_tlp();
     REQUIRE(ll.rx_tlp_from_host(rx) == true);
     REQUIRE(ll.rx_tlp_from_host(rx) == true);
-    REQUIRE(ll.rx_tlp_from_host(rx) == false);  // 上游反压
+    REQUIRE(ll.rx_tlp_from_host(rx) == false); // 上游反压
 
     // 下游 (EP 发侧, fc_downstream_) 不受影响：EP 仍可发送
     PcieTlpBundle tx = make_tx_tlp();
@@ -76,7 +76,7 @@ TEST_CASE("PerDirFC: downstream tx exhaustion does not block upstream rx",
     PcieTlpBundle tx = make_tx_tlp();
     REQUIRE(ll.tx_tlp(tx) == true);
     REQUIRE(ll.tx_tlp(tx) == true);
-    REQUIRE(ll.tx_tlp(tx) == false);  // 下游反压
+    REQUIRE(ll.tx_tlp(tx) == false); // 下游反压
 
     // 上游 (EP 收侧, fc_upstream_) 不受影响：host→EP 仍可接收
     PcieTlpBundle rx = make_rx_tlp();
@@ -101,8 +101,7 @@ TEST_CASE("PerDirFC: host UpdateFC replenishes upstream (EP rx side) only",
     REQUIRE(ll.rx_tlp_from_host(rx) == false);
 
     // host 发 UpdateFC(P=2) → 只补上游 (EP 收侧)
-    REQUIRE(ll.rx_dllp_from_host(ll.make_update_fc(2, 0, 0))
-            == PcieLinkLayer::Dispatch::UPDATE_FC);
+    REQUIRE(ll.rx_dllp_from_host(ll.make_update_fc(2, 0, 0)) == PcieLinkLayer::Dispatch::UPDATE_FC);
     REQUIRE(ll.rx_tlp_from_host(rx) == true);
     REQUIRE(ll.rx_tlp_from_host(rx) == true);
     REQUIRE(ll.rx_tlp_from_host(rx) == false);
@@ -130,8 +129,7 @@ TEST_CASE("PerDirFC: InitFC mirror-fills both buckets (EP sends after recovery)"
     REQUIRE(ll.tx_tlp(tx) == false);
 
     // InitFC(P=3) 简化镜像 → 同时填充 fc_upstream_ + fc_downstream_
-    REQUIRE(ll.rx_dllp_from_host(ll.make_init_fc1(3, 3, 3))
-            == PcieLinkLayer::Dispatch::INIT_FC1);
+    REQUIRE(ll.rx_dllp_from_host(ll.make_init_fc1(3, 3, 3)) == PcieLinkLayer::Dispatch::INIT_FC1);
 
     // 下游恢复：EP 可发送（镜像填充生效）
     REQUIRE(ll.tx_tlp(tx) == true);

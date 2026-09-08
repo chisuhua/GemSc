@@ -8,13 +8,13 @@
 //
 // 当前 (pre-cleanup) 行为: lazy 注册 → 不抛 → 测试应 FAIL (TDD red phase)
 // Cleanup 后 (Tasks 3.3-3.5) 预期: 抛 runtime_error → 测试 PASS
+#include <stdexcept>
+#include <string>
 #include "core/event_queue.hh"
 #include "core/port_manager.hh"
 #include "tlm/cache_tlm.hh"
 #include "tlm/crossbar_tlm.hh"
 #include <catch2/catch_all.hpp>
-#include <stdexcept>
-#include <string>
 
 // =====================================================================
 // Case 1: CacheTLM::connectBus 在 mem_side 未注册时抛清晰错误

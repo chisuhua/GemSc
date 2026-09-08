@@ -32,7 +32,7 @@ TEST_CASE("MatrixCore MFMA stub: 模块身份 + 真值推迟 Task 4.6",
     // A1: 模块身份 (mc_ + matrix_alu_ accessor + 类型正确, per Oracle Q7 A1)
     REQUIRE(sm.mc() != nullptr);
     REQUIRE(sm.mc()->get_module_type() == "MatrixCore");
-    REQUIRE(sm.matrix_alu() != nullptr);  // cpptlm::gpu::MatrixCore 真值类 (stub)
+    REQUIRE(sm.matrix_alu() != nullptr); // cpptlm::gpu::MatrixCore 真值类 (stub)
 }
 
 TEST_CASE("MatrixCore MFMA stub: kMatrixCore 注入安全 + stub 不标 completed",
@@ -49,7 +49,7 @@ TEST_CASE("MatrixCore MFMA stub: kMatrixCore 注入安全 + stub 不标 complete
     InstrDescriptor desc{};
     desc.instr_id = 300;
     desc.pipe = PipeClass::kMatrixCore;
-    desc.latency_class = LatencyClass::kFixed32Cycle;  // MFMA 典型 32 cycle
+    desc.latency_class = LatencyClass::kFixed32Cycle; // MFMA 典型 32 cycle
     desc.dst_regs[0] = 30;
     desc.src_regs[0] = 1;
     desc.src_regs[1] = 2;

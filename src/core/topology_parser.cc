@@ -4,10 +4,10 @@
  */
 
 #include "core/topology_parser.hh"
-#include "core/sim_core.hh"
-#include "core/topology_node.hh"
 #include <algorithm>
 #include <unordered_set>
+#include "core/sim_core.hh"
+#include "core/topology_node.hh"
 
 namespace cpptlm {
 

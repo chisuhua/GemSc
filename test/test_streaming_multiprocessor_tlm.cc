@@ -28,7 +28,7 @@ TEST_CASE("IComputeDevice::initialize 接受 DeviceConfig", "[sm-microarch][sm-l
     DeviceConfig cfg{};
     cfg.num_sms = 1;
     cfg.max_warps_per_sm = 64;
-    sm.initialize(cfg);  // stub 阶段不保证返回值
+    sm.initialize(cfg); // stub 阶段不保证返回值
     REQUIRE(true);
 }
 
@@ -122,7 +122,8 @@ TEST_CASE("IComputeDevice::warp_exe_once 返回 0 (stub)", "[sm-microarch][sm-l3
 TEST_CASE("SM tick() 不崩溃", "[sm-microarch][sm-l3]") {
     EventQueue eq;
     StreamingMultiprocessorTLM sm("sm0", &eq);
-    for (int i = 0; i < 10; ++i) sm.tick();
+    for (int i = 0; i < 10; ++i)
+        sm.tick();
     REQUIRE(true);
 }
 

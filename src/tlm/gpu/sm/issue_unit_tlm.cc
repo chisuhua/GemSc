@@ -19,28 +19,29 @@
 
 namespace tlm::sm {
 
-IssueUnitTLM::IssueUnitTLM(const std::string& n, EventQueue* eq)
-    : ChStreamModuleBase(n, eq), parent_(nullptr) {}
+    IssueUnitTLM::IssueUnitTLM(const std::string& n, EventQueue* eq)
+        : ChStreamModuleBase(n, eq), parent_(nullptr) {
+    }
     // parent_ 由 SM 构造函数 make_unique 后调 set_parent(this) 注入
     // (per Oracle 预审 Task 2.4 F-2 P0)
 
-void IssueUnitTLM::tick() {
-    // 安全检查: parent + du + du->has_decoded 三段
-    if (!parent_ || !parent_->du() || !parent_->du()->has_decoded()) {
-        issued_valid_ = false;
-        return;
+    void IssueUnitTLM::tick() {
+        // 安全检查: parent + du + du->has_decoded 三段
+        if (!parent_ || !parent_->du() || !parent_->du()->has_decoded()) {
+            issued_valid_ = false;
+            return;
+        }
+        // 从 DecodeUnitTLM.decoded() 读 (已 Decode, 不再 Decode, 不 consume ring)
+        const auto& d = parent_->du()->decoded();
+        // 继承字段透传 (逐字段, 镜像 DecodeUnitTLM 风格, 避免 slice)
+        issued_.instr_desc = d.instr_desc;
+        issued_.pc = d.pc;
+        issued_.pipe = d.pipe;
+        issued_.latency_class = d.latency_class;
+        // Round-robin warp 调度 (per Oracle Q3/Q8)
+        last_issued_warp_id_ = (last_issued_warp_id_ + 1) % num_warps_;
+        issued_.warp_id = last_issued_warp_id_;
+        issued_valid_ = true;
     }
-    // 从 DecodeUnitTLM.decoded() 读 (已 Decode, 不再 Decode, 不 consume ring)
-    const auto& d = parent_->du()->decoded();
-    // 继承字段透传 (逐字段, 镜像 DecodeUnitTLM 风格, 避免 slice)
-    issued_.instr_desc = d.instr_desc;
-    issued_.pc = d.pc;
-    issued_.pipe = d.pipe;
-    issued_.latency_class = d.latency_class;
-    // Round-robin warp 调度 (per Oracle Q3/Q8)
-    last_issued_warp_id_ = (last_issued_warp_id_ + 1) % num_warps_;
-    issued_.warp_id = last_issued_warp_id_;
-    issued_valid_ = true;
-}
 
 } // namespace tlm::sm

@@ -1,4 +1,6 @@
 // test/test_debug_log_system.cc
+#include <iostream>
+#include <sstream>
 #include "catch_amalgamated.hpp"
 #include "core/event_queue.hh"
 #include "core/packet.hh"
@@ -6,8 +8,6 @@
 #include "core/sim_core.hh"
 #include "core/sim_object.hh"
 #include "tlm/tlm_stub.hh"
-#include <iostream>
-#include <sstream>
 
 // Mock 模块用于测试
 class DebugTestModule : public SimObject {

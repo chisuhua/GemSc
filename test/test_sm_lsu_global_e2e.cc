@@ -11,7 +11,8 @@
 //   - lsu_global_ 必须 make_unique (新, cpptlm::gpu::LsuGlobal 真值类, 镜像 SIMTLane 模式)
 //   - lsu_global_tlm.stub 需补 parent_/set_parent 声明 (P1 修复, 镜像 simt_lane_tlm stub)
 //   - SM.exe_once() 关键 P0 修正: lsu_global_->tick() 无条件在 head (异步不依赖 ring)
-//   - 真值行为: enqueue 时快照 PendingRequest, tick 推进 counter, 归零回调写 scalar_regs_ + mark_completed
+//   - 真值行为: enqueue 时快照 PendingRequest, tick 推进 counter, 归零回调写 scalar_regs_ +
+//   mark_completed
 //   - latency_cycles_ = 10 (per Oracle Q3 B 固定)
 //
 // 作者 CppTLM Team / 2027-02-10 (Task 18b P1-9 实施, per Oracle 预审 Task 2.9)
@@ -32,8 +33,8 @@ TEST_CASE("LsuGlobal 模块身份 + 真值 (per plan line 790 '异步内存回�
     // A1: 模块身份 (per Oracle Q8 A1)
     REQUIRE(sm.lg() != nullptr);
     REQUIRE(sm.lg()->get_module_type() == "LsuGlobal");
-    REQUIRE(sm.lsu_global() != nullptr);  // cpptlm::gpu::LsuGlobal 真值类
-    REQUIRE(sm.lsu_global()->pending_count() == 0);  // 初始空
+    REQUIRE(sm.lsu_global() != nullptr);            // cpptlm::gpu::LsuGlobal 真值类
+    REQUIRE(sm.lsu_global()->pending_count() == 0); // 初始空
 }
 
 TEST_CASE("LsuGlobal 异步 load 真值: 10 cycle 后回写 + mark_completed",
@@ -63,13 +64,13 @@ TEST_CASE("LsuGlobal 异步 load 真值: 10 cycle 后回写 + mark_completed",
     for (int i = 0; i < 9; ++i) {
         sm.exe_once();
     }
-    REQUIRE_FALSE(sm.is_instruction_completed(700));  // 未归零回调
+    REQUIRE_FALSE(sm.is_instruction_completed(700)); // 未归零回调
 
     // 推进 3 more cycle (总 12 cycle, 超过 latency=10, 归零回调)
     for (int i = 0; i < 3; ++i) {
         sm.exe_once();
     }
-    REQUIRE(sm.is_instruction_completed(700));  // 归零回调
+    REQUIRE(sm.is_instruction_completed(700)); // 归零回调
     // 数据回写: dst=7 寄存器存 0xDEADBEEFCAFEBABE
     uint64_t val = 0;
     REQUIRE(sm.get_register_value(0, 0, 7, &val));
@@ -89,7 +90,7 @@ TEST_CASE("LsuGlobal pipe 互斥 (非 kLsuGlobal 不入 pending 队列)",
     // 注入 kVectorALU desc (非 kLsuGlobal, lg_ tick 静默不入 pending)
     InstrDescriptor desc{};
     desc.instr_id = 800;
-    desc.pipe = PipeClass::kVectorALU;  // 非 kLsuGlobal
+    desc.pipe = PipeClass::kVectorALU; // 非 kLsuGlobal
     desc.latency_class = LatencyClass::kFixed1Cycle;
     desc.dst_regs[0] = 9;
     desc.src_regs[0] = 1;
@@ -108,7 +109,7 @@ TEST_CASE("LsuGlobal pipe 互斥 (非 kLsuGlobal 不入 pending 队列)",
     // 此处仅验证 reg 9 已被 VectorALU 写入 (非 0), 具体值已在 Task 2.6 测试覆盖
     uint64_t val9 = 0;
     REQUIRE(sm.get_register_value(0, 0, 9, &val9));
-    REQUIRE(val9 != 0);  // VectorALU 已写入 (VIADD.U8x4 wrap 结果)
+    REQUIRE(val9 != 0); // VectorALU 已写入 (VIADD.U8x4 wrap 结果)
 
     // A3: lg_ 不应误入 pending 队列 (pipe 互斥, kVectorALU 不触发 LsuGlobal)
     REQUIRE(sm.lsu_global()->pending_count() == 0);
@@ -152,8 +153,10 @@ TEST_CASE("LsuGlobal 多条目 FIFO 顺序 (Task 2.13.5 A4)",
     sm.exe_once();
     REQUIRE(sm.lsu_global()->pending_count() == 2);
 
-    // 推进 9 cycle (901 在第 11 cycle 归零回调: enqueue cycle 2 + 9 次 lg head tick 后 remaining 1→0)
-    for (int i = 0; i < 9; ++i) sm.exe_once();
+    // 推进 9 cycle (901 在第 11 cycle 归零回调: enqueue cycle 2 + 9 次 lg head tick 后 remaining
+    // 1→0)
+    for (int i = 0; i < 9; ++i)
+        sm.exe_once();
     REQUIRE(sm.is_instruction_completed(901));
     REQUIRE_FALSE(sm.is_instruction_completed(902));
     uint64_t v11 = 0;
@@ -163,7 +166,8 @@ TEST_CASE("LsuGlobal 多条目 FIFO 顺序 (Task 2.13.5 A4)",
     // 推进 1 more cycle (902 起始剩余 10, 现在 10→9)
     sm.exe_once();
     // 推进 9 cycle (902 在第 21 cycle 归零)
-    for (int i = 0; i < 9; ++i) sm.exe_once();
+    for (int i = 0; i < 9; ++i)
+        sm.exe_once();
     REQUIRE(sm.is_instruction_completed(902));
     uint64_t v22 = 0;
     REQUIRE(sm.get_register_value(0, 0, 22, &v22));
@@ -193,15 +197,15 @@ TEST_CASE("LsuGlobal latency_cycles() 覆盖路径 (Task 2.13.5 A5)",
     sm.set_instr_descriptor_buf(&desc, 1);
 
     // 推进 2 cycle (未到 latency=3, pending 仍 active)
-    sm.exe_once();  // cycle 1: fu consume + lg enqueue (remaining=3)
-    sm.exe_once();  // cycle 2: lg tick head: remaining 3→2
+    sm.exe_once(); // cycle 1: fu consume + lg enqueue (remaining=3)
+    sm.exe_once(); // cycle 2: lg tick head: remaining 3→2
     REQUIRE_FALSE(sm.is_instruction_completed(950));
     REQUIRE(sm.lsu_global()->pending_count() == 1);
 
     // 推进 2 more cycle (总 4 cycle, remaining 2→1→0 归零回调)
-    sm.exe_once();  // cycle 3: remaining 2→1
+    sm.exe_once(); // cycle 3: remaining 2→1
     REQUIRE_FALSE(sm.is_instruction_completed(950));
-    sm.exe_once();  // cycle 4: remaining 1→0 → 归零回调 write reg + mark_completed
+    sm.exe_once(); // cycle 4: remaining 1→0 → 归零回调 write reg + mark_completed
     REQUIRE(sm.is_instruction_completed(950));
     REQUIRE(sm.lsu_global()->pending_count() == 0);
     uint64_t v33 = 0;

@@ -8,11 +8,11 @@
 //
 // AE-G5: stdout 输出 "v1.0-dgpu-v0" + 成功 create/destroy + 退出码 0.
 
+#include <dlfcn.h>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <dlfcn.h>
 
 int main(void) {
     void* handle = dlopen("libcpptlm_emulator.so", RTLD_LAZY | RTLD_LOCAL);

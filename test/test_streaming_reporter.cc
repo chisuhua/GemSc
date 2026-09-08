@@ -19,7 +19,6 @@
  * @date 2026-04-22
  */
 
-#include "catch_amalgamated.hpp"
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
@@ -27,6 +26,7 @@
 #include <sstream>
 #include <thread>
 #include <vector>
+#include "catch_amalgamated.hpp"
 
 #include "metrics/stats.hh"
 #include "metrics/stats_manager.hh"

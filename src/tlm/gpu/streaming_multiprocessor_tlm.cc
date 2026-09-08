@@ -7,64 +7,75 @@
 
 namespace tlm {
 
-StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, EventQueue* eq)
-    : ChStreamModuleBase(name, eq) {
-    // Task 1.3 P1-3: 初始化 ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU)
-    // parent_ = this, ScalarALU 通过 parent_->get_scalar_reg / set_scalar_reg
-    // 访问 SM 顶层 scalar_regs_ 真值源 (Task 1.1 interim, Task 2.11 迁移到 RegFileUnit)
-    scalar_alu_ = std::make_unique<cpptlm::gpu::ScalarALU>(this);
-    // Task 2.2 P1-2: 构造 12 子模块 (per Oracle 预审 Task 2.2 F-2 P0 修复)
-    // 之前 12 子模块 unique_ptr 从未构造 (P0 blocker), 现在 make_unique 全集
-    fu_ = std::make_unique<sm::FetchUnitTLM>(name + ".fu", eq);
-    fu_->set_parent(this);  // Task 2.2 P1-2: 注入 parent (per Oracle F-2 P0)
-    du_ = std::make_unique<sm::DecodeUnitTLM>(name + ".du", eq);
-    du_->set_parent(this);  // Task 2.3 P1-3: 注入 parent (per Oracle F-2 P0 修复, Task 2.2 漏了)
-    iu_ = std::make_unique<sm::IssueUnitTLM>(name + ".iu", eq);
-    iu_->set_parent(this);  // Task 2.4 P1-4: 注入 parent (per Oracle F-2 P0 修复)
-    sa_ = std::make_unique<sm::ScalarALU>(name + ".sa", eq);
-    sa_->set_parent(this);  // Task 2.5 P1-5: 注入 parent (per Oracle F-2 P0 修复, 镜像 Task 2.3 du_ 模式)
-    // Task 2.6 P1-6: VectorALU 真值类 (镜像 cpptlm::gpu::ScalarALU, 持 SM 顶层 parent)
-    vector_alu_ = std::make_unique<cpptlm::gpu::VectorALU>(this);
-    va_ = std::make_unique<sm::VectorALU>(name + ".va", eq);
-    va_->set_parent(this);  // Task 2.6 P1-6: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_ 模式)
-    // Task 2.7 P1-7: MatrixCore stub 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU, 真值推迟 Task 4.6)
-    matrix_alu_ = std::make_unique<cpptlm::gpu::MatrixCore>(this);
-    mc_ = std::make_unique<sm::MatrixCore>(name + ".mc", eq);
-    mc_->set_parent(this);  // Task 2.7 P1-7: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_ 模式)
-    // Task 2.8 P1-8: SIMTLane 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU/MatrixCore, EXEC mask + 分歧检测)
-    simt_lane_ = std::make_unique<cpptlm::gpu::SIMTLane>(this);
-    sl_ = std::make_unique<sm::SIMTLane>(name + ".sl", eq);
-    sl_->set_parent(this);  // Task 2.8 P1-8: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_ 模式)
-    // Task 2.9 P1-9: LsuGlobal 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU/MatrixCore/SIMTLane, 异步内存回调骨架)
-    lsu_global_ = std::make_unique<cpptlm::gpu::LsuGlobal>(this);
-    lg_ = std::make_unique<sm::LsuGlobal>(name + ".lg", eq);
-    lg_->set_parent(this);  // Task 2.9 P1-9: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_/sl_ 模式)
-    // Task 2.10 P1-10: LsuLDS 真值类 (镜像 cpptlm::gpu::LsuGlobal, 同步 bank conflict stub)
-    lsu_lds_ = std::make_unique<cpptlm::gpu::LsuLDS>(this);
-    ll_ = std::make_unique<sm::LsuLDS>(name + ".ll", eq);
-    ll_->set_parent(this);  // Task 2.10 P1-10: 注入 parent (per Oracle F-2 P0 修复, 镜像 lg_ 模式)
-    // Task 2.11 P1-11: RegFileUnit 真值类 (per Oracle F-1 P0 修复, 取代 scalar_regs_)
-    reg_file_ = std::make_unique<cpptlm::gpu::RegFileUnit>(this);
-    rf_ = std::make_unique<sm::RegFileUnit>(name + ".rf", eq);
-    rf_->set_parent(this);  // Task 2.11 P1-11: 注入 parent (per Oracle P-2 修复, 镜像 ll_/lg_ 模式)
-    // Task 2.12 P1-12: WritebackUnit 真值类 (per Oracle F-2 P0 re-scope, in-flight 队列 + rf-only)
-    writeback_ = std::make_unique<cpptlm::gpu::WritebackUnit>(this);
-    wb_ = std::make_unique<sm::WritebackUnit>(name + ".wb", eq);
-    wb_->set_parent(this);  // Task 2.12 P1-12: 注入 parent (per Oracle Q3, 镜像 rf_ 模式)
-    // Task 2.13 P1-13: HazardTracker 真值类 (per Oracle F-2 P0 签名 (parent), kVirtualReg + kHardwareCounter)
-    hazard_tracker_ = std::make_unique<cpptlm::gpu::HazardTracker>(this);
-    ht_ = std::make_unique<sm::HazardTracker>(name + ".ht", eq);
-    ht_->set_parent(this);  // Task 2.13 P1-13: 注入 parent (per Oracle Q3, 镜像 rf_/wb_ 模式)
-}
+    StreamingMultiprocessorTLM::StreamingMultiprocessorTLM(const std::string& name, EventQueue* eq)
+        : ChStreamModuleBase(name, eq) {
+        // Task 1.3 P1-3: 初始化 ScalarALU 真值 (独立 cpptlm::gpu::ScalarALU)
+        // parent_ = this, ScalarALU 通过 parent_->get_scalar_reg / set_scalar_reg
+        // 访问 SM 顶层 scalar_regs_ 真值源 (Task 1.1 interim, Task 2.11 迁移到 RegFileUnit)
+        scalar_alu_ = std::make_unique<cpptlm::gpu::ScalarALU>(this);
+        // Task 2.2 P1-2: 构造 12 子模块 (per Oracle 预审 Task 2.2 F-2 P0 修复)
+        // 之前 12 子模块 unique_ptr 从未构造 (P0 blocker), 现在 make_unique 全集
+        fu_ = std::make_unique<sm::FetchUnitTLM>(name + ".fu", eq);
+        fu_->set_parent(this); // Task 2.2 P1-2: 注入 parent (per Oracle F-2 P0)
+        du_ = std::make_unique<sm::DecodeUnitTLM>(name + ".du", eq);
+        du_->set_parent(this); // Task 2.3 P1-3: 注入 parent (per Oracle F-2 P0 修复, Task 2.2 漏了)
+        iu_ = std::make_unique<sm::IssueUnitTLM>(name + ".iu", eq);
+        iu_->set_parent(this); // Task 2.4 P1-4: 注入 parent (per Oracle F-2 P0 修复)
+        sa_ = std::make_unique<sm::ScalarALU>(name + ".sa", eq);
+        sa_->set_parent(
+            this); // Task 2.5 P1-5: 注入 parent (per Oracle F-2 P0 修复, 镜像 Task 2.3 du_ 模式)
+        // Task 2.6 P1-6: VectorALU 真值类 (镜像 cpptlm::gpu::ScalarALU, 持 SM 顶层 parent)
+        vector_alu_ = std::make_unique<cpptlm::gpu::VectorALU>(this);
+        va_ = std::make_unique<sm::VectorALU>(name + ".va", eq);
+        va_->set_parent(this); // Task 2.6 P1-6: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_ 模式)
+        // Task 2.7 P1-7: MatrixCore stub 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU, 真值推迟
+        // Task 4.6)
+        matrix_alu_ = std::make_unique<cpptlm::gpu::MatrixCore>(this);
+        mc_ = std::make_unique<sm::MatrixCore>(name + ".mc", eq);
+        mc_->set_parent(
+            this); // Task 2.7 P1-7: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_ 模式)
+        // Task 2.8 P1-8: SIMTLane 真值类 (镜像 cpptlm::gpu::ScalarALU/VectorALU/MatrixCore, EXEC
+        // mask + 分歧检测)
+        simt_lane_ = std::make_unique<cpptlm::gpu::SIMTLane>(this);
+        sl_ = std::make_unique<sm::SIMTLane>(name + ".sl", eq);
+        sl_->set_parent(
+            this); // Task 2.8 P1-8: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_ 模式)
+        // Task 2.9 P1-9: LsuGlobal 真值类 (镜像
+        // cpptlm::gpu::ScalarALU/VectorALU/MatrixCore/SIMTLane, 异步内存回调骨架)
+        lsu_global_ = std::make_unique<cpptlm::gpu::LsuGlobal>(this);
+        lg_ = std::make_unique<sm::LsuGlobal>(name + ".lg", eq);
+        lg_->set_parent(
+            this); // Task 2.9 P1-9: 注入 parent (per Oracle F-2 P0 修复, 镜像 sa_/va_/mc_/sl_ 模式)
+        // Task 2.10 P1-10: LsuLDS 真值类 (镜像 cpptlm::gpu::LsuGlobal, 同步 bank conflict stub)
+        lsu_lds_ = std::make_unique<cpptlm::gpu::LsuLDS>(this);
+        ll_ = std::make_unique<sm::LsuLDS>(name + ".ll", eq);
+        ll_->set_parent(
+            this); // Task 2.10 P1-10: 注入 parent (per Oracle F-2 P0 修复, 镜像 lg_ 模式)
+        // Task 2.11 P1-11: RegFileUnit 真值类 (per Oracle F-1 P0 修复, 取代 scalar_regs_)
+        reg_file_ = std::make_unique<cpptlm::gpu::RegFileUnit>(this);
+        rf_ = std::make_unique<sm::RegFileUnit>(name + ".rf", eq);
+        rf_->set_parent(
+            this); // Task 2.11 P1-11: 注入 parent (per Oracle P-2 修复, 镜像 ll_/lg_ 模式)
+        // Task 2.12 P1-12: WritebackUnit 真值类 (per Oracle F-2 P0 re-scope, in-flight 队列 +
+        // rf-only)
+        writeback_ = std::make_unique<cpptlm::gpu::WritebackUnit>(this);
+        wb_ = std::make_unique<sm::WritebackUnit>(name + ".wb", eq);
+        wb_->set_parent(this); // Task 2.12 P1-12: 注入 parent (per Oracle Q3, 镜像 rf_ 模式)
+        // Task 2.13 P1-13: HazardTracker 真值类 (per Oracle F-2 P0 签名 (parent), kVirtualReg +
+        // kHardwareCounter)
+        hazard_tracker_ = std::make_unique<cpptlm::gpu::HazardTracker>(this);
+        ht_ = std::make_unique<sm::HazardTracker>(name + ".ht", eq);
+        ht_->set_parent(this); // Task 2.13 P1-13: 注入 parent (per Oracle Q3, 镜像 rf_/wb_ 模式)
+    }
 
-void StreamingMultiprocessorTLM::set_stream_adapter(cpptlm::StreamAdapterBase* adapter) {
-    adapter_ = adapter;
-}
+    void StreamingMultiprocessorTLM::set_stream_adapter(cpptlm::StreamAdapterBase* adapter) {
+        adapter_ = adapter;
+    }
 
-void StreamingMultiprocessorTLM::tick() {
-    // Stub: Task 18 将协调 12 子模块:
-    //   fu_->tick(); du_->tick(); iu_->tick(); ... 等
-    // 当前为空 (Task 4 占位, 编译通过即可)
-}
+    void StreamingMultiprocessorTLM::tick() {
+        // Stub: Task 18 将协调 12 子模块:
+        //   fu_->tick(); du_->tick(); iu_->tick(); ... 等
+        // 当前为空 (Task 4 占位, 编译通过即可)
+    }
 
-}  // namespace tlm
+} // namespace tlm

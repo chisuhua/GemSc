@@ -21,9 +21,9 @@ TEST_CASE("PcieLinkLayer: gen ACK/NAK DLLP", "[pcie][ll][dllp]") {
     auto ack = ll.make_ack(/*ack_seq=*/0x0123);
     REQUIRE(ack.is_ack() == true);
     REQUIRE(ack.kind.read() == PcieDllpBundle::ACK);
-    REQUIRE(ack.vc_id.read() == 0u);          // 单 VC0 (per Q11)
+    REQUIRE(ack.vc_id.read() == 0u); // 单 VC0 (per Q11)
     REQUIRE(ack.seq_num_ack.read() == 0x0123u);
-    REQUIRE(ack.seq_num.read() == 0u);        // ACK 不携带发送 seq
+    REQUIRE(ack.seq_num.read() == 0u); // ACK 不携带发送 seq
 
     auto nak = ll.make_nak(/*nak_seq=*/0x0456);
     REQUIRE(nak.is_nak() == true);
@@ -75,8 +75,10 @@ TEST_CASE("PcieLinkLayer: dispatch ACK/NAK DLLP to handlers", "[pcie][ll][dllp]"
 
     // 发送 3 个 TLP → retry buffer 有 seq 0,1,2
     PcieTlpBundle t0(/*kind=*/PcieTlpBundle::MMIO_WRITE, 0, 0x1000, 4, 1, 0x0100, 1);
-    PcieTlpBundle t1 = t0; t1.trans_id.write(2);
-    PcieTlpBundle t2 = t0; t2.trans_id.write(3);
+    PcieTlpBundle t1 = t0;
+    t1.trans_id.write(2);
+    PcieTlpBundle t2 = t0;
+    t2.trans_id.write(3);
     REQUIRE(ll.tx_tlp(t0) == true);
     REQUIRE(ll.tx_tlp(t1) == true);
     REQUIRE(ll.tx_tlp(t2) == true);

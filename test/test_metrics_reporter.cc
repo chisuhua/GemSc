@@ -18,12 +18,12 @@
  * @date 2026-04-17
  */
 
-#include "catch_amalgamated.hpp"
 #include <cstdio>
 #include <fstream>
 #include <sstream>
 #include <thread>
 #include <vector>
+#include "catch_amalgamated.hpp"
 
 // C++17: std::filesystem 用于跨平台目录操作
 #include <filesystem>

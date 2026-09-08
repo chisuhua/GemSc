@@ -2,8 +2,8 @@
 // 8 Bundle POD 字段验证 (per plan Task 6 Step 1)
 //
 // 作者 CppTLM Team / 日期 2027-02-09 (SM 重构 Task 6)
-#include "catch_amalgamated.hpp"
 #include "bundles/sm_bundles_tlm.hh"
+#include "catch_amalgamated.hpp"
 #include "tlm/gpu/instruction_descriptor.hh"
 
 using namespace bundles::sm;
@@ -26,7 +26,8 @@ TEST_CASE("DecodeToIssueBundle adds PipeClass + LatencyClass", "[sm-bundle][sm-m
     REQUIRE(b.latency_class == cpptlm::gpu::LatencyClass::kFixed4Cycle);
 }
 
-TEST_CASE("IssueToExecBundle adds src_values + src_valid (PTX-EMU upstream sync)", "[sm-bundle][sm-microarch]") {
+TEST_CASE("IssueToExecBundle adds src_values + src_valid (PTX-EMU upstream sync)",
+          "[sm-bundle][sm-microarch]") {
     IssueToExecBundle b{};
     b.src_values[0] = 0xCAFEBABE;
     b.src_values[1] = 0xDEADBEEF;
@@ -38,7 +39,8 @@ TEST_CASE("IssueToExecBundle adds src_values + src_valid (PTX-EMU upstream sync)
     REQUIRE(b.src_valid[1]);
 }
 
-TEST_CASE("ExecToWritebackBundle adds result_value + memory_data + exec_cycles", "[sm-bundle][sm-microarch]") {
+TEST_CASE("ExecToWritebackBundle adds result_value + memory_data + exec_cycles",
+          "[sm-bundle][sm-microarch]") {
     ExecToWritebackBundle b{};
     b.result_value[0] = 0x1234;
     b.memory_data_valid = true;
@@ -50,7 +52,8 @@ TEST_CASE("ExecToWritebackBundle adds result_value + memory_data + exec_cycles",
     REQUIRE(b.exec_cycles == 4);
 }
 
-TEST_CASE("WritebackToRegFileBundle carries dst_regs + values + is_accvgpr", "[sm-bundle][sm-microarch]") {
+TEST_CASE("WritebackToRegFileBundle carries dst_regs + values + is_accvgpr",
+          "[sm-bundle][sm-microarch]") {
     WritebackToRegFileBundle b{};
     b.warp_id = 3;
     b.dst_regs[0] = 8;
@@ -80,7 +83,8 @@ TEST_CASE("MemoryReqBundle carries vaddr + size + lane_mask", "[sm-bundle][sm-mi
     REQUIRE(b.lane_mask == 0xFF);
 }
 
-TEST_CASE("MemoryRespBundle carries data + cycles (HazardTracker release)", "[sm-bundle][sm-microarch]") {
+TEST_CASE("MemoryRespBundle carries data + cycles (HazardTracker release)",
+          "[sm-bundle][sm-microarch]") {
     MemoryRespBundle b{};
     b.tag = 0xABCD;
     b.data = 0xDEADBEEF;
@@ -97,7 +101,7 @@ TEST_CASE("ScoreboardQueryBundle QueryType enum + ctrl bits", "[sm-bundle][sm-mi
     b.query_type = ScoreboardQueryBundle::QueryType::kIncrement;
     b.warp_id = 7;
     b.sm_id = 0;
-    b.ctrl.branch_type = 1;  // COND
+    b.ctrl.branch_type = 1; // COND
     REQUIRE(b.query_type == ScoreboardQueryBundle::QueryType::kIncrement);
     REQUIRE(b.warp_id == 7);
     REQUIRE(b.ctrl.branch_type == 1);

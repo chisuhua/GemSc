@@ -3,11 +3,11 @@
 // 功能描述：实现六阶段流水线 (BW→RC→VA→SA→ST→LT) 和 Credit-based Flow Control
 // 作者 CppTLM Team / 日期 2026-04-23
 #include "tlm/router_tlm.hh"
+#include <algorithm>
+#include <cassert>
 #include "core/module_factory.hh"
 #include "core/param_rules.hh"
 #include "core/sim_core.hh"
-#include <algorithm>
-#include <cassert>
 
 namespace tlm {
 
