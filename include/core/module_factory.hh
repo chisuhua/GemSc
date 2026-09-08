@@ -34,7 +34,10 @@ using CreateSimModuleFunc = std::function<SimModule*(const std::string&, EventQu
 class ModuleFactory {
 private:
     EventQueue* event_queue;
-    std::unordered_map<std::string, SimObject*> instances;
+    // RAII ownership: 防止 instantiateAll 异常路径 (Step 4.5 catch → return false)
+    // 跳过 line 830 `instances = object_instances` 时 local map 析构 → SimObject 孤儿泄漏。
+    // unique_ptr 自动 delete, exception unwind 时栈展开保证 destructor 调用。
+    std::unordered_map<std::string, std::unique_ptr<SimObject>> instances;
     std::vector<std::unique_ptr<cpptlm::StreamAdapterBase>> stream_adapters_;
     std::vector<std::unique_ptr<cpptlm::ChStreamInitiatorPort>> ch_initiator_ports_;
     std::vector<std::unique_ptr<cpptlm::ChStreamTargetPort>> ch_target_ports_;
@@ -171,7 +174,7 @@ public:
 
     SimObject* getInstance(const std::string& name) const {
         auto it = instances.find(name);
-        return it != instances.end() ? it->second : nullptr;
+        return it != instances.end() ? it->second.get() : nullptr;
     }
 
     // 模板化版本：支持类型安全的 downcast
@@ -179,12 +182,14 @@ public:
     T* getInstance(const std::string& name) const {
         auto it = instances.find(name);
         if (it != instances.end()) {
-            return dynamic_cast<T*>(it->second);
+            return dynamic_cast<T*>(it->second.get());
         }
         return nullptr;
     }
 
-    const std::unordered_map<std::string, SimObject*>& getAllInstances() const {
+    // RAII 所有权: 返回 unique_ptr map。空检查 (.empty()/.size()) 与 value type 无关,
+    // 现有调用者无需改动; 迭代访问 value 的调用者需 `.get()` 转 raw (4 文件已更新)。
+    const std::unordered_map<std::string, std::unique_ptr<SimObject>>& getAllInstances() const {
         return instances;
     }
 
@@ -268,8 +273,9 @@ public:
 #ifdef CPPTLM_TESTING
 public:
     // P1 测试辅助: 直接向 instances 添加 (绕过 instantiateAll 的 8 步流程)
-    void addInstanceForTesting(const std::string& name, SimObject* obj) {
-        instances[name] = obj;  // 实际字段名 (无下划线)
+    // 接受 unique_ptr 转移动所有权, 与 RAII 设计一致。
+    void addInstanceForTesting(const std::string& name, std::unique_ptr<SimObject> obj) {
+        instances[name] = std::move(obj);
     }
 #endif
 

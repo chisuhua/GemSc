@@ -104,13 +104,13 @@ namespace cpptlm::tlm {
     }
     void ApuSoC::collectAndRegisterPeerCaches(CoherentXBarTLM* xbar, SimModule* subtree_root,
                                               const std::string& path_prefix) {
-        for (const auto& [name, obj] : subtree_root->getInternalFactory().getAllInstances()) {
-            if (!obj)
+        for (const auto& [name, obj_ptr] : subtree_root->getInternalFactory().getAllInstances()) {
+            if (!obj_ptr)
                 continue;
             std::string full_name = path_prefix.empty() ? name : path_prefix + "." + name;
 
             // 命中 CacheTLM: 取 D.1 修复后的 req_out 并注册
-            if (auto* cache = dynamic_cast<CacheTLM*>(obj)) {
+            if (auto* cache = dynamic_cast<CacheTLM*>(obj_ptr.get())) {
                 if (!cache->hasPortManager())
                     continue;
                 auto* req_out =
@@ -124,7 +124,7 @@ namespace cpptlm::tlm {
             }
 
             // 命中 SimModule: 递归下钻 (CpuCluster/GpuCluster/GpcCluster/...)
-            if (auto* sub = dynamic_cast<SimModule*>(obj)) {
+            if (auto* sub = dynamic_cast<SimModule*>(obj_ptr.get())) {
                 collectAndRegisterPeerCaches(xbar, sub, full_name);
             }
         }

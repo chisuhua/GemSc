@@ -86,10 +86,10 @@ std::map<std::string, cpptlm::ModulePortSpec> get_default_port_specs();
 // global ModuleGroup is just a name->pointer lookup, not an
 // ownership structure.
 ModuleFactory::~ModuleFactory() {
-    for (auto& [name, obj] : instances) {
-        if (!obj)
+    for (auto& [name, obj_ptr] : instances) {
+        if (!obj_ptr)
             continue;
-        if (auto* ch_mod = dynamic_cast<ChStreamModuleBase*>(obj)) {
+        if (auto* ch_mod = dynamic_cast<ChStreamModuleBase*>(obj_ptr.get())) {
             if (auto* sg = ch_mod->get_stats_group()) {
                 std::vector<std::string> paths;
                 for (const auto& kv : tlm_stats::StatsManager::instance().groups()) {
@@ -102,19 +102,18 @@ ModuleFactory::~ModuleFactory() {
             }
         }
     }
-    std::vector<std::pair<std::string, SimObject*>> to_release;
-    for (auto& [name, obj] : instances) {
-        if (obj) {
-            to_release.emplace_back(name, obj);
-            obj = nullptr;
-        }
+    // RAII: instances.clear() 触发 unique_ptr 析构 → SimObject 自动 delete,
+    // 不再需要 to_release + 手动 delete 循环。
+    // ModuleGroup::eraseInstance 必须在 SimObject delete 之前完成, 否则
+    // ModuleGroup::clearAllGroups 会在 cascade destruction 中撞到 stale pointer。
+    std::vector<std::string> names;
+    names.reserve(instances.size());
+    for (const auto& [name, _] : instances) {
+        names.push_back(name);
     }
     instances.clear();
-    for (auto& [name, obj] : to_release) {
+    for (const auto& name : names) {
         ModuleGroup::eraseInstance(name);
-    }
-    for (auto& [name, obj] : to_release) {
-        delete obj;
     }
     ModuleGroup::clearAllGroups();
 }
@@ -250,7 +249,11 @@ bool ModuleFactory::instantiateAll(const json& config) {
     // ========================
     // 2. 创建所有模块实例
     // ========================
-    std::unordered_map<std::string, SimObject*> object_instances;
+    // RAII: unique_ptr 持有所有权, 防 Step 4.5 异常路径 (line 379-382 return false)
+    // 跳过 line 830 transfer 时 local map 析构 → SimObject 孤儿泄漏。
+    // 与 member `instances` 类型一致, line 830 `instances = object_instances`
+    // 走 move-assign 即可。
+    std::unordered_map<std::string, std::unique_ptr<SimObject>> object_instances;
     std::unordered_map<std::string, SimModule*> module_instances;
 
     for (auto& mod : final_config["modules"]) {
@@ -263,16 +266,19 @@ bool ModuleFactory::instantiateAll(const json& config) {
         auto& module_registry = ModuleFactory::getModuleRegistry();
         auto module_it = module_registry.find(type);
         if (module_it != module_registry.end()) {
-            // 这是一个 SimModule
-            SimModule* new_module = module_it->second(name, event_queue);
-            object_instances[name] = new_module;
-            module_instances[name] = new_module;
+            // 这是一个 SimModule。RAII: unique_ptr 持有所有权, module_instances
+            // 保存 raw 视图 (非所有权, 用于 Step 4.5/incorporate_parent 迭代)。
+            auto new_module =
+                std::unique_ptr<SimModule>(module_it->second(name, event_queue));
+            module_instances[name] = new_module.get();
+            object_instances[name] = std::move(new_module);
         } else {
             // 在 SimObject 注册表中查找
             auto& object_registry = ModuleFactory::getObjectRegistry();
             auto object_it = object_registry.find(type);
             if (object_it != object_registry.end()) {
-                object_instances[name] = object_it->second(name, event_queue);
+                object_instances[name] =
+                    std::unique_ptr<SimObject>(object_it->second(name, event_queue));
             } else {
                 DPRINTF(MODULE, "[ERROR] Unknown or unregistered type: %s\n", type.c_str());
             }
@@ -286,6 +292,7 @@ bool ModuleFactory::instantiateAll(const json& config) {
             if (x >= 0 && y >= 0) {
                 auto it = object_instances.find(name);
                 if (it != object_instances.end() && it->second) {
+                    // unique_ptr::operator-> 返回 raw pointer, setLayout 直接调用
                     it->second->setLayout(x, y);
                 }
             }
@@ -297,19 +304,19 @@ bool ModuleFactory::instantiateAll(const json& config) {
         if (!cfg_src && type == "NICTLM" && mod.contains("node_id"))
             cfg_src = &mod;
         if (cfg_src) {
-            auto* obj = object_instances[name];
-            if (obj) {
-                obj->set_config(*cfg_src);
-                obj->on_config_loaded();
+            auto it = object_instances.find(name);
+            if (it != object_instances.end() && it->second) {
+                it->second->set_config(*cfg_src);
+                it->second->on_config_loaded();
                 DPRINTF(MODULE, "[CONFIG] Set params for module: %s\n", name.c_str());
             }
         }
 
         // 注册实例到 ModuleGroup（供通配符展开使用）——使用 find 避免 operator[]
-        // 在类型未注册时隐式插入 nullptr 条目
+        // 在类型未注册时隐式插入 nullptr 条目。.get() 转 raw pointer 给 registerInstance。
         auto reg_it = object_instances.find(name);
         if (reg_it != object_instances.end() && reg_it->second) {
-            ModuleGroup::registerInstance(name, reg_it->second);
+            ModuleGroup::registerInstance(name, reg_it->second.get());
         }
     }
 
@@ -423,10 +430,11 @@ bool ModuleFactory::instantiateAll(const json& config) {
         auto it = object_instances.find(owner);
         if (it != object_instances.end() && it->second && it->second->hasPortManager()) {
             auto& pm = it->second->getPortManager();
+            SimObject* raw_obj = it->second.get();
             if (is_upstream) {
-                pm.addUpstreamPort(it->second, {buffer_size}, {}, port);
+                pm.addUpstreamPort(raw_obj, {buffer_size}, {}, port);
             } else {
-                pm.addDownstreamPort(it->second, {buffer_size}, {}, port);
+                pm.addDownstreamPort(raw_obj, {buffer_size}, {}, port);
             }
             return true;
         }
@@ -441,14 +449,15 @@ bool ModuleFactory::instantiateAll(const json& config) {
         auto it = object_instances.find(info.owner_name);
         if (it != object_instances.end() && it->second && it->second->hasPortManager()) {
             auto& pm = it->second->getPortManager();
+            SimObject* raw_obj = it->second.get();
 
             if (info.is_upstream) {
-                auto* port = pm.addUpstreamPort(it->second, info.buffer_sizes, info.priorities,
+                auto* port = pm.addUpstreamPort(raw_obj, info.buffer_sizes, info.priorities,
                                                 info.port_name);
                 if (port)
                     port->setDelay(info.latency);
             } else {
-                auto* port = pm.addDownstreamPort(it->second, info.buffer_sizes, info.priorities,
+                auto* port = pm.addDownstreamPort(raw_obj, info.buffer_sizes, info.priorities,
                                                   info.port_name);
                 if (port)
                     port->setDelay(info.latency);
@@ -527,7 +536,7 @@ bool ModuleFactory::instantiateAll(const json& config) {
             } else if (auto obj_it = object_instances.find(src_module_name);
                        obj_it != object_instances.end() && obj_it->second) {
                 // Wildcard/group expansion: create default downstream port
-                src_port = obj_it->second->getPortManager().addDownstreamPort(obj_it->second, {4},
+                src_port = obj_it->second->getPortManager().addDownstreamPort(obj_it->second.get(), {4},
                                                                               {}, src_module_name);
             }
 
@@ -557,7 +566,7 @@ bool ModuleFactory::instantiateAll(const json& config) {
                            obj_it != object_instances.end() && obj_it->second) {
                     // Wildcard/group expansion: create default upstream port
                     dst_port = obj_it->second->getPortManager().addUpstreamPort(
-                        obj_it->second, {4}, {}, dst_module_name);
+                        obj_it->second.get(), {4}, {}, dst_module_name);
                 }
 
                 if (src_port && dst_port) {
@@ -600,10 +609,10 @@ bool ModuleFactory::instantiateAll(const json& config) {
             module_types[mod["name"]] = mod["type"];
     }
 
-    for (auto& [name, obj] : object_instances) {
-        if (!obj)
+    for (auto& [name, obj_ptr] : object_instances) {
+        if (!obj_ptr)
             continue;
-        auto* ch_mod = dynamic_cast<ChStreamModuleBase*>(obj);
+        auto* ch_mod = dynamic_cast<ChStreamModuleBase*>(obj_ptr.get());
         if (!ch_mod)
             continue;
 
@@ -618,7 +627,7 @@ bool ModuleFactory::instantiateAll(const json& config) {
             continue;
         }
 
-        auto adapter = factory.create(type, obj);
+        auto adapter = factory.create(type, obj_ptr.get());
         if (!adapter) {
             DPRINTF(MODULE, "[ERROR] Failed to create adapter for %s (type: %s)\n", name.c_str(),
                     type.c_str());
@@ -705,10 +714,10 @@ bool ModuleFactory::instantiateAll(const json& config) {
     // ========================
     // 8. 自动注册 StatGroup 到 StatsManager（Phase 0 修复）
     // ========================
-    for (auto& [name, obj] : object_instances) {
-        if (!obj)
+    for (auto& [name, obj_ptr] : object_instances) {
+        if (!obj_ptr)
             continue;
-        auto* ch_mod = dynamic_cast<ChStreamModuleBase*>(obj);
+        auto* ch_mod = dynamic_cast<ChStreamModuleBase*>(obj_ptr.get());
         if (!ch_mod)
             continue;
 
@@ -826,14 +835,17 @@ bool ModuleFactory::instantiateAll(const json& config) {
         mod->incorporate_parent(nullptr);
     }
 
-    // 保存所有实例
-    instances = object_instances;
+    // 保存所有实例。unique_ptr 非可拷贝, 必须 std::move 触发 move-assign
+    // (instances 与 object_instances 类型一致, move 后 object_instances 为空,
+    //  栈展开自动析构空 map 无副作用)。
+    instances = std::move(object_instances);
     return !connection_failed;
 }
 
 void ModuleFactory::startAllTicks() {
-    for (auto& [name, obj] : instances) {
-        obj->initiate_tick();
+    for (auto& [name, obj_ptr] : instances) {
+        // unique_ptr::operator-> 返回 raw pointer, 直接调 initiate_tick
+        obj_ptr->initiate_tick();
         DPRINTF(MODULE, "[MODULE] Started tick for %s\n", name.c_str());
     }
 }

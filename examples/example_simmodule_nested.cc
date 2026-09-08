@@ -52,7 +52,7 @@ namespace {
                   << " inputs=" << cluster->getInputConfigs().size() << "\n";
 
         for (const auto& kv : factory.getAllInstances()) {
-            auto* child = dynamic_cast<CpuCluster*>(kv.second);
+            auto* child = dynamic_cast<CpuCluster*>(kv.second.get());
             if (child) {
                 printTopology(child, indent + 1);
             }
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     int cluster_count = 0;
     int max_depth = 0;
     for (const auto& kv : factory.getAllInstances()) {
-        auto* cluster = dynamic_cast<CpuCluster*>(kv.second);
+        auto* cluster = dynamic_cast<CpuCluster*>(kv.second.get());
         if (cluster) {
             ++cluster_count;
             printTopology(cluster, 1);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Total top-level CpuCluster instances: " << cluster_count << "\n";
 
     for (const auto& kv : factory.getAllInstances()) {
-        auto* cluster = dynamic_cast<CpuCluster*>(kv.second);
+        auto* cluster = dynamic_cast<CpuCluster*>(kv.second.get());
         if (cluster) {
             std::cout << "Cluster '" << cluster->getName() << "' has "
                       << cluster->getInternalFactory().getAllInstances().size()
