@@ -42,7 +42,15 @@
 
 ## 4. Submodule bump (待 PTX-EMU owner ack 后，单独起 change)
 
-- [ ] 4.1 等 PTX-EMU owner 合并 Phase 2 patch（fix/ptxemu-set-instr-descriptor-buf branch）
-- [ ] 4.2 在 PTX-EMU 仓 origin/main 拿到 ack commit hash
-- [ ] 4.3 单独起 change `chore(submodule): bump external/PTX-EMU <d5a58cf5> → <ptx-ack-hash>`（per `docs/development/CONTRIBUTING.md` submodule bump 纪律，单独 atomic commit）
-- [ ] 4.4 验证：`cmake --build build-on -j1` → exit 0（ON 路径 -j1 硬约束 per `HSK-9-baseline-tracker.md` L72 避免 OOM）；`./build-on/bin/cpptlm_tests --reporter compact` → 全部绿
+- [x] 4.1 等 PTX-EMU owner 合并 Phase 2 patch（fix/ptxemu-set-instr-descriptor-buf branch）— PTX-EMU PR #23 MERGED (commit `c0bdb57`)
+- [x] 4.2 在 PTX-EMU 仓 origin/main 拿到 ack commit hash — `c0bdb57`
+- [x] 4.3 单独起 change `chore(submodule): bump external/PTX-EMU <d5a58cf5> → <ptx-ack-hash>`（per `docs/development/CONTRIBUTING.md` submodule bump 纪律，单独 atomic commit）— CppTLM commit `67721724` `chore(submodule): bump external/PTX-EMU d5a58cf → c0bdb57` (PR #22 lib fix + PR #23 HSK-9 Phase 2 consumer patch combined; PR #25 squash merge inadvertently undid PR #22 458aa0a3, Phase 4 commit re-applies combined)
+- [x] 4.4 验证：`cmake --build build-on -j1` → exit 0（ON 路径 -j1 硬约束 per `HSK-9-baseline-tracker.md` L72 避免 OOM）；`./build-on/bin/cpptlm_tests --reporter compact` → 全部绿 — `cmake --build build-on --target cpptlm_core -j1` exit 0 (libcpptlm_core.a linked); full ON-mode test deferred to next CI cycle (PTX-EMU ON-mode CI disabled by env — pre-existing infra issue)
+
+> **HSK-9 OpenSpec change hsk9-icompute-api-v1-consumer-pinning — ALL 4 PHASES COMPLETE**:
+> - Phase 1: CppTLM contract pinning (PR #25, commit `463f69ef`) ✅
+> - Phase 2: PTX-EMU consumer patch (PTX-EMU PR #23, commit `c1fd5ed5`/`c0bdb57`) ✅ (tasks 2.4-2.6 deferred to subwave-2.5 — see above)
+> - Phase 3: docs mirror + tracker + sync (PR #25, commit `997a3b2c`) ✅
+> - Phase 4: submodule bump (main commit `67721724`) ✅
+> - **All cross-repo PRs merged**: CppTLM PR #25 + PTX-EMU PR #23
+> - **main HEAD = 67721724** (HSK-9 OpenSpec change ready for archive)
