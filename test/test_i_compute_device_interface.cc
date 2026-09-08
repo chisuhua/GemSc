@@ -28,7 +28,8 @@ TEST_CASE("InstrDescriptor ISA discriminator + instr_id fields exist", "[icomput
     REQUIRE(desc.instr_id == 42);
 }
 
-TEST_CASE("InstrDescriptor result_value[] holds SM-computed timing truth", "[icompute][sm-microarch]") {
+TEST_CASE("InstrDescriptor result_value[] holds SM-computed timing truth",
+          "[icompute][sm-microarch]") {
     InstrDescriptor desc{};
     desc.result_value[0] = 0xDEADBEEFCAFEBABEull;
     desc.result_value[1] = 0x1234567890ABCDEFull;
@@ -49,13 +50,14 @@ TEST_CASE("StreamingMultiprocessorTLM has module type", "[icompute][sm-microarch
     REQUIRE(sm.get_module_type() == "StreamingMultiprocessorTLM");
 }
 
-TEST_CASE("StreamingMultiprocessorTLM IComputeDevice 15 methods callable (stub returns defaults)", "[icompute][sm-microarch]") {
+TEST_CASE("StreamingMultiprocessorTLM IComputeDevice 15 methods callable (stub returns defaults)",
+          "[icompute][sm-microarch]") {
     EventQueue eq;
     tlm::StreamingMultiprocessorTLM sm("sm0", &eq);
 
     // 11 preserved
     DeviceConfig cfg{};
-    REQUIRE(sm.initialize(cfg) == true);  // Task 1.3 P1-3: ScalarALU 真值 (per plan)
+    REQUIRE(sm.initialize(cfg) == true); // Task 1.3 P1-3: ScalarALU 真值 (per plan)
     sm.shutdown();
     REQUIRE(sm.exe_once() == 0);
     REQUIRE(sm.sm_exe_once(0) == 0);
@@ -85,7 +87,7 @@ TEST_CASE("StreamingMultiprocessorTLM IComputeDevice 15 methods callable (stub r
 TEST_CASE("StreamingMultiprocessorTLM tick() stub no-op", "[icompute][sm-microarch]") {
     EventQueue eq;
     tlm::StreamingMultiprocessorTLM sm("sm0", &eq);
-    sm.tick();  // 不应抛异常
+    sm.tick(); // 不应抛异常
     REQUIRE(true);
 }
 
