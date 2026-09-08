@@ -42,14 +42,14 @@ namespace {
     void registerAllStats(ModuleFactory& factory) {
         tlm_stats::StatsManager::instance().reset_all();
 
-        for (const auto& [name, obj] : factory.getAllInstances()) {
-            if (auto* tg = dynamic_cast<TrafficGenTLM*>(obj)) {
+        for (const auto& [name, obj_ptr] : factory.getAllInstances()) {
+            if (auto* tg = dynamic_cast<TrafficGenTLM*>(obj_ptr.get())) {
                 tlm_stats::StatsManager::instance().register_group(&tg->stats(), name);
-            } else if (auto* cache = dynamic_cast<CacheTLM*>(obj)) {
+            } else if (auto* cache = dynamic_cast<CacheTLM*>(obj_ptr.get())) {
                 tlm_stats::StatsManager::instance().register_group(&cache->stats(), name);
-            } else if (auto* xbar = dynamic_cast<CrossbarTLM*>(obj)) {
+            } else if (auto* xbar = dynamic_cast<CrossbarTLM*>(obj_ptr.get())) {
                 tlm_stats::StatsManager::instance().register_group(&xbar->stats(), name);
-            } else if (auto* mem = dynamic_cast<MemoryTLM*>(obj)) {
+            } else if (auto* mem = dynamic_cast<MemoryTLM*>(obj_ptr.get())) {
                 tlm_stats::StatsManager::instance().register_group(&mem->stats(), name);
             }
         }
