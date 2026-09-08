@@ -63,7 +63,8 @@
             "tpc_per_gpc": 2,
             "cu_per_tpc": 2,
             "cu_template": "configs/templates/compute_unit_v1.json"
-          }
+          },
+          "connections": []
         },
         {
           "name": "vram",

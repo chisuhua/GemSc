@@ -35,13 +35,13 @@
 // registerObject/registerModule 检查 existing entry, 重复注册是 no-op.
 // __attribute__((used)) 防止链接器 GC (lib 静态变量无显式引用时可能被 GC).
 namespace {
-struct CpptlmEmulatorRegistrar {
-    CpptlmEmulatorRegistrar() {
-        REGISTER_OBJECT;
-        REGISTER_CHSTREAM;
-    }
-} __attribute__((used));
-const CpptlmEmulatorRegistrar _cpptlm_emulator_registrar __attribute__((used));
+    struct CpptlmEmulatorRegistrar {
+        CpptlmEmulatorRegistrar() {
+            REGISTER_OBJECT;
+            REGISTER_CHSTREAM;
+        }
+    } __attribute__((used));
+    const CpptlmEmulatorRegistrar _cpptlm_emulator_registrar __attribute__((used));
 } // namespace
 
 struct cpptlm_emulator_s {
