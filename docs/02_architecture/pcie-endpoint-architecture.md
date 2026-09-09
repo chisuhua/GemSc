@@ -5,6 +5,7 @@
 > **范围**: 跨仓 SSOT（CppTLM 硬件侧 + UsrLinuxEmu 驱动侧）
 > **关联**:
 > - [`docs/roadmap/pcie-ep-cpptlm-collaboration-roadmap.md`](../roadmap/pcie-ep-cpptlm-collaboration-roadmap.md) — 5 步实施 roadmap
+> - [`docs/02_architecture/sdma-engine-design.md`](sdma-engine-design.md) — **SDMA 引擎内部设计**（Ring Buffer + RPTR/WPTR + Doorbell + Packet + 状态机 + 地址翻译 + Fence + D2D 路径 + CmdProc 集成；11 章节）
 > - [`openspec/changes/2026-09-09-cpptlm-pcie-ep-foundation/specs/cpptlm-pcie-ep-foundation/spec.md`](../../openspec/changes/2026-09-09-cpptlm-pcie-ep-foundation/specs/cpptlm-pcie-ep-foundation/spec.md) — 14 ADDED Requirements
 > - UsrLinuxEmu 对应文档: `docs/02_architecture/pcie-endpoint-architecture.md`（驱动侧同步）
 
@@ -289,6 +290,8 @@ SDMA 引擎发起 DMA
 - dma_translate_cb 必须真实调用（修复 #2，移除硬编码 pa=0）
 - cb 失败 fallback: phys = iova（identity mapping）
 - IOMMU 翻译支持 Intel VT-d / AMD IOMMU
+
+**完整 SDMA 内部设计**（Ring Buffer 协议 / RPTR/WPTR 算法 / Doorbell 协议 / Packet 格式 / 状态机 / 地址翻译链 / 完成通知 / D2D 路径 / CmdProc 集成）见 [`sdma-engine-design.md`](sdma-engine-design.md)。
 
 ### §2.5 电源管理数据流
 

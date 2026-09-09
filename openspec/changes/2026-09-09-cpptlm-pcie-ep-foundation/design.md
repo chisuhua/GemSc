@@ -150,12 +150,25 @@ int cpptlm_emulator_register_callbacks(emu, intr_cb, err_cb, reset_cb, power_cb,
 }
 ```
 
-### §3.3 步骤 1.3：DMA 引擎
+### §3.3 步骤 1.3：DMA 引擎（**已细分 4 子阶段**）
 
-**修改文件**：
-- `src/abi/cpptlm_emulator.cc` — 修复 #2
-- `src/tlm/gpu/sdma_engine_tlm.cc` — Scatter-Gather 描述符
-- `src/tlm/pcie/pcie_endpoint_ip.cc` — IOMMU 兼容地址翻译接口
+> **重要修订**：Oracle 2026-09-09 审查指出，原"阶段 1.3 = 0.5 周"严重低估（现有 `sdma_engine_tlm.cc` 是 descriptor 直投而非 Ring Buffer 架构，需"补架构"而非"修 bug"）。按 SDMA 内部设计（[`docs/02_architecture/sdma-engine-design.md`](../../docs/02_architecture/sdma-engine-design.md) 11 章节）拆分如下：
+
+| 子阶段 | 内容 | 工期 | 对应 SDMA 设计章节 |
+|--------|------|:---:|------------------|
+| **1.3a** | PCIe SDMA 基础: Ring Buffer + RPTR/WPTR + Doorbell 绑定 + SG 描述符扩展 | 1 周 | §2-§6（类 + Ring + RPTR/WPTR + Doorbell + Packet）|
+| **1.3b** | D2D SDMA 路径: `DmaDescriptor::Dir::D2D` 扩展 + NoC 数据面（GpuMeshNoC 从延迟模型扩为 payload 转发）+ 显存控制器 bypass | 0.5-1 周 | §10（D2D 路径）|
+| **1.3c** | dma_translate_cb 真实化（#2）+ GART/IOMMU 4 级翻译链（identity + IOMMU 两模式）+ CP→SDMA DMA 转发（PM4 opcode 0x4600-0x4900 映射）| 0.5 周 | §8（地址翻译）+ §11（CmdProc 集成）|
+| **1.3d** | SDMA 完成通知: Fence 命令（Ring 内）+ done_out→CompletionRing→MSI-X 接线（#4）| 0.5 周 | §9（完成通知）|
+| **总计** | | **2.5-3 周**（原 0.5 周）| |
+
+**修改文件**（累计）：
+- `src/abi/cpptlm_emulator.cc` — 修复 #2（阶段 1.3c）
+- `src/tlm/gpu/sdma_engine_tlm.cc` — Ring Buffer + RPTR/WPTR + Doorbell + SG + D2D + Fence（阶段 1.3a/b/d）
+- `src/tlm/pcie/pcie_endpoint_ip.cc` — IOMMU 兼容地址翻译接口（阶段 1.3c）
+- `src/tlm/gpu/command_processor_mvp.cc` — DISPATCH 态 dma_req 分支（阶段 1.3c）
+- `src/tlm/gpu/dma_descriptor_mvp.hh` + `dma_bundles_tlm.hh` — Dir::D2D + SG 扩展（阶段 1.3a）
+- 新建：`src/tlm/gpu/sdma_ring_buffer.h/cc` + `sdma_packet.h/cc` + `d2d_noc_path.h/cc`（阶段 1.3a/b）
 
 **修复 #2（dma_translate_cb 硬编码 pa=0）**：
 ```cpp
@@ -172,6 +185,18 @@ board->set_dma_translate_callback([cb](uint64_t iova, size_t size) -> uint64_t {
     return ret == 0 ? pa : 0;  // cb 失败返 0（fallback）
 });
 ```
+
+**完整设计参考**：[`docs/02_architecture/sdma-engine-design.md`](../../docs/02_architecture/sdma-engine-design.md)（11 章节）
+- §2 类定义（5 端口冻结 + RingBuffer/RPTR/WPTR/Doorbell/SG 新增）
+- §3 Ring Buffer 结构（容量/对齐/物理布局）
+- §4 RPTR/WPTR 算法（满/空判定 + race 防护 + memory ordering）
+- §5 Doorbell 协议（BAR0+0x10010000 + 强序 + Doorbell 类绑定）
+- §6 Packet 格式（Header opcode+count + Payload + D2D/H2D/D2H 三向编码 + SG chain）
+- §7 状态机（IDLE→FETCH→DECODE→EXECUTE→COMPLETE 与 CP FSM 对齐）
+- §8 地址翻译链（4 级 + identity/IOMMU 两模式 + GART 集成）
+- §9 完成通知（MSI-X + Fence 双轨 + Fence Table 内存映射）
+- §10 D2D 路径（NoC 数据面扩展 + 显存控制器 bypass）
+- §11 CmdProc 集成（PM4 DMA opcode 0x4600-0x4900 映射 + 双轨过渡）
 
 ### §3.4 步骤 1.4：电源管理
 
