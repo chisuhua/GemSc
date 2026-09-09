@@ -5,9 +5,9 @@
 > **范围**: 跨仓 SSOT（CppTLM 硬件侧 + UsrLinuxEmu 驱动侧）
 > **关联**:
 > - [`docs/roadmap/pcie-ep-cpptlm-collaboration-roadmap.md`](../roadmap/pcie-ep-cpptlm-collaboration-roadmap.md) — 5 步实施 roadmap
-> - [`docs/02_architecture/sdma-engine-design.md`](sdma-engine-design.md) — **SDMA 引擎内部设计**（Ring Buffer + RPTR/WPTR + Doorbell + Packet + 状态机 + 地址翻译 + Fence + D2D 路径 + CmdProc 集成；11 章节）
+> - [`docs/soc_arch/architecture/17-sdma-engine-design.md`](sdma-engine-design.md) — **SDMA 引擎内部设计**（Ring Buffer + RPTR/WPTR + Doorbell + Packet + 状态机 + 地址翻译 + Fence + D2D 路径 + CmdProc 集成；11 章节）
 > - [`openspec/changes/2026-09-09-cpptlm-pcie-ep-foundation/specs/cpptlm-pcie-ep-foundation/spec.md`](../../openspec/changes/2026-09-09-cpptlm-pcie-ep-foundation/specs/cpptlm-pcie-ep-foundation/spec.md) — 14 ADDED Requirements
-> - UsrLinuxEmu 对应文档: `docs/02_architecture/pcie-endpoint-architecture.md`（驱动侧同步）
+> - UsrLinuxEmu 对应文档: `docs/soc_arch/architecture/16-pcie-endpoint-architecture.md`（驱动侧同步）
 
 ---
 

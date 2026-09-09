@@ -46,7 +46,7 @@
 |------|------|:---:|------------------------------|:----:|
 | **阶段 1.1** | PCIe EP 基础 | 0.5-1 周 | [`2026-09-09-cpptlm-pcie-ep-foundation` §阶段 1.1](../../openspec/changes/2026-09-09-cpptlm-pcie-ep-foundation/tasks.md) | 🔄 Proposed |
 | **阶段 1.2** | MSI-X 中断 | 0.5 周 | 同上 §阶段 1.2 | 🔄 Proposed |
-| **阶段 1.3a** | PCIe SDMA 基础: Ring Buffer + RPTR/WPTR + Doorbell + SG | 1 周 | 同上 §阶段 1.3 + [`docs/02_architecture/sdma-engine-design.md` §2-§6](../../02_architecture/sdma-engine-design.md) | 🔄 Proposed |
+| **阶段 1.3a** | PCIe SDMA 基础: Ring Buffer + RPTR/WPTR + Doorbell + SG | 1 周 | 同上 §阶段 1.3 + [`docs/soc_arch/architecture/17-sdma-engine-design.md` §2-§6](../../02_architecture/sdma-engine-design.md) | 🔄 Proposed |
 | **阶段 1.3b** | D2D SDMA 路径: NoC 数据面 + 显存控制器 bypass | 0.5-1 周 | 同上 §阶段 1.3 + [`sdma-engine-design.md` §10](../../02_architecture/sdma-engine-design.md) | 🔄 Proposed |
 | **阶段 1.3c** | dma_translate_cb 真实化 + GART/IOMMU + CP→SDMA DMA 转发 | 0.5 周 | 同上 §阶段 1.3 + [`sdma-engine-design.md` §8+§11](../../02_architecture/sdma-engine-design.md) | 🔄 Proposed |
 | **阶段 1.3d** | SDMA 完成通知: Fence + MSI-X 接线 | 0.5 周 | 同上 §阶段 1.3 + [`sdma-engine-design.md` §9](../../02_architecture/sdma-engine-design.md) | 🔄 Proposed |
@@ -57,7 +57,7 @@
 **v0.1 → v0.2 修订**（Oracle 2026-09-09 审查触发）：
 - 阶段 1.3 从单一步骤拆为 4 子阶段（1.3a/1.3b/1.3c/1.3d），原 0.5 周 → 2.5-3 周
 - 总工期 2.5-3.5 周 → 4.5-6.5 周
-- 新增 SDMA 内部设计文档 [`docs/02_architecture/sdma-engine-design.md`](../../02_architecture/sdma-engine-design.md)（11 章节，作为 1.3 实施的设计基础）
+- 新增 SDMA 内部设计文档 [`docs/soc_arch/architecture/17-sdma-engine-design.md`](../../02_architecture/sdma-engine-design.md)（11 章节，作为 1.3 实施的设计基础）
 - **不变项**：阶段 1.1/1.2/1.4/2.1 工期不变；22 ABI 签名不变；5 端口 wire-format 冻结
 
 ### §1.3 双层 DMA 架构（PCIe SDMA 硬件 + CommandBuffer 软件）
@@ -247,7 +247,7 @@
 - **v0.2** (2026-09-09, Draft): **阶段 1.3 拆 4 子阶段**（Oracle CONDITIONAL 4.5/10 触发）
   - 阶段 1.3 单步 → 4 子步骤（1.3a/1.3b/1.3c/1.3d），原 0.5 周 → 2.5-3 周
   - 总工期 2.5-3.5 周 → **4.5-6.5 周**
-  - 新增 SDMA 内部设计文档 `docs/02_architecture/sdma-engine-design.md`（11 章节）
+  - 新增 SDMA 内部设计文档 `docs/soc_arch/architecture/17-sdma-engine-design.md`（11 章节）
   - 不变：阶段 1.1/1.2/1.4/2.1 工期；22 ABI 签名；5 端口 wire-format
 
 - **v0.1** (2026-09-09, Draft): 初版,基于 Oracle 三轮审查 + 用户战略调整 + CppTLM 5 步实施框架
